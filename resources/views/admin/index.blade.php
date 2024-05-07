@@ -7,9 +7,28 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{ __("Admin Panel") }}
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 flex justify-between">
+                <a href="{{route('admin.viewCoordinators')}}">
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105">
+                        <div class="p-6 text-gray-900">
+                            {{ __("User Management") }}
+                        </div>
+                    </div>
+                </a>
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105">
+                    <div class="p-6 text-gray-900">
+                        {{ __("Roles") }}
+                    </div>
+                </div>
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105">
+                    <div class="p-6 text-gray-900">
+                        {{ __("Permissions") }}
+                    </div>
+                </div>
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105">
+                    <div class="p-6 text-gray-900">
+                        {{ __("Card 4") }}
+                    </div>
                 </div>
             </div>
         </div>

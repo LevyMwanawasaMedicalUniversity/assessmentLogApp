@@ -21,6 +21,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/upload', [PagesController::class, 'upload'])->name('pages.upload');
     Route::get('/admin/index',[AdministratorController::class, 'index'])->name('admin.index');
     Route::get('/admin/importCoordinators',[AdministratorController::class, 'importCoordinators'])->name('admin.importCoordinators');
+    Route::get('/admin/viewCoordinators',[AdministratorController::class, 'viewCoordinators'])->name('admin.viewCoordinators');
+    
     Route::get('/admin/viewCoordinatorsCourses/{id}',[AdministratorController::class, 'viewCoordinatorsCourses'])->name('admin.viewCoordinatorsCourses');
     
 });

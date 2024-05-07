@@ -41,6 +41,20 @@ class AdministratorController extends Controller
         return $results;
     }
 
+    public function viewCoordinators(){
+        $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
+            ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
+            ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
+            ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
+            ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
+            ->select('basic-information.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName')
+            // ->where('basic-information.ID', $basicInformationId)
+            ->get();
+            $counts = $results->countBy('ID');
+            $results= $results->unique('ID');
+        return view('admin.viewCoordinators', compact('results', 'counts'));
+    }
+
     public function viewCoordinatorsCourses($basicInformationId){
         $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
             ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
