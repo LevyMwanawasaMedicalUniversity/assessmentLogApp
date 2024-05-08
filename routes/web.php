@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdministratorController;
+use App\Http\Controllers\CoordinatorController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -23,8 +24,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/importCoordinators',[AdministratorController::class, 'importCoordinators'])->name('admin.importCoordinators');
     Route::get('/admin/viewCoordinators',[AdministratorController::class, 'viewCoordinators'])->name('admin.viewCoordinators');
     
-    Route::get('/admin/viewCoordinatorsCourses/{id}',[AdministratorController::class, 'viewCoordinatorsCourses'])->name('admin.viewCoordinatorsCourses');
-    
+    Route::post('/admin/viewCoordinatorsCourses',[AdministratorController::class, 'viewCoordinatorsCourses'])->name('admin.viewCoordinatorsCourses');
+    Route::post('/admin/viewsCourse',[AdministratorController::class, 'viewCourse'])->name('admin.viewCourse');
+    Route::POST('/coordinator/uploadCa',[CoordinatorController::class, 'uploadCa'])->name('coordinator.uploadCa');
 });
 
 require __DIR__.'/auth.php';

@@ -55,17 +55,35 @@ class AdministratorController extends Controller
         return view('admin.viewCoordinators', compact('results', 'counts'));
     }
 
-    public function viewCoordinatorsCourses($basicInformationId){
+    public function viewCoordinatorsCourses(Request $request){
+
+        $basicInformationId = $request->basicInformationId;
         $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
             ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
             ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
             ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
             ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
-            ->select('basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName')
+            ->select('courses.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName','courses.CourseDescription')
             ->where('basic-information.ID', $basicInformationId)
             ->get();
         
-        return $results;
+        return view('admin.viewCoordinatorsCourses', compact('results'));
+
+    }
+
+    public function viewCourse(Request $request){
+
+        $courseId = $request->courseId;
+        $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
+            ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
+            ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
+            ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
+            ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
+            ->select('courses.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName','courses.CourseDescription')
+            ->where('courses.ID', $courseId)
+            ->first();
+        
+        return view('admin.viewCourse', compact('results'));
 
     }
 
