@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\EduroleStudy;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -55,9 +56,9 @@ class AdministratorController extends Controller
         return view('admin.viewCoordinators', compact('results', 'counts'));
     }
 
-    public function viewCoordinatorsCourses(Request $request){
+    public function viewCoordinatorsCourses($basicInformationId){
 
-        $basicInformationId = $request->basicInformationId;
+        $basicInformationId = Crypt::decrypt($basicInformationId);
         $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
             ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
             ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')

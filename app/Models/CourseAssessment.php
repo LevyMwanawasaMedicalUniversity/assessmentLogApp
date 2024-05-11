@@ -10,7 +10,7 @@ class CourseAssessment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'course_code',
+        'course_id',
         'ca_type',
         'basic_information_id',
         'academic_year'

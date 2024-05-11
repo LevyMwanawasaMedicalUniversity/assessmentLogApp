@@ -1,7 +1,7 @@
-<div class="bg-white shadow rounded-lg p-6">
+<div class="bg-white shadow rounded-lg p-6 border border-gray-300">
     <!-- Header -->
     <div class="mb-6">
-        <h4 class="text-lg font-bold text-gray-800">Import Student and Send Dockets</h4>
+        <h4 class="text-lg font-bold text-gray-800">Upload Excel Sheet Of Marks</h4>
     </div>
 
     <!-- Alert Messages -->
@@ -20,12 +20,16 @@
     </div>
 
     <!-- File Upload Form -->
-    <form action="" method="POST" enctype="multipart/form-data">
+    <form action="{{route('coordinator.importCAFromExcelSheet')}}" method="POST" enctype="multipart/form-data">
         @csrf
 
         <!-- Excel File Input -->
         <div class="mb-4">
             <label for="excelFile" class="font-bold text-lg text-gray-700">Choose Excel (xlsx) File</label>
+            <input type="hidden" name="status" value={{$statusId}}>
+            <input type="hidden" name="course_id" value={{$courseId}}>
+            <input type="hidden" name="course_code" value={{$results->CourseName}}>
+            <input type="hidden" name="basicInformationId" value={{$results->basicInformationId}}>            
             <input type="file" name="excelFile" accept=".xlsx" class="w-full border border-gray-300 rounded p-2 bg-white" id="excelFileInput">
         </div>
 
@@ -42,11 +46,9 @@
         <div class="mb-6">
             <label for="academicYear" class="font-bold text-lg text-gray-700">Academic Year</label>
             <select name="academicYear" class="w-auto border border-gray-300 rounded p-2 bg-white" required>
-                <option value="2023">2023  </option>
-                <option value="2024">2024  </option>
-                <option value="2025">2025  </option>
-                <option value="2026">2026  </option>
-                <option value="2027">2027  </option>
+                @for ($year = 2019; $year <= date('Y'); $year++)
+                    <option value="{{ $year }}" {{ date('Y') == $year ? 'selected' : '' }}>{{ $year }}</option>
+                @endfor
             </select>
         </div>
 

@@ -12,9 +12,8 @@ class CourseAssessmentScores extends Model
     protected $fillable = [
         'course_assessment_id',
         'student_id',
+        'course_code', 
         'score',
-        'grade',
-        'status',
         'created_by',
         'updated_by'
     ]; 

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('course_assessment_id');
             $table->integer('student_id');
-            $table->integer('course_code');
+            $table->string('course_code');
             $table->foreign('course_assessment_id')->references('id')->on('course_assessments');
             // $table->foreign('StudentID')->references('student_number')->on('students');
             $table->integer('score');

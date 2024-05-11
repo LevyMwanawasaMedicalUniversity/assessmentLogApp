@@ -27,9 +27,7 @@
                                 <td class="border px-4 py-2">{{$result->Name}}</td>
                                 <td class="border px-4 py-2">{{$counts[$result->ID]}}</td>
                                 <td class="border px-4 py-2">
-                                    <form method="POST" action="{{ route('admin.viewCoordinatorsCourses') }}">
-                                        @csrf
-                                        <input type="hidden" name="basicInformationId" value="{{ $result->ID }}">
+                                    <form method="GET" action="{{ route('admin.viewCoordinatorsCourses', ['basicInformationId' => encrypt($result->ID)]) }}">
                                         <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                             View User
                                         </button>

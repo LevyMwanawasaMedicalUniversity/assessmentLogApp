@@ -11,11 +11,11 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    Course Name: <span ><b>{{$result->CourseDescription}} {{$result->CourseName}} {{$result->ID}}</b></span>
+                    <b><span >{{$result->CourseDescription}} - {{$result->CourseName}}</span></b>
 
                     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                         <div class="grid grid-rows-3 gap-6"> <!-- Grid with 3 equal-width columns -->
-                            <!-- First Block -->
+                            {{-- <!-- First Block -->
                             <form method="POST" action="{{ route('coordinator.uploadCa') }}">
                                 @csrf
                                 <input type="hidden" name="statusId" value="1">
@@ -25,13 +25,19 @@
                                         {{ __("Assignment") }}
                                     </div>
                                 </button>
+                            </form> --}}
+
+                            <!-- First Block -->
+                            <form method="GET" action="{{ route('coordinator.uploadCa', ['statusId' => encrypt(1), 'courseIdValue' => encrypt($result->ID)]) }}">
+                                <button type="submit" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid green;">
+                                    <div class="p-6 text-gray-900">
+                                        {{ __("Assignment") }}
+                                    </div>
+                                </button>
                             </form>
 
                             <!-- Second Block -->
-                            <form method="POST" action="{{ route('coordinator.uploadCa') }}">
-                                @csrf
-                                <input type="hidden" name="statusId" value="2">
-                                <input type="hidden" name="courseIdValue" value={{$result->ID}}>
+                            <form method="GET" action="{{ route('coordinator.uploadCa', ['statusId' => encrypt(2), 'courseIdValue' => encrypt($result->ID)]) }}">
                                 <button type="submit" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid blue;">
                                     <div class="p-6 text-gray-900">
                                         {{ __("Test") }}
@@ -40,10 +46,7 @@
                             </form>
 
                             <!-- Third Block -->
-                            <form method="POST" action="{{ route('coordinator.uploadCa') }}">
-                                @csrf
-                                <input type="hidden" name="statusId" value="3">
-                                <input type="hidden" name="courseIdValue" value={{$result->ID}}>
+                            <form method="GET" action="{{ route('coordinator.uploadCa', ['statusId' => encrypt(3), 'courseIdValue' => encrypt($result->ID)]) }}">
                                 <button type="submit" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid red;">
                                     <div class="p-6 text-gray-900">
                                         {{ __("Mock") }}

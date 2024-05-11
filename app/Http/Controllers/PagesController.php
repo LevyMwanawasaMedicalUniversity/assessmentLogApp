@@ -10,11 +10,11 @@ class PagesController extends Controller
     public function upload()
     {
         $user = auth()->user();
-        $role = $user->roles->first()->name;
-        if($role != 'Coordinator'){
+        try {
+            $role = $user->roles->first()->name;
+        } catch (\Exception $e) {
             return redirect()->route('dashboard');
         }
-
         $userBasicInformation = $user->basic_information_id;
 
         $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
