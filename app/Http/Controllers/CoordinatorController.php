@@ -10,8 +10,10 @@ class CoordinatorController extends Controller
 {
     public function uploadCa(Request $request){
 
-        $courseId = $request->courseId;
+        $courseId = $request->courseIdValue;
         $statusId = $request->statusId;
+
+        // return $courseId;
 
         $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
             ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')

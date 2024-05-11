@@ -29,7 +29,7 @@
                                                     @csrf
                                                     <input type="hidden" name="statusId" value="1">
                                                     <input type="hidden" name="courseId" value="{{ $results->ID }}">
-                                                    <button type="submit" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center">
+                                                    <button type="submit" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid red;">
                                                         <div class="p-6 text-gray-900">
                                                             {{ __("Assignment") }}
                                                         </div>
@@ -41,7 +41,7 @@
                                                     @csrf
                                                     <input type="hidden" name="statusId" value="2">
                                                     <input type="hidden" name="courseId" value="{{ $results->ID }}">
-                                                    <button type="submit" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center">
+                                                    <button type="submit" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid green;">
                                                         <div class="p-6 text-gray-900">
                                                             {{ __("Test") }}
                                                         </div>
@@ -53,7 +53,7 @@
                                                     @csrf
                                                     <input type="hidden" name="statusId" value="3">
                                                     <input type="hidden" name="courseId" value="{{ $results->ID }}">
-                                                    <button type="submit" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center">
+                                                    <button type="submit" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid blue;">
                                                         <div class="p-6 text-gray-900">
                                                             {{ __("Mock") }}
                                                         </div>
