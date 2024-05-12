@@ -42,7 +42,7 @@
                                 </button>
                             </form>
 
-                            <form method="GET" action="{{ route('coordinator.viewTotalCaInCourse', ['courseIdValue' => encrypt($result->ID)]) }}">
+                            <form method="GET" action="{{ route('coordinator.viewTotalCaInCourse', ['statusId' => encrypt($result->caType),'courseIdValue' => encrypt($result->ID)]) }}">
                                 <button type="submit" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid black;">
                                     <div class="p-6 text-gray-900">
                                         {{ __("Total CA") }}

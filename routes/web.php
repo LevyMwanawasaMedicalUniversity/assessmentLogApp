@@ -29,7 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/coordinator/uploadCa/{statusId}/{courseIdValue}',[CoordinatorController::class, 'uploadCa'])->name('coordinator.uploadCa');
     Route::get('/coordinator/viewCa/{statusId}/{courseIdValue}',[CoordinatorController::class, 'viewAllCaInCourse'])->name('coordinator.viewAllCaInCourse');
     Route::get('/coordinator/viewSpecificCaInCourse/{statusId}/{courseIdValue}',[CoordinatorController::class, 'viewSpecificCaInCourse'])->name('coordinator.viewSpecificCaInCourse');
-    Route::get('/coordinator/viewTotalCaInCourse/{courseIdValue}',[CoordinatorController::class, 'viewTotalCaInCourse'])->name('coordinator.viewTotalCaInCourse');
+    Route::get('/coordinator/viewTotalCaInCourse/{statusId}/{courseIdValue}',[CoordinatorController::class, 'viewTotalCaInCourse'])->name('coordinator.viewTotalCaInCourse');
     Route::POST('/coordinator/importCAFromExcelSheet',[CoordinatorController::class, 'importCAFromExcelSheet'])->name('coordinator.importCAFromExcelSheet');
 
 

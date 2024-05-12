@@ -26,7 +26,7 @@
         <!-- Excel File Input -->
         <div class="mb-4">
             <label for="excelFile" class="font-bold text-lg text-gray-700">Choose Excel (xlsx) File</label>
-            <input type="hidden" name="status" value={{$statusId}}>
+            <input type="hidden" name="ca_type" value={{$caType}}>
             <input type="hidden" name="course_id" value={{$courseId}}>
             <input type="hidden" name="course_code" value={{$results->CourseName}}>
             <input type="hidden" name="basicInformationId" value={{$results->basicInformationId}}>            

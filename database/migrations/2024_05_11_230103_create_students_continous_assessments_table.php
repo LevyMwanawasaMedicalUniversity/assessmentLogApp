@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('students_continous_assessments', function (Blueprint $table) {
-            $table->id();
+            $table->id('students_continous_assessment_id');
             $table->unsignedBigInteger('student_id');
             $table->unsignedBigInteger('course_id');
             $table->string('academic_year');
-            $table->decimal('ca_marks', 8, 2);
+            $table->decimal('sca_score', 8, 2);
             $table->integer('ca_type');
             $table->timestamps();
         });

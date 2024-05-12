@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class CourseAssessmentScores extends Model
 {
     use HasFactory;
-
+    protected $primaryKey = 'course_assessment_scores_id';
+    
     protected $fillable = [
         'course_assessment_id',
         'student_id',
         'course_code', 
-        'score',
+        'cas_score',
         'created_by',
         'updated_by'
     ]; 

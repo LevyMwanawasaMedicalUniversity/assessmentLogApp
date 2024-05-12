@@ -30,7 +30,7 @@
                                     <td class="px-4 py-2">{{$result->academic_year}}</td> 
                                     <td class="px-4 py-2">
                                             <div class="btn-group flex" role="group" aria-label="Button group">
-                                                <a href="{{ route('coordinator.viewSpecificCaInCourse', ['statusId' => encrypt($result->statusId), 'courseIdValue' => encrypt($result->id)]) }}">
+                                                <a href="{{ route('coordinator.viewSpecificCaInCourse', ['statusId' => encrypt($statusId), 'courseIdValue' => encrypt($result->course_assessments_id)]) }}">
                                                     <button type="button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-l-none">
                                                         View
                                                     </button>

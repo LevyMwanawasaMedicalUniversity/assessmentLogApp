@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('course_assessment_scores', function (Blueprint $table) {
-            $table->id();
+            $table->id('course_assessment_scores_id');
             $table->unsignedBigInteger('course_assessment_id');
             $table->integer('student_id');
             $table->string('course_code');
-            $table->foreign('course_assessment_id')->references('id')->on('course_assessments')->cascadeOnDelete();
+            $table->foreign('course_assessment_id')->references('course_assessments_id')->on('course_assessments')->cascadeOnDelete();
             // $table->foreign('StudentID')->references('student_number')->on('students');
-            $table->decimal('score',8,2);
+            $table->decimal('cas_score',8,2);
             $table->timestamps();
         });
     }
