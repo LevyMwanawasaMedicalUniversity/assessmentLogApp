@@ -21,12 +21,12 @@
                         </thead>
                         <tbody>
                             @foreach($results as $result)
-                            <tr>
-                                <td class="border px-4 py-2">{{$result->Firstname}}</td>
-                                <td class="border px-4 py-2">{{$result->Surname}}</td>
-                                <td class="border px-4 py-2">{{$result->Name}}</td>
-                                <td class="border px-4 py-2">{{$counts[$result->ID]}}</td>
-                                <td class="border px-4 py-2">
+                            <tr class="border-t border-b hover:bg-gray-100">
+                                <td class="px-4 py-2">{{$result->Firstname}}</td>
+                                <td class="px-4 py-2">{{$result->Surname}}</td>
+                                <td class="px-4 py-2">{{$result->Name}}</td>
+                                <td class="px-4 py-2">{{$counts[$result->ID]}}</td>
+                                <td class="px-4 py-2">
                                     <form method="GET" action="{{ route('admin.viewCoordinatorsCourses', ['basicInformationId' => encrypt($result->ID)]) }}">
                                         <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                             View User

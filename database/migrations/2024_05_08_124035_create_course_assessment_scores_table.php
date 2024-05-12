@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('course_assessment_id');
             $table->integer('student_id');
             $table->string('course_code');
-            $table->foreign('course_assessment_id')->references('id')->on('course_assessments');
+            $table->foreign('course_assessment_id')->references('id')->on('course_assessments')->cascadeOnDelete();
             // $table->foreign('StudentID')->references('student_number')->on('students');
             $table->decimal('score',8,2);
             $table->timestamps();

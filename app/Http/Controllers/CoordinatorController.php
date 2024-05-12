@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\CourseAssessment;
 use App\Models\CourseAssessmentScores;
+use App\Models\EduroleCourses;
 use App\Models\EduroleStudy;
 use App\Models\StudentsContinousAssessment;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 
 class CoordinatorController extends Controller
 {
@@ -31,6 +33,58 @@ class CoordinatorController extends Controller
         return view('coordinator.uploadCa', compact('results', 'statusId','courseId'));
     }
 
+    public function viewAllCaInCourse($statusId, $courseIdValue){
+        $courseId = Crypt::decrypt($courseIdValue);
+        $statusId = Crypt::decrypt($statusId);
+
+        $courseDetails = EduroleCourses::where('ID', $courseId)->first();
+
+        $results = CourseAssessment::where('course_id', $courseId)
+            ->where('ca_type', $statusId)
+            // ->join('course_assessment_scores', 'course_assessments.id', '=', 'course_assessment_scores.course_assessment_id')
+            ->orderBy('course_assessments.created_at', 'asc')
+            ->get();
+        // return $results;
+        $assessmentType = $this->setAssesmentType($statusId);
+
+        return view('coordinator.viewAllCaInCourse', compact('results', 'statusId', 'courseId','courseDetails','assessmentType'));
+    }
+
+    private function setAssesmentType($statusId){
+        if($statusId == 1){
+            return 'Assignment';
+        }else if($statusId == 2){
+            return 'Test';
+        }else if($statusId == 3){
+            return 'Mock Exam';
+        }else if($statusId == 4){
+            return 'Practical';
+        }
+    }
+
+    public function viewSpecificCaInCourse($statusId, $courseIdValue){
+        $courseId = Crypt::decrypt($courseIdValue);
+        // return $courseId;
+        $results = CourseAssessment::where('course_assessments.id', $courseId)
+            // ->where('ca_type', $statusId)
+            ->join('course_assessment_scores', 'course_assessments.id', '=', 'course_assessment_scores.course_assessment_id')
+            ->orderBy('course_assessments.created_at', 'asc')
+            ->get();
+        $courseEduroleId = $results[0]->course_id;
+        $courseDetails = EduroleCourses::where('ID', $courseEduroleId)->first();
+        $assessmentType = $this->setAssesmentType($statusId);
+        return view('coordinator.viewSpecificCaInCourse', compact('results', 'courseId','assessmentType','courseDetails'));
+    }
+    public function viewTotalCaInCourse($courseIdValue){
+        $courseId = Crypt::decrypt($courseIdValue);
+        $courseDetails = EduroleCourses::where('ID', $courseId)->first();
+        $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
+            ->whereIn('ca_type', [1,2,3]) 
+            ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.ca_marks) as total_marks'))
+            ->groupBy('students_continous_assessments.student_id')
+            ->get();
+        return $results; 
+    }
     public function importCAFromExcelSheet(Request $request){
         set_time_limit(1200000);
         // Validate the form data

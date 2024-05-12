@@ -4,7 +4,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title" id="viewCourseModalLabel">
-                        <b>Select Assessment Type</b>
+                        <b>Select Assessment Type To View</b>
                     </h3>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -14,21 +14,9 @@
                     <b><span >{{$result->CourseDescription}} - {{$result->CourseName}}</span></b>
 
                     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                        <div class="grid grid-rows-3 gap-6"> <!-- Grid with 3 equal-width columns -->
-                            {{-- <!-- First Block -->
-                            <form method="POST" action="{{ route('coordinator.uploadCa') }}">
-                                @csrf
-                                <input type="hidden" name="statusId" value="1">
-                                <input type="hidden" name="courseIdValue" value={{$result->ID}}>
-                                <button type="submit" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid green;">
-                                    <div class="p-6 text-gray-900">
-                                        {{ __("Assignment") }}
-                                    </div>
-                                </button>
-                            </form> --}}
-
+                        <div class="flex flex-col space-y-6"> <!-- Flex container with vertical spacing -->
                             <!-- First Block -->
-                            <form method="GET" action="{{ route('coordinator.uploadCa', ['statusId' => encrypt(1), 'courseIdValue' => encrypt($result->ID)]) }}">
+                            <form method="GET" action="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt(1), 'courseIdValue' => encrypt($result->ID)]) }}">
                                 <button type="submit" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid green;">
                                     <div class="p-6 text-gray-900">
                                         {{ __("Assignment") }}
@@ -37,7 +25,7 @@
                             </form>
 
                             <!-- Second Block -->
-                            <form method="GET" action="{{ route('coordinator.uploadCa', ['statusId' => encrypt(2), 'courseIdValue' => encrypt($result->ID)]) }}">
+                            <form method="GET" action="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt(2), 'courseIdValue' => encrypt($result->ID)]) }}">
                                 <button type="submit" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid blue;">
                                     <div class="p-6 text-gray-900">
                                         {{ __("Test") }}
@@ -46,10 +34,18 @@
                             </form>
 
                             <!-- Third Block -->
-                            <form method="GET" action="{{ route('coordinator.uploadCa', ['statusId' => encrypt(3), 'courseIdValue' => encrypt($result->ID)]) }}">
+                            <form method="GET" action="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt(3), 'courseIdValue' => encrypt($result->ID)]) }}">
                                 <button type="submit" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid red;">
                                     <div class="p-6 text-gray-900">
                                         {{ __("Mock") }}
+                                    </div>
+                                </button>
+                            </form>
+
+                            <form method="GET" action="{{ route('coordinator.viewTotalCaInCourse', ['courseIdValue' => encrypt($result->ID)]) }}">
+                                <button type="submit" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid black;">
+                                    <div class="p-6 text-gray-900">
+                                        {{ __("Total CA") }}
                                     </div>
                                 </button>
                             </form>
