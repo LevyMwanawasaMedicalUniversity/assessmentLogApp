@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CourseAssessment;
 use App\Models\CourseAssessmentScores;
 use App\Models\EduroleStudy;
+use App\Models\StudentsContinousAssessment;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -91,6 +92,7 @@ class CoordinatorController extends Controller
                     ],[                        
                         'score' => $entry['mark'],                      
                     ]);
+                    $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $request->status, trim($entry['student_number']));
                 }
             }catch(\Exception $e){
                 return back()->with('error', 'An error occurred while importing the data. Please try again.');
@@ -98,7 +100,42 @@ class CoordinatorController extends Controller
 
         }
 
-        // return redirect()->back()->with('success', 'Data imported successfully');
+        return redirect()->back()->with('success', 'Data imported successfully');
         // return redirect()->route('coordinator.uploadCa', ['courseIdValue' => $request->course_id, 'statusId' => $request->status])->with('success', 'Data imported successfully');
+    }
+
+    private function calculateAndSubmitCA($courseId, $academicYear, $statusId, $studentNumber){
+        $caScores = CourseAssessmentScores::where('course_assessments.course_id', $courseId)
+            ->where('course_assessments.academic_year', $academicYear)
+            ->where('course_assessments.ca_type', $statusId)
+            ->where('course_assessment_scores.student_id', $studentNumber)
+            ->select('course_assessment_scores.score as mark')
+            ->join('course_assessments', 'course_assessments.id', '=', 'course_assessment_scores.course_assessment_id')
+            ->get();
+    
+        $total = 0;
+        $count = 0;
+        $maxScore = 0;
+        if($statusId == 1) {
+            $maxScore = 10;
+        } else if($statusId == 2 || $statusId == 3) {
+            $maxScore = 15;
+        } else if($statusId == 4) {
+            $maxScore = 100;
+        }
+    
+        foreach ($caScores as $caScore){
+            // Adjust the mark to be out of the maxScore for the status
+            $adjustedMark = ($caScore->mark / 100) * $maxScore;
+            $total += $adjustedMark;
+            $count++;
+        }
+    
+        $average = $total / $count;
+    
+        // Save or update the average in the StudentsContiousAssessment table
+        $studentCA = StudentsContinousAssessment::firstOrNew(['student_id' => $studentNumber, 'course_id' => $courseId, 'academic_year' => $academicYear, 'ca_type' => $statusId]);
+        $studentCA->ca_marks = $average;
+        $studentCA->save();
     }
 }

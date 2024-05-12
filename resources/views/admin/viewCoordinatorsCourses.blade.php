@@ -35,7 +35,7 @@
                                     </td>
                                     @else
                                     <td class="border px-4 py-2">
-                                        <form method="GET" action="{{ route('coordinator.uploadCa', ['statusId' => 4, 'courseIdValue' => $result->ID]) }}">
+                                        <form method="GET" action="{{ route('coordinator.uploadCa', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}">
                                             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" data-toggle="modal">
                                                 View
                                             </button>

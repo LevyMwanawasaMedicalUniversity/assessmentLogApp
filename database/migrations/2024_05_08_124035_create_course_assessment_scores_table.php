@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('course_code');
             $table->foreign('course_assessment_id')->references('id')->on('course_assessments');
             // $table->foreign('StudentID')->references('student_number')->on('students');
-            $table->integer('score');
+            $table->decimal('score',8,2);
             $table->timestamps();
         });
     }
