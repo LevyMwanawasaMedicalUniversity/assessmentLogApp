@@ -24,7 +24,7 @@
                         <tbody>
                             @foreach($results as $result)                                
                                 <tr class="border-t border-b hover:bg-gray-100">
-                                    <td class="px-4 py-2">{{ $loop->iteration }}</td>
+                                    <td class="px-4 py-2">{{$assessmentType }} {{ $loop->iteration }}</td>
                                     <td class="px-4 py-2">{{$result->updated_at}}</td>
                                     <td class="px-4 py-2">{{$result->created_at}}</td>
                                     <td class="px-4 py-2">{{$result->academic_year}}</td> 

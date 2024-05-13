@@ -22,7 +22,7 @@
                         <tbody>
                             @foreach($results as $result)                                
                                 <tr class="border-t border-b hover:bg-gray-100">
-                                    <td class="px-4 py-2">{{$result->student_id }}</td>
+                                    <td class="px-4 py-2">{{$result->student_id}}</td>
                                     <td class="px-4 py-2">{{$result->total_marks}}</td>                                                                                                  
                                 </tr>
                             @endforeach

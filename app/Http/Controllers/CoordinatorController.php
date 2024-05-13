@@ -125,7 +125,7 @@ class CoordinatorController extends Controller
             $reader = ReaderEntityFactory::createXLSXReader();
             $reader->open($file->getPathname());
 
-            $isHeaderRow = true;
+            $isHeaderRow = false;
             $data = [];
             foreach ($reader->getSheetIterator() as $sheet) {
                 foreach ($sheet->getRowIterator() as $row) {
