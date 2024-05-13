@@ -16,18 +16,34 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
                 </div>
-
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('pages.upload')" :active="request()->routeIs('pages.upload')">
-                        {{ __('My Courses') }}
-                    </x-nav-link>
-                </div>               
-
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('admin.index')" :active="request()->routeIs('admin.index')">
-                        {{ __('Administration') }}
-                    </x-nav-link>
-                </div>
+                @if (auth()->user()->hasPermissionTo('Coordinator'))
+                    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                        <x-nav-link :href="route('pages.upload')" :active="request()->routeIs('pages.upload')">
+                            {{ __('My Courses') }}
+                        </x-nav-link>
+                    </div>               
+                @endif
+                @if (auth()->user()->hasPermissionTo('Administrator'))
+                    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                        <x-nav-link :href="route('admin.index')" :active="request()->routeIs('admin.index')">
+                            {{ __('Administration') }}
+                        </x-nav-link>
+                    </div>
+                @endif
+                @if (auth()->user()->hasPermissionTo('Dean'))
+                    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                        <x-nav-link :href="route('admin.viewCoordinators')" :active="request()->routeIs('admin.viewCoordinators')">
+                            {{ __('Coordinators') }}
+                        </x-nav-link>
+                    </div>
+                @endif
+                @if (auth()->user()->hasPermissionTo('Registrar'))
+                    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                        <x-nav-link :href="route('admin.viewDeans')" :active="request()->routeIs('admin.viewDeans')">
+                            {{ __('Deans') }}
+                        </x-nav-link>
+                    </div>
+                @endif
             </div>
 
             <!-- Settings Dropdown -->

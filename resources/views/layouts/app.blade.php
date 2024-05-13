@@ -25,7 +25,22 @@
             @if (isset($header))
                 <header class="bg-white shadow">
                     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                    <!-- Alert Messages -->
+                        
                         {{ $header }}
+                        {{-- <div class="w-full mb-6"> --}}
+                            @if (session('success'))
+                                <div class="bg-green-100 text-green-800 px-4 py-2 rounded">
+                                    {{ session('success') }}
+                                </div>
+                            @endif
+
+                            @if (session('error'))
+                                <div class="bg-red-100 text-red-800 px-4 py-2 rounded">
+                                    {{ session('error') }}
+                                </div>
+                            @endif
+                        {{-- </div> --}}
                     </div>
                 </header>
             @endif

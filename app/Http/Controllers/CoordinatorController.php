@@ -99,6 +99,9 @@ class CoordinatorController extends Controller
         // return $results;
         return view('coordinator.viewTotalCaInCourse', compact('results', 'statusId', 'courseId','courseDetails')); 
     }
+
+    
+
     public function importCAFromExcelSheet(Request $request){
         set_time_limit(1200000);
         // Validate the form data

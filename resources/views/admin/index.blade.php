@@ -18,24 +18,24 @@
                                     <div class="grid grid-cols-3 gap-6"> <!-- Grid with 3 equal-width columns -->
                                         <!-- First Block -->
                                         <a href="{{route('admin.viewCoordinators')}}">
-                                            <button type="button" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center">
+                                            <button type="button" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid grey;">
                                                 <div class="p-6 text-gray-900">
-                                                    {{ __("View Coordinators") }}
+                                                    {{ __("Users") }}
                                                 </div>
                                             </button>
                                         </a>                                        
                                         <!-- Second Block -->   
                                         <a href="{{route('admin.importCoordinators')}}">
-                                            <button type="button" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center">
+                                            <button type="button" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid grey;">
                                                 <div class="p-6 text-gray-900">
-                                                    {{ __("Import Coordinators") }}
+                                                    {{ __("Roles") }}
                                                 </div>
                                             </button>
                                         </a> 
                                         <!-- Third Block -->                                        
-                                        <button type="" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center">
+                                        <button type="" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid grey;">
                                             <div class="p-6 text-gray-900">
-                                                {{ __("User Management") }}
+                                                {{ __("Permissions") }}
                                             </div>
                                         </button>                                        
                                     </div>

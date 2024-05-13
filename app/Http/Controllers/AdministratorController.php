@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EduroleBasicInformation;
 use App\Models\EduroleStudy;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -19,17 +20,24 @@ class AdministratorController extends Controller
 
     public function importCoordinators(){
         $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
-            ->select('basic-information.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name')
+            ->select('basic-information.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name','study.ParentID')
             ->get();
         
             foreach ($results as $result) {
                 $email = trim($result->PrivateEmail);
+                if (User::where('email', $email)->exists()) {
+                    // If it does, set the email to $result->ID@lmmu.ac.zm
+                    $email = $result->ID . '@lmmu.ac.zm';
+                }
                 $user = User::updateOrCreate(
-                    ['email' => $email],
+                    [
+                        'basic_information_id' => $result->ID,
+                        'email' => $email
+                    ],
                     [
                         'name' => $result->Firstname . ' ' . $result->Surname,
                         'password' => bcrypt('12345678'),
-                        'basic_information_id' => $result->ID,
+                        'school_id' => $result->ParentID,
                     ]
                 );
 
@@ -39,7 +47,43 @@ class AdministratorController extends Controller
                 $user->givePermissionTo($studentPermission);
             }        
 
-        return $results;
+        return redirect()->back()->with('success', 'Coordinators imported successfully');
+    }
+
+    public function importDeans(){
+        
+        $results = EduroleBasicInformation::join('access', 'access.ID', '=', 'basic-information.ID')
+            ->join('roles', 'roles.ID', '=', 'access.RoleID')
+            ->join('schools', 'schools.Dean', '=', 'basic-information.ID')
+            ->select('basic-information.FirstName', 'basic-information.Surname', 'basic-information.ID', 'roles.RoleName', 'schools.ID as ParentID')
+            ->get();
+
+        
+            foreach ($results as $result) {
+                $email = trim($result->PrivateEmail);
+                if (User::where('email', $email)->exists()) {
+                    // If it does, set the email to $result->ID@lmmu.ac.zm
+                    $email = $result->ID . '@lmmu.ac.zm';
+                }
+                $user = User::updateOrCreate(
+                    [
+                        'basic_information_id' => $result->ID,
+                        'email' => $email
+                    ],
+                    [
+                        'name' => $result->FirstName . ' ' . $result->Surname,
+                        'password' => bcrypt('12345678'),
+                        'school_id' => $result->ParentID,
+                    ]
+                );
+
+                $studentRole = Role::firstOrCreate(['name' => 'Dean']);
+                $studentPermission = Permission::firstOrCreate(['name' => 'Dean']);
+                $user->assignRole($studentRole);
+                $user->givePermissionTo($studentPermission);
+            }        
+
+        return redirect()->back()->with('success', 'Deans imported successfully');
     }
 
     public function viewCoordinators(){
@@ -54,6 +98,33 @@ class AdministratorController extends Controller
             $counts = $results->countBy('ID');
             $results= $results->unique('ID');
         return view('admin.viewCoordinators', compact('results', 'counts'));
+    }
+
+    public function viewCoordinatorsUnderDean($schoolId){
+        $schoolId = Crypt::decrypt($schoolId);
+        $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
+            ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
+            ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
+            ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
+            ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
+            ->select('basic-information.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName')
+            ->where('study.ParentID', $schoolId)
+            ->get();
+            $counts = $results->countBy('ID');
+            $results= $results->unique('ID');
+        return view('admin.viewCoordinators', compact('results', 'counts'));
+    }
+
+    public function viewDeans(){
+        $results = EduroleBasicInformation::join('access', 'access.ID', '=', 'basic-information.ID')
+            ->join('roles', 'roles.ID', '=', 'access.RoleID')
+            ->join('schools', 'schools.Dean', '=', 'basic-information.ID')
+            ->join('study', 'study.ParentID', '=', 'schools.ID')
+            ->select('basic-information.FirstName', 'basic-information.Surname', 'basic-information.ID', 'roles.RoleName', 'schools.ID as ParentID', 'study.ID as StudyID', 'schools.Name as SchoolName')
+            ->get();
+            $counts = $results->countBy('ID');
+            $results= $results->unique('ID');
+        return view('admin.viewDeans', compact('results', 'counts'));
     }
 
     public function viewCoordinatorsCourses($basicInformationId){
