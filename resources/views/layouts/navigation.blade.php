@@ -33,11 +33,20 @@
                 @if (auth()->user()->hasPermissionTo('Dean'))
                     <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                         <x-nav-link :href="route('admin.viewCoordinators')" :active="request()->routeIs('admin.viewCoordinators')">
-                            {{ __('Coordinators') }}
+                            {{ __('All Coordinators') }}
                         </x-nav-link>
                     </div>
                 @endif
                 @if (auth()->user()->hasPermissionTo('Registrar'))
+                    @php
+                        $results = \App\Models\User::where('id', auth()->user()->id)->first();
+                        $schoolId = $results->school_id;
+                    @endphp
+                    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                        <x-nav-link :href="route('admin.viewCoordinatorsUnderDean', ['schoolId' => encrypt($schoolId)])" :active="request()->routeIs('admin.viewCoordinatorsUnderDean')">
+                            {{ __('Course Coordinators') }}
+                        </x-nav-link>
+                    </div>
                     <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                         <x-nav-link :href="route('admin.viewDeans')" :active="request()->routeIs('admin.viewDeans')">
                             {{ __('Deans') }}

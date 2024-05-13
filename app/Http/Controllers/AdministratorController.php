@@ -25,19 +25,19 @@ class AdministratorController extends Controller
         
             foreach ($results as $result) {
                 $email = trim($result->PrivateEmail);
-                if (User::where('email', $email)->exists()) {
-                    // If it does, set the email to $result->ID@lmmu.ac.zm
-                    $email = $result->ID . '@lmmu.ac.zm';
-                }
+                // if (User::where('email', $email)->exists()) {
+                //     // If it does, set the email to $result->ID@lmmu.ac.zm
+                //     $email = $result->ID . '@lmmu.ac.zm';
+                // }
                 $user = User::updateOrCreate(
                     [
-                        'basic_information_id' => $result->ID,
-                        'email' => $email
+                        'basic_information_id' => $result->ID
                     ],
                     [
                         'name' => $result->Firstname . ' ' . $result->Surname,
                         'password' => bcrypt('12345678'),
                         'school_id' => $result->ParentID,
+                        'email' => $email
                     ]
                 );
 
@@ -55,25 +55,25 @@ class AdministratorController extends Controller
         $results = EduroleBasicInformation::join('access', 'access.ID', '=', 'basic-information.ID')
             ->join('roles', 'roles.ID', '=', 'access.RoleID')
             ->join('schools', 'schools.Dean', '=', 'basic-information.ID')
-            ->select('basic-information.FirstName', 'basic-information.Surname', 'basic-information.ID', 'roles.RoleName', 'schools.ID as ParentID')
+            ->select('basic-information.FirstName', 'basic-information.Surname','basic-information.PrivateEmail', 'basic-information.ID', 'roles.RoleName', 'schools.ID as ParentID')
             ->get();
 
         
             foreach ($results as $result) {
                 $email = trim($result->PrivateEmail);
-                if (User::where('email', $email)->exists()) {
-                    // If it does, set the email to $result->ID@lmmu.ac.zm
-                    $email = $result->ID . '@lmmu.ac.zm';
-                }
+                // if (User::where('email', $email)->exists()) {
+                //     // If it does, set the email to $result->ID@lmmu.ac.zm
+                //     $email = $result->ID . '@lmmu.ac.zm';
+                // }
                 $user = User::updateOrCreate(
                     [
-                        'basic_information_id' => $result->ID,
-                        'email' => $email
+                        'basic_information_id' => $result->ID
                     ],
                     [
                         'name' => $result->FirstName . ' ' . $result->Surname,
                         'password' => bcrypt('12345678'),
                         'school_id' => $result->ParentID,
+                        'email' => $email
                     ]
                 );
 
