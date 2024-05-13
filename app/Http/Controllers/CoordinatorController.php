@@ -33,6 +33,20 @@ class CoordinatorController extends Controller
         return view('coordinator.uploadCa', compact('results', 'caType','courseId'));
     }
 
+    public function editCaInCourse($courseAssessmenId,$courseId){
+        $courseAssessmentId = Crypt::decrypt($courseAssessmenId);
+        $courseId = Crypt::decrypt($courseId);
+        $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
+            ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
+            ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
+            ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
+            ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
+            ->select('courses.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName','courses.CourseDescription','basic-information.ID as basicInformationId')
+            ->where('courses.ID', $courseId)
+            ->first();
+        return view('coordinator.editCaInCourse', compact('results', 'courseId','courseAssessmentId'));
+    }
+
     public function viewAllCaInCourse($statusId, $courseIdValue){
         $courseId = Crypt::decrypt($courseIdValue);
         $statusId = Crypt::decrypt($statusId);
@@ -100,7 +114,24 @@ class CoordinatorController extends Controller
         return view('coordinator.viewTotalCaInCourse', compact('results', 'statusId', 'courseId','courseDetails')); 
     }
 
-    
+    public function deleteCaInCourse(Request $request, $courseAssessmenId, $courseId){
+        $courseAssessmentId = Crypt::decrypt($courseAssessmenId);
+        $courseId = Crypt::decrypt($courseId);
+        $courseAssessments = CourseAssessmentScores::where('course_assessment_id', $courseAssessmentId)->pluck('student_id')->toArray();
+
+        // return $courseId;
+        // return $courseAssessments;
+        // return $request->academicYear;
+        // return $request->ca_type;
+        CourseAssessment::where('course_assessments_id', $courseAssessmentId)->delete();
+        foreach ($courseAssessments as $entry){
+            
+            $this->refreshCAMark($courseId, $request->academicYear, $request->ca_type, trim($entry),$courseAssessmentId);
+        }
+        
+        // CourseAssessmentScores::where('course_assessment_id', $courseAssessmentId)->delete();
+        return redirect()->back()->with('success', 'Data deleted successfully');
+    }
 
     public function importCAFromExcelSheet(Request $request){
         set_time_limit(1200000);
@@ -163,7 +194,7 @@ class CoordinatorController extends Controller
                     ],[                        
                         'cas_score' => $entry['mark'],                      
                     ]);
-                    $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $request->ca_type, trim($entry['student_number']));
+                    $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $request->ca_type, trim($entry['student_number']),$newAssessment->course_assessments_id);
                 }
             // }catch(\Exception $e){
             //     return back()->with('error', 'An error occurred while importing the data. Please try again.');
@@ -175,7 +206,84 @@ class CoordinatorController extends Controller
         // return redirect()->route('coordinator.uploadCa', ['courseIdValue' => $request->course_id, 'statusId' => $request->status])->with('success', 'Data imported successfully');
     }
 
-    private function calculateAndSubmitCA($courseId, $academicYear, $caType, $studentNumber){
+    public function updateCAFromExcelSheet(Request $request){
+        set_time_limit(1200000);
+        // Validate the form data
+        $request->validate([
+            'excelFile' => 'required|mimes:xls,xlsx,csv',
+            'academicYear' => 'required',
+            'course_assessment_id' => 'required',            
+            'course_id' => 'required',
+            'course_code' => 'required',   
+            'basicInformationId' => 'required',  
+        ]);
+        
+
+        $newAssessment = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)
+            ->update([
+                'academic_year' => $request->academicYear,
+                'basic_information_id' => $request->basicInformationId,
+            ]);
+        $getCaType = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)->first();
+        $caType = $getCaType->ca_type;
+
+        // return $caType;
+
+        if ($request->hasFile('excelFile')) {
+            $file = $request->file('excelFile');
+
+            // Initialize the Box/Spout reader
+            $reader = ReaderEntityFactory::createXLSXReader();
+            $reader->open($file->getPathname());
+
+            $isHeaderRow = false;
+            $data = [];
+            foreach ($reader->getSheetIterator() as $sheet) {
+                foreach ($sheet->getRowIterator() as $row) {
+                    // Skip the header row
+                    if ($isHeaderRow) {
+                        $isHeaderRow = false;
+                        continue;
+                    }
+                    try{
+                        $studentNumber = $row->getCellAtIndex(0)->getValue();                    
+                        $mark = $row->getCellAtIndex(1)->getValue();
+                        // $courseCode = $row->getCellAtIndex(2)->getValue();
+                    } catch (\Exception $e) {
+                        return back()->with('error', 'Please format excel sheet correctly.');
+                    }
+
+                    $data[] = [
+                        'student_number' => $studentNumber,
+                        'mark' => $mark,
+                    ];
+                }
+                
+            }
+            $reader->close();
+
+            // try{
+                foreach ($data as $entry){
+                    CourseAssessmentScores::updateOrCreate([
+                        'course_assessment_id' => $request->course_assessment_id,
+                        'student_id' => trim($entry['student_number']),                        
+                        'course_code' => $request->course_code,
+                    ],[                        
+                        'cas_score' => $entry['mark'],                      
+                    ]);
+                    $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $caType, trim($entry['student_number']),$request->course_assessment_id);
+                }
+            // }catch(\Exception $e){
+            //     return back()->with('error', 'An error occurred while importing the data. Please try again.');
+            // }
+
+        }
+
+        return redirect()->back()->with('success', 'Data imported successfully');
+        // return redirect()->route('coordinator.uploadCa', ['courseIdValue' => $request->course_id, 'statusId' => $request->status])->with('success', 'Data imported successfully');
+    }
+
+    private function refreshCAMark($courseId, $academicYear, $caType, $studentNumber){
         $caScores = CourseAssessmentScores::where('course_assessments.course_id', $courseId)
             ->where('course_assessments.academic_year', $academicYear)
             ->where('course_assessments.ca_type', $caType)
@@ -199,14 +307,52 @@ class CoordinatorController extends Controller
             // Adjust the mark to be out of the maxScore for the status
             $adjustedMark = ($caScore->mark / 100) * $maxScore;
             $total += $adjustedMark;
-            $count++;
+            $count += 1;
+        }
+        if($count > 0){
+            $average = $total / $count;
+            // Save or update the average in the StudentsContiousAssessment table
+            $studentCA = StudentsContinousAssessment::firstOrNew(['student_id' => $studentNumber, 'course_id' => $courseId, 'academic_year' => $academicYear, 'ca_type' => $caType]);
+            $studentCA->sca_score = $average;
+            $studentCA->save();
+        }
+        
+    }
+    
+
+    private function calculateAndSubmitCA($courseId, $academicYear, $caType, $studentNumber,$courseAssessmentId){
+        $caScores = CourseAssessmentScores::where('course_assessments.course_id', $courseId)
+            ->where('course_assessments.academic_year', $academicYear)
+            ->where('course_assessments.ca_type', $caType)
+            ->where('course_assessment_scores.student_id', $studentNumber)
+            ->select('course_assessment_scores.cas_score as mark')
+            ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'course_assessment_scores.course_assessment_id')
+            ->get();
+    
+        $total = 0;
+        $count = count($caScores);
+        $maxScore = 0;
+        if($caType == 1) {
+            $maxScore = 10;
+        } else if($caType == 2 || $caType == 3) {
+            $maxScore = 15;
+        } else if($caType == 4) {
+            $maxScore = 100;
+        }
+    
+        foreach ($caScores as $caScore){
+            $total += $caScore->mark;
         }
     
         $average = $total / $count;
     
+        // Adjust the average to be out of the maxScore for the status
+        $adjustedAverage = ($average / 100) * $maxScore;
+    
         // Save or update the average in the StudentsContiousAssessment table
         $studentCA = StudentsContinousAssessment::firstOrNew(['student_id' => $studentNumber, 'course_id' => $courseId, 'academic_year' => $academicYear, 'ca_type' => $caType]);
-        $studentCA->sca_score = $average;
+        $studentCA->course_assessment_id = $courseAssessmentId;
+        $studentCA->sca_score = $adjustedAverage;
         $studentCA->save();
     }
 }

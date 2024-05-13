@@ -15,5 +15,6 @@ class StudentsContinousAssessment extends Model
         'ca_marks',
         'ca_type',
         'academic_year',
+        'course_assessment_id'
     ];
 }

@@ -35,12 +35,22 @@
                                                         View
                                                     </button>
                                                 </a>
-                                                <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-none">
-                                                    Edit
-                                                </button>                                                
-                                                <button type="button" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-l-none">
-                                                    Delete
-                                                </button>
+                                                @if (auth()->user()->hasPermissionTo('Dean'))
+                                                <a href="{{ route('coordinator.editCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}">
+                                                    <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-none">
+                                                        Edit
+                                                    </button>  
+                                                </a> 
+                                                <form method="POST" action="{{ route('coordinator.deleteCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}">
+                                                    {{ method_field('DELETE') }}
+                                                    {{ csrf_field() }}
+                                                    <input type="hidden" name="academicYear" value={{$result->academic_year}}>
+                                                    <input type="hidden" name="ca_type" value={{$statusId}}>
+                                                    <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-l-none">
+                                                        Delete
+                                                    </button>
+                                                </form>
+                                                @endif
                                             </div>
                                         </td>                                                                     
                                 </tr>
