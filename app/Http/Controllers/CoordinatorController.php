@@ -126,8 +126,9 @@ class CoordinatorController extends Controller
         CourseAssessment::where('course_assessments_id', $courseAssessmentId)->delete();
         foreach ($courseAssessments as $entry){
             
-            $this->refreshCAMark( $request->academicYear, $request->ca_type, trim($entry));
+            $this->renewCABeforeDelete($courseId, $request->academicYear, $request->ca_type, trim($entry),$courseAssessmentId);
         }
+        // CourseAssessment::where('course_assessments_id', $courseAssessmentId)->delete();
         
         // CourseAssessmentScores::where('course_assessment_id', $courseAssessmentId)->delete();
         return redirect()->back()->with('success', 'Data deleted successfully');
@@ -283,8 +284,9 @@ class CoordinatorController extends Controller
         // return redirect()->route('coordinator.uploadCa', ['courseIdValue' => $request->course_id, 'statusId' => $request->status])->with('success', 'Data imported successfully');
     }
 
-    private function refreshCAMark( $academicYear, $caType, $studentNumber){
-        $caScores = CourseAssessmentScores::where('course_assessments.academic_year', $academicYear)
+    private function refreshCAMark($courseId, $academicYear, $caType, $studentNumber){
+        $caScores = CourseAssessmentScores::where('course_assessments.course_id', $courseId)
+            ->where('course_assessments.academic_year', $academicYear)
             ->where('course_assessments.ca_type', $caType)
             ->where('course_assessment_scores.student_id', $studentNumber)
             ->select('course_assessment_scores.cas_score as mark')
@@ -312,6 +314,7 @@ class CoordinatorController extends Controller
             $average = $total / $count;
             // Save or update the average in the StudentsContiousAssessment table
             StudentsContinousAssessment::where([
+                'course_id' => $courseId, // 'course_id' => $courseId, 'academic_year' => $academicYear, 'ca_type' => $caType, 'student_id' => $studentNumber
                 'student_id' => $studentNumber, 
                 'academic_year' => $academicYear, 
                 'ca_type' => $caType
@@ -355,5 +358,51 @@ class CoordinatorController extends Controller
         $studentCA->course_assessment_id = $courseAssessmentId;
         $studentCA->sca_score = $adjustedAverage;
         $studentCA->save();
+    }
+
+    private function renewCABeforeDelete($courseId, $academicYear, $caType, $studentNumber,$courseAssessmentId){
+        $caScores = CourseAssessmentScores::where('course_assessments.course_id', $courseId)
+            ->where('course_assessments.academic_year', $academicYear)
+            ->where('course_assessments.ca_type', $caType)
+            ->where('course_assessment_scores.student_id', $studentNumber)
+            ->where('course_assessment_scores.course_assessment_id', '!=', $courseAssessmentId)
+            ->select('course_assessment_scores.cas_score as mark')
+            ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'course_assessment_scores.course_assessment_id')
+            ->get();
+    
+        $total = 0;
+        $count = count($caScores);
+        $maxScore = 0;
+        if($caType == 1) {
+            $maxScore = 10;
+        } else if($caType == 2 || $caType == 3) {
+            $maxScore = 15;
+        } else if($caType == 4) {
+            $maxScore = 100;
+        }
+        if($count > 0){
+    
+            foreach ($caScores as $caScore){
+                $total += $caScore->mark;
+            }
+        
+            $average = $total / $count;
+        
+            // Adjust the average to be out of the maxScore for the status
+            $adjustedAverage = ($average / 100) * $maxScore;
+            $studentCA = StudentsContinousAssessment::firstOrNew(['student_id' => $studentNumber, 'course_id' => $courseId, 'academic_year' => $academicYear, 'ca_type' => $caType]);
+            $studentCA->course_assessment_id = $courseAssessmentId;
+            $studentCA->sca_score = $adjustedAverage;
+            $studentCA->save();
+        }else{
+            StudentsContinousAssessment::where([
+                'course_id' => $courseId, // 'course_id' => $courseId, 'academic_year' => $academicYear, 'ca_type' => $caType, 'student_id' => $studentNumber
+                'student_id' => $studentNumber, 
+                'academic_year' => $academicYear, 
+                'ca_type' => $caType
+            ])->delete();
+        }    
+        // Save or update the average in the StudentsContiousAssessment table
+        
     }
 }
