@@ -9,9 +9,14 @@
         
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
+                <div class="p-6 text-gray-900 overflow-x-auto">
                     <table id="myTable" class="table-auto w-full mt-4">
-                    <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search by student number.." class="shadow appearance-none border rounded w-2/3 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <div class="flex justify-between">
+                        <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search by student number.." class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <button type="button" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-r-none" onclick="return confirm('Are you sure you want to publish to edurole?')">
+                            PUBLISH TO EDUROLE
+                        </button>
+                    </div>
                         <thead>
                             <tr>
                                 <th class="px-4 py-2">Student Number</th>
