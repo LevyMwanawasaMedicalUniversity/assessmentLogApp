@@ -56,7 +56,7 @@ class CoordinatorController extends Controller
         $results = CourseAssessment::where('course_id', $courseId)
             ->where('ca_type', $statusId)
             // ->join('course_assessment_scores', 'course_assessments.id', '=', 'course_assessment_scores.course_assessment_id')
-            ->orderBy('course_assessments.created_at', 'asc')
+            ->orderBy('course_assessments.course_assessments_id', 'asc')
             ->get();
         // return $results;
         $assessmentType = $this->setAssesmentType($statusId);
@@ -126,7 +126,7 @@ class CoordinatorController extends Controller
         CourseAssessment::where('course_assessments_id', $courseAssessmentId)->delete();
         foreach ($courseAssessments as $entry){
             
-            $this->refreshCAMark($courseId, $request->academicYear, $request->ca_type, trim($entry),$courseAssessmentId);
+            $this->refreshCAMark( $request->academicYear, $request->ca_type, trim($entry));
         }
         
         // CourseAssessmentScores::where('course_assessment_id', $courseAssessmentId)->delete();
@@ -283,9 +283,8 @@ class CoordinatorController extends Controller
         // return redirect()->route('coordinator.uploadCa', ['courseIdValue' => $request->course_id, 'statusId' => $request->status])->with('success', 'Data imported successfully');
     }
 
-    private function refreshCAMark($courseId, $academicYear, $caType, $studentNumber){
-        $caScores = CourseAssessmentScores::where('course_assessments.course_id', $courseId)
-            ->where('course_assessments.academic_year', $academicYear)
+    private function refreshCAMark( $academicYear, $caType, $studentNumber){
+        $caScores = CourseAssessmentScores::where('course_assessments.academic_year', $academicYear)
             ->where('course_assessments.ca_type', $caType)
             ->where('course_assessment_scores.student_id', $studentNumber)
             ->select('course_assessment_scores.cas_score as mark')
@@ -312,9 +311,11 @@ class CoordinatorController extends Controller
         if($count > 0){
             $average = $total / $count;
             // Save or update the average in the StudentsContiousAssessment table
-            $studentCA = StudentsContinousAssessment::firstOrNew(['student_id' => $studentNumber, 'course_id' => $courseId, 'academic_year' => $academicYear, 'ca_type' => $caType]);
-            $studentCA->sca_score = $average;
-            $studentCA->save();
+            StudentsContinousAssessment::where([
+                'student_id' => $studentNumber, 
+                'academic_year' => $academicYear, 
+                'ca_type' => $caType
+            ])->update(['sca_score' => $average]);
         }
         
     }
