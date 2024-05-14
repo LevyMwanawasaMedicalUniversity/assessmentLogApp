@@ -17,7 +17,7 @@
                                 <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                                     <div class="grid grid-cols-3 gap-6"> <!-- Grid with 3 equal-width columns -->
                                         <!-- First Block -->
-                                        <a href="{{route('admin.viewCoordinators')}}">
+                                        <a href="{{ route('users.index') }}">
                                             <button type="button" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid grey;">
                                                 <div class="p-6 text-gray-900">
                                                     {{ __("Users") }}
@@ -25,19 +25,21 @@
                                             </button>
                                         </a>                                        
                                         <!-- Second Block -->   
-                                        <a href="{{route('admin.importCoordinators')}}">
+                                        <a href="{{ url('roles') }}">
                                             <button type="button" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid grey;">
                                                 <div class="p-6 text-gray-900">
                                                     {{ __("Roles") }}
                                                 </div>
                                             </button>
                                         </a> 
-                                        <!-- Third Block -->                                        
-                                        <button type="" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid grey;">
-                                            <div class="p-6 text-gray-900">
-                                                {{ __("Permissions") }}
-                                            </div>
-                                        </button>                                        
+                                        <!-- Third Block -->  
+                                        <a href="{{ url('permissions') }}">                                      
+                                            <button type="" class="w-full bg-white overflow-hidden shadow-sm sm:rounded-lg transform transition-transform duration-500 hover:scale-105 text-center" style="border: 2px solid grey;">
+                                                <div class="p-6 text-gray-900">
+                                                    {{ __("Permissions") }}
+                                                </div>
+                                            </button>   
+                                        </a>                                     
                                     </div>
                                 </div>
                             </div>

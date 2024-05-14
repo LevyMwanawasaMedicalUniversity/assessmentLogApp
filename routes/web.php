@@ -3,7 +3,10 @@
 use App\Http\Controllers\AdministratorController;
 use App\Http\Controllers\CoordinatorController;
 use App\Http\Controllers\PagesController;
+use App\Http\Controllers\PermissionsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RolesController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +22,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::resource('user', UserController::class);
+    Route::resource('roles', RolesController::class);
+    Route::resource('permissions', PermissionsController::class);
+
+    Route::get('', [UserController::class, 'index'])->name('users.index');
+    Route::get('/user/searchForUser', 'UserController@searchForUser')->name('users.searchForUser');
+    Route::get('/create', [UserController::class, 'create'])->name('users.create');
+    Route::post('/store', [UserController::class, 'store'])->name('users.store');
+    Route::get('/{user}/show', 'UserController@show')->name('users.show');
+    Route::get('/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+    Route::post('/{user}/resetUserPassword', [UserController::class, 'resetUserPassword'])->name('users.resetUserPassword');
+    Route::patch('/{user}/update', [UserController::class, 'update'])->name('users.update');
+    Route::post('/{user}/delete', 'UserController@destroy')->name('users.destroy');
+    Route::post('/{user}/resetPassword', 'UserController@resetPassword')->name('admin.resetPassword');
 
     Route::get('/upload', [PagesController::class, 'upload'])->name('pages.upload');
     Route::get('/admin/index',[AdministratorController::class, 'index'])->name('admin.index');
