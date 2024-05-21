@@ -1,69 +1,83 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Courses') }}
-        </h2>
-    </x-slot>
 
-    <div class="py-12">
-        
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 overflow-x-auto">
-                    <table id="myTable" class="table-auto w-full mt-4">
-                    <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+<main id="main" class="main">
+
+    <div class="pagetitle">
+        <h1>My Courses</h1>
+        <nav>
+            <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+            <li class="breadcrumb-item active">Courses</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
+    <section class="section">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Your Courses</h5>
+
+                        <!-- Table with hoverable rows -->
+                        <table id="myTable" class="table table-hover">
+                        <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         <thead>
                             <tr>
-                                <th class="px-4 py-2">Course Name</th>
-                                <th class="px-4 py-2">Course Code</th>
-                                <th class="px-4 py-2">Programme Name</th>
-                                <th class="px-4 py-2">Actions</th>
+                            {{-- <th scope="col">#</th> --}}
+                            <th scope="col">Course Name</th>
+                            <th scope="col">Course Code</th>
+                            <th scope="col">Programme Name</th>
+                            <th scope="col">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($results as $result)
-                                @include('coordinator.components.uploadAssessmentTypeModal')
-                                @include('coordinator.components.viewAssessmentTypeModal')
-                                <tr class="border-t border-b hover:bg-gray-100">
-                                    <td class="px-4 py-2">{{$result->CourseDescription}}</td>
-                                    <td class="px-4 py-2">{{$result->CourseName}}</td>
-                                    <td class="px-4 py-2">{{$result->Name}}</td>
-                                    @if(strpos(strtoupper($result->CourseName), 'OSCE') !== 0)
-                                        <td class="px-4 py-2">
-                                            <div class="btn-group flex" role="group" aria-label="Button group">
-                                                <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-none" data-toggle="modal" data-target="#uploadCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
+                        @foreach($results as $result)
+                            @include('coordinator.components.uploadAssessmentTypeModal')
+                            @include('coordinator.components.viewAssessmentTypeModal')
+                            <tr>
+                                {{-- <th scope="row">1</th> --}}
+                                <td>{{$result->CourseDescription}}</td>
+                                <td>{{$result->CourseName}}</td>
+                                <td>{{$result->Name}}</td>
+                                @if(strpos(strtoupper($result->CourseName), 'OSCE') !== 0)
+                                    <td>
+                                        <div class="btn-group flex" role="group" aria-label="Button group">
+                                            <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-none" data-toggle="modal" data-target="#uploadCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
+                                                Upload
+                                            </button>
+                                            <button type="button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-l-none" data-toggle="modal" data-target="#viewCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
+                                                View
+                                            </button>
+                                        </div>
+                                    </td>
+                                @else
+                                    <td>
+                                        <div class="btn-group flex" role="group" aria-label="Button group">
+                                            <a href="{{ route('coordinator.uploadCa', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}">
+                                                <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-none">
                                                     Upload
                                                 </button>
-                                                <button type="button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-l-none" data-toggle="modal" data-target="#viewCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
+                                            </a>
+                                            <a href="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}">
+                                                <button type="button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-l-none">
                                                     View
                                                 </button>
-                                            </div>
-                                        </td>
-                                    @else
-                                        <td class="px-4 py-2">
-                                            <div class="btn-group flex" role="group" aria-label="Button group">
-                                                <a href="{{ route('coordinator.uploadCa', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}">
-                                                    <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-none">
-                                                        Upload
-                                                    </button>
-                                                </a>
-                                                <a href="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}">
-                                                    <button type="button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-l-none">
-                                                        View
-                                                    </button>
-                                                </a>
-                                            </div>
-                                        </td>                                    
-                                    @endif                                    
-                                </tr>
+                                            </a>
+                                        </div>
+                                    </td>                                    
+                                    @endif 
+                            </tr>                            
                             @endforeach
-                            <!-- Add more rows as needed -->
                         </tbody>
-                    </table>
+                        </table>
+                        <!-- End Table with hoverable rows -->
+
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
+</main><!-- End #main -->
 <script>
     function myFunction() {
         var input, filter, table, tr, td, i, txtValue1, txtValue2;

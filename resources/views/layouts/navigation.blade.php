@@ -8,12 +8,12 @@
         <i class="bi bi-list toggle-sidebar-btn"></i>
     </div><!-- End Logo -->
 
-    <div class="search-bar">
+    {{-- <div class="search-bar">
         <form class="search-form d-flex align-items-center" method="POST" action="#">
         <input type="text" name="query" placeholder="Search" title="Enter search keyword">
         <button type="submit" title="Search"><i class="bi bi-search"></i></button>
         </form>
-    </div><!-- End Search Bar -->
+    </div><!-- End Search Bar --> --}}
 
     <nav class="header-nav ms-auto">
         <ul class="d-flex align-items-center">
@@ -249,6 +249,14 @@
             </a>
         </li><!-- End Profile Page Nav -->
     @endif
+    @if (auth()->user()->hasPermissionTo('Registrar'))
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="{{route('admin.viewCoordinators')}}">
+            <i class="bi bi-person"></i>
+            <span>All Coordinators</span>
+            </a>
+        </li><!-- End Profile Page Nav -->
+    @endif
     @if (auth()->user()->hasPermissionTo('Administrator'))
     <li class="nav-item">
         <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
@@ -273,7 +281,7 @@
         </ul>
     </li><!-- End Components Nav -->
     @endif
-    @if (auth()->user()->hasPermissionTo('Dean')) 
+    @if (auth()->user()->hasPermissionTo('Dean') && (!auth()->user()->hasPermissionTo('Registrar') || !auth()->user()->hasPermissionTo('Administrator'))) 
         @php
             $results = \App\Models\User::where('id', auth()->user()->id)->first();
             $schoolId = $results->school_id;
@@ -303,7 +311,7 @@
         </ul>
     </li><!-- End Forms Nav -->   
 </aside><!-- End Sidebar-->
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+{{-- <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -440,4 +448,4 @@
             </div>
         </div>
     </div>
-</nav>
+</nav> --}}
