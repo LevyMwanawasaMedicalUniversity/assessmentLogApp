@@ -263,8 +263,10 @@
             <!-- Budget Report -->
             <div class="card">
                 <div class="card-body pb-0">
-                    <h5 class="card-title">CA PER SCHOOL <span>| This Month</span></h5>
-
+                    <div class="justify-between d-flex justify-content-between">
+                        <h5 class="card-title">CA PER SCHOOL <span>| This Month</span></h5>
+                        <button id="exportCSV" class="btn btn-primary mb-3 mt-3">Export to CSV</button>
+                    </div>
                     <div id="budgetChart" style="min-height: 400px;" class="echart"></div>
 
                     @php
@@ -276,6 +278,11 @@
                             $coursesWithCACounts[$school] = $coursesWithCA->where('SchoolName', $school)->count();
                             $coursesFromEduroleCounts[$school] = $coursesFromEdurole->where('SchoolName', $school)->count();
                         }
+
+                        // Convert arrays to indexed arrays for JavaScript
+                        $schoolNames = array_keys($coursesWithCACounts);
+                        $coursesWithCACountsArray = array_values($coursesWithCACounts);
+                        $coursesFromEduroleCountsArray = array_values($coursesFromEduroleCounts);
                     @endphp
 
                     <script>
@@ -283,40 +290,72 @@
                             var budgetChart = echarts.init(document.querySelector("#budgetChart"));
 
                             var option = {
+                                title: {
+                                    text: ''
+                                },
+                                tooltip: {
+                                    trigger: 'axis'
+                                },
                                 legend: {
                                     data: ['Courses with CA', 'Total Courses']
                                 },
-                                radar: {
-                                    indicator: [
-                                        { name: 'SOHS', max: @json($coursesFromEduroleCounts['SOHS']) },
-                                        { name: 'SOPHES', max: @json($coursesFromEduroleCounts['SOPHES']) },
-                                        { name: 'SOMCS', max: @json($coursesFromEduroleCounts['SOMCS']) },
-                                        { name: 'DRGS', max: @json($coursesFromEduroleCounts['DRGS']) },
-                                        { name: 'SON', max: @json($coursesFromEduroleCounts['SON']) },
-                                        { name: 'IBBS', max: @json($coursesFromEduroleCounts['IBBS']) }
-                                    ]
+                                xAxis: {
+                                    type: 'category',
+                                    data: @json($schoolNames)
                                 },
-                                series: [{
-                                    name: 'Courses with CA vs Total Courses',
-                                    type: 'radar',
-                                    data: [
-                                        {
-                                            value: @json(array_values($coursesWithCACounts)),
-                                            name: 'Courses with CA'
-                                        },
-                                        {
-                                            value: @json(array_values($coursesFromEduroleCounts)),
-                                            name: 'Total Courses'
-                                        }
-                                    ]
-                                }]
+                                yAxis: {
+                                    type: 'value',
+                                    title: {
+                                        text: 'Count'
+                                    }
+                                },
+                                series: [
+                                    {
+                                        name: 'Courses with CA',
+                                        type: 'line',
+                                        data: @json($coursesWithCACountsArray)
+                                    },
+                                    {
+                                        name: 'Total Courses',
+                                        type: 'line',
+                                        data: @json($coursesFromEduroleCountsArray)
+                                    }
+                                ]
                             };
 
                             budgetChart.setOption(option);
+
+                            // Export to CSV functionality
+                            document.querySelector("#exportCSV").addEventListener("click", function() {
+                                let csvContent = "data:text/csv;charset=utf-8,";
+                                csvContent += "School,Courses with CA,Total Courses\n";
+
+                                const schoolNames = @json($schoolNames);
+                                const coursesWithCACountsArray = @json($coursesWithCACountsArray);
+                                const coursesFromEduroleCountsArray = @json($coursesFromEduroleCountsArray);
+
+                                schoolNames.forEach((school, index) => {
+                                    csvContent += `${school},${coursesWithCACountsArray[index]},${coursesFromEduroleCountsArray[index]}\n`;
+                                });
+
+                                const encodedUri = encodeURI(csvContent);
+                                const link = document.createElement("a");
+                                link.setAttribute("href", encodedUri);
+                                link.setAttribute("download", "CA_per_School.csv");
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                            });
                         });
                     </script>
                 </div>
             </div>
+
+
+
+
+
+
 
             <!-- Website Traffic -->
             <div class="card">
