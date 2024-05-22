@@ -93,25 +93,40 @@
                         <div class="card-body">
                             <h5 class="card-title">Course With CA Per Programme</h5>
                             @php
-                                $coursesWithCAProgrammes = $coursesWithCA->groupBy('ProgrammeCode');
-                                $coursesFromEduroleProgrammes = $coursesFromEdurole->groupBy('ProgrammeCode');
+                                // Extract unique ProgrammeCodes from coursesFromEdurole
+                                $programmeCodes = $coursesFromEdurole->pluck('ProgrammeCode')->unique()->values()->toArray();
 
-                                $coursesWithCAProgrammeCounts = $coursesWithCAProgrammes->map->count();
-                                $coursesFromEduroleProgrammeCounts = $coursesFromEduroleProgrammes->map->count();
-                            
+                                // Initialize arrays to hold counts for each ProgrammeCode
+                                $coursesWithCAProgrammeCountsArray = [];
+                                $coursesFromEduroleProgrammeCountsArray = [];
+
+                                foreach ($programmeCodes as $code) {
+                                    // Count courses with CA for the current ProgrammeCode
+                                    $coursesWithCAProgrammeCountsArray[] = $coursesWithCA->where('ProgrammeCode', $code)->count();
+                                    // Count courses from Edurole for the current ProgrammeCode
+                                    $coursesFromEduroleProgrammeCountsArray[] = $coursesFromEdurole->where('ProgrammeCode', $code)->count();
+                                }
                             @endphp
                             <!-- Column Chart -->
                             <div id="columnChart"></div>
 
                             <script>
                                 document.addEventListener("DOMContentLoaded", () => {
+                                    // Ensure programmeCodes are correctly formatted as an array of strings
+                                    const programmeCodes = @json($programmeCodes);
+
+                                    // Log to check the data
+                                    console.log('Programme Codes:', programmeCodes);
+                                    console.log('Courses with CA Programme Counts:', @json($coursesWithCAProgrammeCountsArray));
+                                    console.log('Courses from Edurole Programme Counts:', @json($coursesFromEduroleProgrammeCountsArray));
+
                                     new ApexCharts(document.querySelector("#columnChart"), {
                                         series: [{
                                             name: 'Courses with CA',
-                                            data: @json($coursesWithCAProgrammeCounts->values()->toArray())
+                                            data: @json($coursesWithCAProgrammeCountsArray)
                                         }, {
                                             name: 'Courses from Edurole',
-                                            data: @json($coursesFromEduroleProgrammeCounts->values()->toArray())
+                                            data: @json($coursesFromEduroleProgrammeCountsArray)
                                         }],
                                         chart: {
                                             type: 'bar',
@@ -133,7 +148,7 @@
                                             colors: ['transparent']
                                         },
                                         xaxis: {
-                                            categories: @json($coursesWithCAProgrammeCounts->keys()->toArray()),
+                                            categories: programmeCodes,
                                         },
                                         yaxis: {
                                             title: {
@@ -157,6 +172,9 @@
                         </div>
                     </div>
                 </div><!-- End Reports -->
+
+
+
 
                 <!-- Recent Sales -->
                 <div class="col-12">
