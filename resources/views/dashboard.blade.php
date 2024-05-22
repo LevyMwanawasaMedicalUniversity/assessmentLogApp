@@ -232,12 +232,13 @@
 
             <!-- Budget Report -->
             <div class="card">
-                <div class="card-body pb-0">
-                    <div class="justify-between d-flex justify-content-between">
-                        <h5 class="card-title">CA PER SCHOOL</h5>
-                        <button id="exportCSV" class="btn btn-primary mb-3 mt-3">Export to CSV</button>
-                    </div>
-                    <div id="budgetChart" style="min-height: 400px;" class="echart"></div>
+                <div class="card-body">
+                <div class="justify-between d-flex justify-content-between">
+                    <h5 class="card-title">CA PER SCHOOL</h5>
+                    <button id="exportCSV" class="btn btn-primary mb-3 mt-3">Export to CSV</button>
+                </div>
+                    <!-- Vertical Bar Chart -->
+                    <div id="verticalBarChart" style="min-height: 400px;" class="echart"></div>
 
                     @php
                         $schools = ['SOHS', 'SOPHES', 'SOMCS', 'DRGS', 'SON', 'IBBS'];
@@ -257,43 +258,46 @@
 
                     <script>
                         document.addEventListener("DOMContentLoaded", () => {
-                            var budgetChart = echarts.init(document.querySelector("#budgetChart"));
-
-                            var option = {
+                            echarts.init(document.querySelector("#verticalBarChart")).setOption({
                                 title: {
                                     text: ''
                                 },
                                 tooltip: {
-                                    trigger: 'axis'
+                                    trigger: 'axis',
+                                    axisPointer: {
+                                        type: 'shadow'
+                                    }
                                 },
                                 legend: {
                                     data: ['Courses with CA', 'Total Courses']
                                 },
+                                grid: {
+                                    left: '3%',
+                                    right: '4%',
+                                    bottom: '3%',
+                                    containLabel: true
+                                },
                                 xAxis: {
-                                    type: 'category',
-                                    data: @json($schoolNames)
+                                    type: 'value',
+                                    boundaryGap: [0, 0.01]
                                 },
                                 yAxis: {
-                                    type: 'value',
-                                    title: {
-                                        text: 'Count'
-                                    }
+                                    type: 'category',
+                                    data: @json($schoolNames)
                                 },
                                 series: [
                                     {
                                         name: 'Courses with CA',
-                                        type: 'line',
+                                        type: 'bar',
                                         data: @json($coursesWithCACountsArray)
                                     },
                                     {
                                         name: 'Total Courses',
-                                        type: 'line',
+                                        type: 'bar',
                                         data: @json($coursesFromEduroleCountsArray)
                                     }
                                 ]
-                            };
-
-                            budgetChart.setOption(option);
+                            });
 
                             // Export to CSV functionality
                             document.querySelector("#exportCSV").addEventListener("click", function() {
@@ -318,6 +322,7 @@
                             });
                         });
                     </script>
+                    <!-- End Vertical Bar Chart -->
                 </div>
             </div>
 
