@@ -264,7 +264,7 @@
             <div class="card">
                 <div class="card-body pb-0">
                     <div class="justify-between d-flex justify-content-between">
-                        <h5 class="card-title">CA PER SCHOOL <span>| This Month</span></h5>
+                        <h5 class="card-title">CA PER SCHOOL</h5>
                         <button id="exportCSV" class="btn btn-primary mb-3 mt-3">Export to CSV</button>
                     </div>
                     <div id="budgetChart" style="min-height: 400px;" class="echart"></div>
