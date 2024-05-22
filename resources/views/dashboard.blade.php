@@ -158,7 +158,7 @@
                     </div>
                 </div><!-- End Reports -->
 
-                {{-- <!-- Recent Sales -->
+                <!-- Recent Sales -->
                 <div class="col-12">
                 <div class="card recent-sales overflow-auto">
 
@@ -230,7 +230,7 @@
                     </div>
 
                 </div>
-                </div><!-- End Recent Sales --> --}}
+                </div><!-- End Recent Sales -->
 
                 <!-- Recent Orders -->
 
@@ -245,7 +245,7 @@
             <!-- Budget Report -->
             <div class="card">
                 <div class="card-body pb-0">
-                    <h5 class="card-title">CA PER SCHOOL </h5>
+                    <h5 class="card-title">CA PER SCHOOL <span>| This Month</span></h5>
 
                     <div id="budgetChart" style="min-height: 400px;" class="echart"></div>
 
@@ -301,7 +301,7 @@
             </div>
 
             <!-- Website Traffic -->
-            {{-- <div class="card">
+            <div class="card">
                 
 
                 <div class="card-body pb-0">
@@ -365,7 +365,7 @@
                 </script>
 
                 </div>
-            </div><!-- End Website Traffic --> --}}
+            </div><!-- End Website Traffic -->
 
             <!-- News & Updates Traffic -->
             
