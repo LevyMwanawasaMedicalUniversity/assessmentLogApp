@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EduroleBasicInformation;
 use App\Models\EduroleStudy;
 use App\Models\StudentsContinousAssessment;
 use Illuminate\Http\Request;
@@ -37,10 +38,18 @@ class PagesController extends Controller
         $coursesWithCA = $this->getCoursesFromEdurole()
             ->whereIn('courses.Name', $coursesFromLMMAX)
             ->get();
-
+        $deansDataGet = EduroleBasicInformation::join('access', 'access.ID', '=', 'basic-information.ID')
+            ->join('roles', 'roles.ID', '=', 'access.RoleID')
+            ->join('schools', 'schools.Dean', '=', 'basic-information.ID')
+            ->join('study', 'study.ParentID', '=', 'schools.ID')
+            ->select('basic-information.FirstName', 'basic-information.Surname', 'basic-information.ID', 'roles.RoleName', 'schools.ID as ParentID', 'study.ID as StudyID', 'schools.Name as SchoolName')
+            ->get();
+        $deansData= $deansDataGet->unique('ID');
+        // $results= $deansDataGet->unique('ID');
+        $counts = $deansDataGet->countBy('ID');
         $coursesFromEdurole = $this->getCoursesFromEdurole()->get();
         // return $coursesWithCA;
-        return view('dashboard', compact('coursesWithCA', 'coursesFromEdurole'));
+        return view('dashboard', compact('counts','coursesWithCA', 'coursesFromEdurole','deansData'));
     }
 
     private function getCoursesFromLMMAX()
