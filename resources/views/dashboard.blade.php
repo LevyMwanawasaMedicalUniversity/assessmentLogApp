@@ -76,7 +76,7 @@
                         <i class="bi bi-receipt"></i>
                         </div>
                         <div class="ps-3">
-                        <h6>{{$coursesWithCA->unique('CourseName')->count()}}</h6>
+                        <h6>{{$coursesWithCA->unique('ID')->count()}}</h6>
                         <span class="text-success small pt-1 fw-bold">With Continous Assessments</span>
 
                         </div>
@@ -245,8 +245,8 @@
                         $coursesFromEduroleCounts = [];
 
                         foreach ($schools as $school) {
-                            $coursesWithCACounts[$school] = $coursesWithCA->where('SchoolName', $school)->count();
-                            $coursesFromEduroleCounts[$school] = $coursesFromEdurole->where('SchoolName', $school)->count();
+                            $coursesWithCACounts[$school] = $coursesWithCA->where('SchoolName', $school)->unique('ID')->count();
+                            $coursesFromEduroleCounts[$school] = $coursesFromEdurole->where('SchoolName', $school)->unique('ID')->count();
                         }
 
                         // Convert arrays to indexed arrays for JavaScript
