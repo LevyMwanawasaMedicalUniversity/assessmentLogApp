@@ -183,7 +183,7 @@
                         
 
                         <div class="card-body">
-                        <h5 class="card-title">Deans per School </h5>
+                        <h5 class="card-title">Deans Per School </h5>
 
                         <table class="table table-borderless">
                             <thead>
