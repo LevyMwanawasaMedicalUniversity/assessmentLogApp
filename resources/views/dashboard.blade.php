@@ -192,7 +192,7 @@
                                 <th scope="col">First Name</th>
                                 <th scope="col">Last Name</th>
                                 <th scope="col">School</th>
-                                <th scope="col">Total Programmes</th>
+                                <th scope="col">Total Coordinators</th>
                                 <th scope="col">Action</th>
                             </tr>
                             </thead>
