@@ -21,7 +21,7 @@
                                 <th class="px-4 py-2">Firstname</th>
                                 <th class="px-4 py-2">Lastname</th>
                                 <th class="px-4 py-2">School</th>
-                                <th class="px-4 py-2">Number Of Programmes</th>
+                                {{-- <th class="px-4 py-2">Number Of Programmes</th> --}}
                                 <th class="px-4 py-2">Actions</th>
                             </tr>
                         </thead>
@@ -31,7 +31,7 @@
                                 <td class="px-4 py-2">{{$result->FirstName}}</td>
                                 <td class="px-4 py-2">{{$result->Surname}}</td>
                                 <td class="px-4 py-2">{{$result->SchoolName}}</td>
-                                <td class="px-4 py-2">{{$counts[$result->ID]}}</td>
+                                {{-- <td class="px-4 py-2">{{$counts[$result->ID]}}</td> --}}
                                 <td class="px-4 py-2">
                                     <form method="GET" action="{{ route('admin.viewCoordinatorsUnderDean', ['schoolId' => encrypt($result->ParentID)]) }}">
                                         <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">

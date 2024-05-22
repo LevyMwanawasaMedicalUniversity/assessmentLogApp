@@ -192,7 +192,7 @@
                                 <th scope="col">First Name</th>
                                 <th scope="col">Last Name</th>
                                 <th scope="col">School</th>
-                                <th scope="col">Total Programmes</th>
+                                {{-- <th scope="col">Total Programmes</th> --}}
                                 <th scope="col">Action</th>
                             </tr>
                             </thead>
@@ -203,7 +203,7 @@
                                         <td>{{$dean->FirstName}}</td>
                                         <td>{{$dean->Surname}}</td>
                                         <td>{{$dean->SchoolName}}</td>
-                                        <td>{{$counts[$dean->ID]}}</td>
+                                        {{-- <td>{{$counts[$dean->ID]}}</td> --}}
                                         <td>
                                             <a href="{{ route('admin.viewCoordinatorsUnderDean', ['schoolId' => encrypt($dean->ParentID)]) }}">
                                                 <span class="badge bg-success">View</span>
