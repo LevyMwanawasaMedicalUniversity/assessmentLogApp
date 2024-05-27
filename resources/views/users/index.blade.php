@@ -66,6 +66,7 @@
                                 </td> 
                             </tr>                            
                             @endforeach
+                            
                         </tbody>
                         </table>
                         {!! $users->links('pagination::bootstrap-4') !!}
