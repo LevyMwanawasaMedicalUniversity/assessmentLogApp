@@ -4,8 +4,10 @@ use App\Http\Controllers\AdministratorController;
 use App\Http\Controllers\CoordinatorController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PermissionsController;
+use App\Http\Controllers\PhoneNumberController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RolesController;
+use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -17,12 +19,18 @@ Route::get('/', function () {
         return view('auth.login');    
     }    
 });
+Route::get('phone-number', [PhoneNumberController::class,'showPhoneNumberForm'])->name('phone.number.form');
+Route::post('phone-number', [PhoneNumberController::class, 'storePhoneNumber'])->name('phone.number.store');
+Route::post('verify-phone-number', [PhoneNumberController::class, 'verifyPhoneNumber'])->name('phone.number.verify');
+
+Route::get('2fa', [TwoFactorController::class, 'show2faForm'])->name('2fa.form');
+Route::post('2fa', [TwoFactorController::class, 'verify2fa'])->name('2fa.verify');
 
 // Route::get('/dashboard', function () {
 //     return view('dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');
 Auth::routes(['register' => false]);
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth','2fa'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     // Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

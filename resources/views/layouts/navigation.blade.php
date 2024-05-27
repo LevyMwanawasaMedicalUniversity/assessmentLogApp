@@ -235,82 +235,98 @@
 
     <ul class="sidebar-nav" id="sidebar-nav">
 
-    <li class="nav-item">
-        <a class="nav-link collapsed" href="{{route('dashboard')}}">
-        <i class="bi bi-grid"></i>
-        <span>Dashboard</span>
-        </a>
-    </li><!-- End Dashboard Nav -->
-    @if (auth()->user()->hasPermissionTo('Coordinator'))
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="{{route('dashboard')}}">
+                <i class="bi bi-grid"></i>
+                <span>Dashboard</span>
+            </a>
+        </li><!-- End Dashboard Nav -->
+
+        @if (auth()->user()->hasPermissionTo('Coordinator'))
         <li class="nav-item">
             <a class="nav-link collapsed" href="{{route('pages.upload')}}">
-            <i class="bi bi-person"></i>
-            <span>My Courses</span>
+                <i class="bi bi-person"></i>
+                <span>My Courses</span>
             </a>
         </li><!-- End Profile Page Nav -->
-    @endif
-    @if (auth()->user()->hasPermissionTo('Registrar'))
+        @endif
+
+        @if (auth()->user()->hasPermissionTo('Registrar'))
         <li class="nav-item">
             <a class="nav-link collapsed" href="{{route('admin.viewCoordinators')}}">
-            <i class="bi bi-person"></i>
-            <span>All Coordinators</span>
+                <i class="bi bi-person"></i>
+                <span>All Coordinators</span>
             </a>
         </li><!-- End Profile Page Nav -->
-    @endif
-    @if (auth()->user()->hasPermissionTo('Administrator'))
-    <li class="nav-item">
-        <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
-        <i class="bi bi-menu-button-wide"></i><span>Administration</span><i class="bi bi-chevron-down ms-auto"></i>
-        </a>
-        <ul id="components-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-            <li>
-                <a href="{{ route('users.index') }}">
-                <i class="bi bi-circle"></i><span>Users</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url('roles') }}">
-                <i class="bi bi-circle"></i><span>Roles</span>
-                </a>
-            </li>
-            <li>
-                <a href="{{ url('permissions') }}">
-                <i class="bi bi-circle"></i><span>Permissions</span>
-                </a>
-            </li>
-        </ul>
-    </li><!-- End Components Nav -->
-    @endif
-    @if (auth()->user()->hasPermissionTo('Dean') && (!auth()->user()->hasPermissionTo('Registrar') || !auth()->user()->hasPermissionTo('Administrator'))) 
+        @endif
+
+        @if (auth()->user()->hasPermissionTo('Administrator'))
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-menu-button-wide"></i>
+                <span>Administration</span>
+                <i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="components-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li>
+                    <a href="{{ route('users.index') }}">
+                        <i class="bi bi-circle"></i>
+                        <span>Users</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url('roles') }}">
+                        <i class="bi bi-circle"></i>
+                        <span>Roles</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url('permissions') }}">
+                        <i class="bi bi-circle"></i>
+                        <span>Permissions</span>
+                    </a>
+                </li>
+            </ul>
+        </li><!-- End Components Nav -->
+        @endif
+
+        @if (auth()->user()->hasPermissionTo('Dean') && (!auth()->user()->hasPermissionTo('Registrar') || !auth()->user()->hasPermissionTo('Administrator')))
         @php
             $results = \App\Models\User::where('id', auth()->user()->id)->first();
             $schoolId = $results->school_id;
-        @endphp 
+        @endphp
         <li class="nav-item">
             <a class="nav-link collapsed" href="{{route('admin.viewCoordinatorsUnderDean', ['schoolId' => encrypt($schoolId)])}}">
-            <i class="bi bi-person"></i>
-            <span>Course Coordinators</span>
+                <i class="bi bi-person"></i>
+                <span>Course Coordinators</span>
             </a>
         </li><!-- End Profile Page Nav -->
-    @endif
-    <li class="nav-item">
-        <a class="nav-link collapsed" data-bs-target="#forms-nav" data-bs-toggle="collapse" href="#">
-        <i class="bi bi-journal-text"></i><span>Registrar</span><i class="bi bi-chevron-down ms-auto"></i>
-        </a>
-        <ul id="forms-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-        <li>
-            <a href="{{route('admin.viewDeans')}}">
-            <i class="bi bi-circle"></i><span>All Deans</span>
+        @endif
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#forms-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-journal-text"></i>
+                <span>Registrar</span>
+                <i class="bi bi-chevron-down ms-auto"></i>
             </a>
-        </li>
-        <li>
-            <a href="{{route('admin.viewCoordinators')}}">
-            <i class="bi bi-circle"></i><span>All Coordinators</span>
-            </a>
-        </li>
-        </ul>
-    </li><!-- End Forms Nav -->   
-</aside><!-- End Sidebar-->
+            <ul id="forms-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li>
+                    <a href="{{route('admin.viewDeans')}}">
+                        <i class="bi bi-circle"></i>
+                        <span>All Deans</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{route('admin.viewCoordinators')}}">
+                        <i class="bi bi-circle"></i>
+                        <span>All Coordinators</span>
+                    </a>
+                </li>
+            </ul>
+        </li><!-- End Forms Nav -->
+    </ul>
+</aside><!-- End Sidebar -->
+
 {{-- <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

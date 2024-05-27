@@ -22,7 +22,8 @@
         <link href="https://fonts.gstatic.com" rel="preconnect">
         <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
 
-
+        <link rel="stylesheet" href="{{ asset('node_modules/intl-tel-input/build/css/intlTelInput.css') }}">
+        
         <!-- Template Main CSS File -->
         <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
         <link href="{{ asset('assets/img/favicon.png') }}" rel="icon">
@@ -89,7 +90,7 @@
         <script src="{{ asset('assets/vendor/simple-datatables/simple-datatables.js') }}"></script>
         <script src="{{ asset('assets/vendor/tinymce/tinymce.min.js') }}"></script>
         <script src="{{ asset('assets/vendor/php-email-form/validate.js') }}"></script>
-
+        <script src="{{ asset('node_modules/intl-tel-input/build/js/intlTelInput.js') }}"></script>
         <!-- Template Main JS File -->
         <script src="{{ asset('assets/js/main.js') }}"></script>
         

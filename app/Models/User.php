@@ -22,7 +22,9 @@ class User extends Authenticatable
         'school_id', // Add this line
         'email',
         'password',
-        'basic_information_id'
+        'phone_number', 
+        'phone_number', 
+        'two_factor_token'
     ];
 
     /**
