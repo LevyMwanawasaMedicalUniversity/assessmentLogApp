@@ -1,13 +1,23 @@
 <?php
 
-// app/Http/Middleware/TwoFactorMiddleware.php
 namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Twilio\Rest\Client;
+use Exception;
 
 class TwoFactorMiddleware
 {
+    protected $twilio;
+
+    public function __construct()
+    {
+        $sid = env('TWILIO_SID');
+        $token = env('TWILIO_AUTH_TOKEN');
+        $this->twilio = new Client($sid, $token);
+    }
+
     public function handle(Request $request, Closure $next)
     {
         $user = auth()->user();
@@ -24,7 +34,7 @@ class TwoFactorMiddleware
                     $user->update(['two_factor_token' => $verification_code]);
 
                     // Send the token via SMS
-                    app('App\Services\TwilioService')->sendSms($user->phone_number, "Your verification code is: $verification_code");
+                    $this->sendSms($user->phone_number, "Your verification code is: $verification_code");
                 }
 
                 return redirect()->route('2fa.form');
@@ -33,8 +43,20 @@ class TwoFactorMiddleware
 
         return $next($request);
     }
+
+    public function sendSms($receiverNumber, $message)
+    {
+        $fromNumber = env('TWILIO_PHONE_NUMBER');
+
+        try {
+            $this->twilio->messages->create($receiverNumber, [
+                'from' => $fromNumber,
+                'body' => $message
+            ]);
+
+            return 'SMS Sent Successfully.';
+        } catch (Exception $e) {
+            return 'Error: ' . $e->getMessage();
+        }
+    }
 }
-
-
-
-
