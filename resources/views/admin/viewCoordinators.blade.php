@@ -15,13 +15,13 @@
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body">
-                        <div class="justify-between d-flex justify-content-between">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title">Coordinators</h5>
                             <form method="post" action="{{ route('admin.importCoordinators')}}">
                                 @csrf
-                                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-r-none p-4">
-                                    Import
-                                </button>
+                                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-5 rounded-md">
+                                Import
+                            </button>
                             </form>
                         </div>
                         <!-- Table with hoverable rows -->

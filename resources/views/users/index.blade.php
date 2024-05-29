@@ -15,15 +15,14 @@
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body">
-                        <div class="justify-between d-flex justify-content-between">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title">Users</h5>
                             <form action="{{ route('users.index') }}" method="GET" class="flex space-x-4 items-end">
                                 @csrf
-                                <div class="flex items-left space-x-4">
-                                    
-                                    <input type="text" name="name" id="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline flex-grow" placeholder="Enter student number or user name">
-                                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Search</button>
-                                </div>                              
+                                <div class="flex items-center">
+                                    <input type="text" name="name" id="name" class="shadow appearance-none border rounded-l w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline flex-grow h-10" placeholder="Enter email address">
+                                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r h-10">Search</button>
+                                </div>                             
                             </form>
                             <a class="inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" href="{{ route('users.create') }}">Add user</a>
                             

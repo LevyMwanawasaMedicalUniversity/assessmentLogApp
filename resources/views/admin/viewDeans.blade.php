@@ -1,51 +1,60 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Deans') }}
-        </h2>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 overflow-x-auto">
-                    <table class="table-auto w-full mt-4">
-                        <thead>
+    <main id="main" class="main">
+    <div class="pagetitle">
+        <h1>Deans</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                <li class="breadcrumb-item active">Deans</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
+    <section class="section">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="card-title">Deans</h5>
                             <form method="post" action="{{ route('admin.importDeans')}}">
                                 @csrf
                                 <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-r-none">
                                     Import
                                 </button>
                             </form>
-                            <tr>
-                                <th class="px-4 py-2">Firstname</th>
-                                <th class="px-4 py-2">Lastname</th>
-                                <th class="px-4 py-2">School</th>
-                                {{-- <th class="px-4 py-2">Number Of Programmes</th> --}}
-                                <th class="px-4 py-2">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($results as $result)
-                            <tr class="border-t border-b hover:bg-gray-100">
-                                <td class="px-4 py-2">{{$result->FirstName}}</td>
-                                <td class="px-4 py-2">{{$result->Surname}}</td>
-                                <td class="px-4 py-2">{{$result->SchoolName}}</td>
-                                {{-- <td class="px-4 py-2">{{$counts[$result->ID]}}</td> --}}
-                                <td class="px-4 py-2">
-                                    <form method="GET" action="{{ route('admin.viewCoordinatorsUnderDean', ['schoolId' => encrypt($result->ParentID)]) }}">
-                                        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                                            View
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            @endforeach
-                            <!-- Add more rows as needed -->
-                        </tbody>
-                    </table>
+                        </div>
+                        <!-- Table with hoverable rows -->
+                        <table id="myTable" class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Firstname</th>
+                                    <th scope="col">Lastname</th>
+                                    <th scope="col">School</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($results as $result)
+                                    <tr class="border-t border-b hover:bg-gray-100">
+                                        <td>{{$result->FirstName}}</td>
+                                        <td>{{$result->Surname}}</td>
+                                        <td>{{$result->SchoolName}}</td>
+                                        <td>
+                                            <form method="GET" action="{{ route('admin.viewCoordinatorsUnderDean', ['schoolId' => encrypt($result->ParentID)]) }}">
+                                                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                                    View
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                        <!-- End Table with hoverable rows -->
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
+</main><!-- End #main -->
 </x-app-layout>
