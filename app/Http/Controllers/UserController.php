@@ -8,16 +8,23 @@ use App\Http\Requests\StoreUserRequest;
 use Spatie\Permission\Models\Role;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\Rules\Password;
 use OwenIt\Auditing\Models\Audit;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::latest()            
-            ->paginate(15);
+        if ($request->has('name')) {
+            $users = User::where('email', 'like', "%{$request->name}%")
+                ->latest()
+                ->paginate(15);
+        } else {
+            $users = User::latest()
+                ->paginate(15);
+        }
         return view('users.index', compact('users'));
     }
 
@@ -113,16 +120,17 @@ class UserController extends Controller
         // Define your custom validation rules for the email and name fields
         $request->validate([
             'name' => ['required', 'min:3'],
-            // 'email' => [
-            //     'required',
-            //     'email',
-            //     Rule::unique((new User)->getTable())->ignore($userId),
-            // ],
+
+            'email' => [
+                'required',
+                'email',
+                Rule::unique((new User)->getTable())->ignore($userId),
+            ],
         ]);       
 
         $user = User::find($userId);
         $user->name = $request->input('name');
-        // $user->email = $request->input('email');
+        $user->email = $request->input('email');
         $user->save();
         
         $user->syncRoles($request->get('role'));

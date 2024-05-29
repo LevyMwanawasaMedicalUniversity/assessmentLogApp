@@ -1,43 +1,44 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Users
-        </h2>
-    </x-slot>
+    <main id="main" class="main">
 
-    <div class="py-12">
-        
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 overflow-x-auto">
-                    <table id="myTable" class="table-auto w-full mt-4">
-                        <div class="flex justify-between items-center">
+    <div class="pagetitle">
+        <h1>Roles</h1>
+        <nav>
+            <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+            <li class="breadcrumb-item active">Roles</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
+    <section class="section">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="card-title">Roles</h5>
                             <a class="inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" href="{{ route('roles.create') }}">Add Role</a>
                         </div>
+                        <!-- Table with hoverable rows -->
+                        <table id="myTable" class="table table-hover">
                         <thead>
                             <tr>
-                                <th class="px-4 py-2">Name</th>
-                                <th class="px-4 py-2 text-right">Actions</th>
+                            <th scope="col">Name</th>
+                            <th scope="col" class="text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tfoot>
-                            <tr>
-                                <th class="px-4 py-2">Name</th>
-                                <th class="px-4 py-2 text-right">Actions</th>
-                            </tr>
-                        </tfoot>
-                        @if(count($roles ) > 0)
                         <tbody>
+                        @if(count($roles ) > 0)
                             @foreach ($roles as $key => $role)
                             <tr class="border-t border-b hover:bg-gray-100">
                                 <td class="px-4 py-2">{{ $role->name }}</td>
                                 <td class="px-4 py-2">
                                     <div class="btn-group flex justify-end" role="group" aria-label="Button group">
-                                        <a type="button" href="{{ route('roles.show', $role->id) }}">
+                                        {{-- <a type="button" href="{{ route('roles.show', $role->id) }}">
                                             <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-l-none">
                                                 Show
                                             </button>
-                                        </a>
+                                        </a> --}}
                                         <a type="button" href="{{ route('roles.edit', $role->id) }}">
                                             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-l-none">
                                                 Edit
@@ -54,19 +55,20 @@
                                 </td>
                             </tr>
                             @endforeach
-                        </tbody>
                         @else
-                        <tbody>
                             <tr>
                                 <h3 class="text-center">No Roles.</h3>
                             </tr>
-                        </tbody>
                         @endif
-                        </div>
-                    </table>
+                        </tbody>
+                        </table>
+                        <!-- End Table with hoverable rows -->
+
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
+</main><!-- End #main -->
 
 </x-app-layout>

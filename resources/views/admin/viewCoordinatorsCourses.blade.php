@@ -16,11 +16,14 @@
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="card-title">Your Courses</h5>
+                        <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-1 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-9">
+                    </div>
 
                         <!-- Table with hoverable rows -->
                         <table id="myTable" class="table table-hover">
-                        <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        
                         <thead>
                             <tr>
                             {{-- <th scope="col">#</th> --}}
