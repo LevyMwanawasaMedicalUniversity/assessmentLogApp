@@ -245,7 +245,7 @@
         @if (auth()->user()->hasPermissionTo('Coordinator'))
         <li class="nav-item">
             <a class="nav-link collapsed" href="{{route('pages.upload')}}">
-                <i class="bi bi-person"></i>
+                <i class="bi bi-file-earmark-richtext-fill"></i>
                 <span>My Courses</span>
             </a>
         </li><!-- End Profile Page Nav -->
@@ -254,8 +254,14 @@
         @if (auth()->user()->hasPermissionTo('Registrar'))
         <li class="nav-item">
             <a class="nav-link collapsed" href="{{route('admin.viewCoordinators')}}">
-                <i class="bi bi-person"></i>
+                <i class="bi bi-person-lines-fill"></i>
                 <span>All Coordinators</span>
+            </a>
+        </li><!-- End Profile Page Nav -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="{{route('admin.viewDeans')}}">
+                <i class="bi bi-person-square"></i>
+                <span>All Deans</span>
             </a>
         </li><!-- End Profile Page Nav -->
         @endif
@@ -303,7 +309,7 @@
         </li><!-- End Profile Page Nav -->
         @endif
 
-        <li class="nav-item">
+        {{-- <li class="nav-item">
             <a class="nav-link collapsed" data-bs-target="#forms-nav" data-bs-toggle="collapse" href="#">
                 <i class="bi bi-journal-text"></i>
                 <span>Registrar</span>
@@ -323,7 +329,7 @@
                     </a>
                 </li>
             </ul>
-        </li><!-- End Forms Nav -->
+        </li><!-- End Forms Nav --> --}}
     </ul>
 </aside><!-- End Sidebar -->
 
