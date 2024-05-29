@@ -4,6 +4,9 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             Total CAs for {{$courseDetails->CourseDescription}} - {{$courseDetails->Name}}
         </h2>
+        <nav>
+            {{ Breadcrumbs::render() }}
+        </nav>
     </div><!-- End Page Title -->
     <section class="section">
         <div class="row">
@@ -13,22 +16,38 @@
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title">Total CAs out of 40</h5>
                             <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search by student number.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <a href="" class="btn btn-primary">PUBLISH CA</a>
                         </div>
                         <!-- Table with hoverable rows -->
                         <table id="myTable" class="table table-hover">
                             <thead>
                                 <tr>
                                     <th class="px-4 py-2">Student Number</th>
-                                    <th class="px-4 py-2">Mark</th>
+                                    <th class="px-4 py-2">FirstName</th>
+                                    <th class="px-4 py-2">LastName</th> 
+                                    <th class="px-4 py-2">Programme</th>
+                                    <th class="px-4 py-2">School</th>                               
+                                    {{-- <th class="px-4 py-2">Academic Year</th> --}}
+                                    <th class="px-4 py-2">Mark (40)</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($results as $result)                                
+                                @foreach($results as $result)
                                     <tr class="border-t border-b hover:bg-gray-100">
-                                        <td class="px-4 py-2">{{$result->student_id }}</td>
-                                        <td class="px-4 py-2">{{$result->total_marks}}</td>                                                                                                        
+                                        <td class="px-4 py-2">{{ $result->student_id }}</td>
+                                        @if($result->basic_information)
+                                            <td class="px-4 py-2">{{ $result->basic_information->FirstName }}</td>
+                                            <td class="px-4 py-2">{{ $result->basic_information->Surname }}</td>
+                                            <td class="px-4 py-2">{{ $result->basic_information->Programme }}</td>
+                                            <td class="px-4 py-2">{{ $result->basic_information->School }}</td>
+                                        @else
+                                            <td class="px-4 py-2" colspan="4">No basic information available</td>
+                                        @endif
+                                        {{-- <td class="px-4 py-2">{{ $result->academic_year ?? 'N/A' }}</td> --}}
+                                        <td class="px-4 py-2">{{ $result->total_marks }}</td>
                                     </tr>
                                 @endforeach
+
                             </tbody>
                         </table>
                         <!-- End Table with hoverable rows -->

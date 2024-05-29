@@ -2,6 +2,9 @@
     <main id="main" class="main">
     <div class="pagetitle">
         <h1>Edit Permission</h1>
+        <nav>
+            {{ Breadcrumbs::render() }}
+        </nav>
     </div><!-- End Page Title -->
     <section class="section">
         <div class="row">

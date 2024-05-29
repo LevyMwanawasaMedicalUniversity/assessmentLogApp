@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CourseAssessment;
 use App\Models\CourseAssessmentScores;
+use App\Models\EduroleBasicInformation;
 use App\Models\EduroleCourses;
 use App\Models\EduroleStudy;
 use App\Models\StudentsContinousAssessment;
@@ -86,8 +87,28 @@ class CoordinatorController extends Controller
             ->join('course_assessment_scores', 'course_assessments.course_assessments_id', '=', 'course_assessment_scores.course_assessment_id')
             ->orderBy('course_assessments.created_at', 'asc')
             ->get();
+            
+        $resultsArrayStudentNumbers = $results->pluck('student_id')->toArray();
+        
+        // return $resultsFromBasicInformation;
         $courseEduroleId = $results[0]->course_id;
         $courseDetails = EduroleCourses::where('ID', $courseEduroleId)->first();
+        $resultsFromBasicInformation= EduroleBasicInformation::join('student-study-link', 'student-study-link.StudentID', '=', 'basic-information.ID')
+            ->join('study', 'study.ID', '=', 'student-study-link.StudyID')            
+            ->join('schools', 'schools.ID', '=', 'study.ParentID')
+            ->select('basic-information.ID', 'basic-information.FirstName', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.Name as Programme', 'schools.Name as School')
+            ->whereIn('basic-information.ID', $resultsArrayStudentNumbers)
+            ->get();
+        // return $resultsFromBasicInformation;
+        
+        // Merge results
+        $results = $results->map(function ($result) use ($resultsFromBasicInformation) {
+            $result->basic_information = $resultsFromBasicInformation->firstWhere('ID', $result->student_id);
+            return $result;
+        });
+
+        // return $results;
+    
         $assessmentType = $this->setAssesmentType($statusId);
         return view('coordinator.viewSpecificCaInCourse', compact('results', 'courseId','assessmentType','courseDetails','statusId'));
     }
@@ -103,6 +124,7 @@ class CoordinatorController extends Controller
                 ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
                 ->groupBy('students_continous_assessments.student_id')
                 ->get();
+            
         }else{
             $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
                 ->where('ca_type', 4) 
@@ -110,6 +132,19 @@ class CoordinatorController extends Controller
                 ->groupBy('students_continous_assessments.student_id')
                 ->get();
         }
+
+        $resultsArrayStudentNumbers = $results->pluck('student_id')->toArray();
+        $resultsFromBasicInformation= EduroleBasicInformation::join('student-study-link', 'student-study-link.StudentID', '=', 'basic-information.ID')
+            ->join('study', 'study.ID', '=', 'student-study-link.StudyID')            
+            ->join('schools', 'schools.ID', '=', 'study.ParentID')
+            ->select('basic-information.ID', 'basic-information.FirstName', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.Name as Programme', 'schools.Name as School')
+            ->whereIn('basic-information.ID', $resultsArrayStudentNumbers)
+            ->get();
+        // return $resultsFromBasicInformation;
+        $results = $results->map(function ($result) use ($resultsFromBasicInformation) {
+            $result->basic_information = $resultsFromBasicInformation->firstWhere('ID', $result->student_id);
+            return $result;
+        });
         // return $results;
         return view('coordinator.viewTotalCaInCourse', compact('results', 'statusId', 'courseId','courseDetails')); 
     }
@@ -202,9 +237,11 @@ class CoordinatorController extends Controller
             // }
 
         }
+        $statusIdToRoute = encrypt($request->ca_type);
+        $courseIdToRoute = encrypt($newAssessment->course_assessments_id);
 
-        return redirect()->back()->with('success', 'Data imported successfully');
-        // return redirect()->route('coordinator.uploadCa', ['courseIdValue' => $request->course_id, 'statusId' => $request->status])->with('success', 'Data imported successfully');
+        // return redirect()->back()->with('success', 'Data imported successfully');
+        return redirect()->route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusIdToRoute, 'courseIdValue' => $courseIdToRoute])->with('success', 'Data imported successfully');
     }
 
     public function updateCAFromExcelSheet(Request $request){

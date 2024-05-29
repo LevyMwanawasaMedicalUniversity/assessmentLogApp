@@ -4,10 +4,7 @@
     <div class="pagetitle">
         <h1>Coordinators</h1>
         <nav>
-            <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-            <li class="breadcrumb-item active">Coordinators</li>
-            </ol>
+            {{ Breadcrumbs::render() }}
         </nav>
     </div><!-- End Page Title -->
     <section class="section">
