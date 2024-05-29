@@ -4,6 +4,10 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{$assessmentType }}s for {{$courseDetails->CourseDescription}} - {{$courseDetails->Name}}
         </h2>
+        <nav>
+            {{ Breadcrumbs::render() }}
+        </nav>
+
     </div><!-- End Page Title -->
     <section class="section">
         <div class="row">
@@ -19,19 +23,27 @@
                             <thead>
                                 <tr>
                                     <th class="px-4 py-2">Student Number</th>
-                                    <th class="px-4 py-2">Course Code</th>                                
+                                    <th class="px-4 py-2">FirstName</th>
+                                    <th class="px-4 py-2">LastName</th> 
+                                    <th class="px-4 py-2">Programme</th>
+                                    <th class="px-4 py-2">School</th>                               
                                     <th class="px-4 py-2">Academic Year</th>
                                     <th class="px-4 py-2">Mark</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($results as $result)                                
-                                    <tr class="border-t border-b hover:bg-gray-100">
-                                        <td class="px-4 py-2">{{$result->student_id }}</td>
-                                        <td class="px-4 py-2">{{$result->course_code}}</td>                                    
-                                        <td class="px-4 py-2">{{$result->academic_year}}</td> 
-                                        <td class="px-4 py-2">{{$result->cas_score}}</td>                                                                                                        
-                                    </tr>
+                                @foreach($results as $result)
+                                    @if($result->basic_information)
+                                        <tr class="border-t border-b hover:bg-gray-100">
+                                            <td class="px-4 py-2">{{$result->basic_information->ID }}</td>
+                                            <td class="px-4 py-2">{{$result->basic_information->FirstName}}</td>
+                                            <td class="px-4 py-2">{{$result->basic_information->Surname}}</td>
+                                            <td class="px-4 py-2">{{$result->basic_information->Programme}}</td>
+                                            <td class="px-4 py-2">{{$result->basic_information->School}}</td>                                            
+                                            <td class="px-4 py-2">{{$result->academic_year}}</td>
+                                            <td class="px-4 py-2">{{$result->cas_score}}</td>
+                                        </tr>
+                                    @endif
                                 @endforeach
                             </tbody>
                         </table>

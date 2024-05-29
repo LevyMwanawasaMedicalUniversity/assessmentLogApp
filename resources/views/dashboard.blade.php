@@ -5,7 +5,8 @@
         <h1>Dashboard</h1>
         <nav>
             
-            <li class="breadcrumb-item active">Dashboard</li>
+            
+            {{ Breadcrumbs::render() }}
             </ol>
         </nav>
         </div><!-- End Page Title -->
