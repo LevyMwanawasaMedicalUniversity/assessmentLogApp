@@ -13,12 +13,14 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title">Deans</h5>
-                            <form method="post" action="{{ route('admin.importDeans')}}">
-                                @csrf
-                                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-r-none">
-                                    Import
-                                </button>
-                            </form>
+                            @if(auth()->user()->hasPermissionTo('Administrator'))
+                                <form method="post" action="{{ route('admin.importDeans')}}">
+                                    @csrf
+                                    <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-r-none">
+                                        Import
+                                    </button>
+                                </form>
+                            @endif
                         </div>
                         <!-- Table with hoverable rows -->
                         <table id="myTable" class="table table-hover">

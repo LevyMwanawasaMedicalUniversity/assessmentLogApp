@@ -42,9 +42,11 @@
                                 @if(strpos(strtoupper($result->CourseName), 'OSCE') !== 0)
                                     <td>
                                         <div class="btn-group flex" role="group" aria-label="Button group">
-                                            <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-none" data-toggle="modal" data-target="#uploadCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
-                                                Upload
-                                            </button>
+                                            @if(auth()->user()->hasPermissionTo('Coordinator'))
+                                                <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-none" data-toggle="modal" data-target="#uploadCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
+                                                    Upload
+                                                </button>
+                                            @endif
                                             <button type="button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-l-none" data-toggle="modal" data-target="#viewCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
                                                 View
                                             </button>
@@ -53,11 +55,13 @@
                                 @else
                                     <td>
                                         <div class="btn-group flex" role="group" aria-label="Button group">
-                                            <a href="{{ route('coordinator.uploadCa', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}">
-                                                <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-none">
-                                                    Upload
-                                                </button>
-                                            </a>
+                                            @if(auth()->user()->hasPermissionTo('Coordinator'))
+                                                <a href="{{ route('coordinator.uploadCa', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}">
+                                                    <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-none">
+                                                        Upload
+                                                    </button>
+                                                </a>
+                                            @endif
                                             <a href="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}">
                                                 <button type="button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-l-none">
                                                     View
