@@ -65,7 +65,7 @@ Route::middleware(['auth'])->group(function () {
         Route::POST('/coordinator/importCAFromExcelSheet',[CoordinatorController::class, 'importCAFromExcelSheet'])->name('coordinator.importCAFromExcelSheet');        
         
     });
-    Route::middleware('can:ViewTheContionousAssessment')->group(function () {
+    Route::middleware('can:ViewTheContionousAssessment')->group(function () { //deans, & registrar permissions included
         Route::get('/coordinator/viewSpecificCaInCourse/{statusId}/{courseIdValue}',[CoordinatorController::class, 'viewSpecificCaInCourse'])->name('coordinator.viewSpecificCaInCourse');
 
         Route::get('/coordinator/viewTotalCaInCourse/{statusId}/{courseIdValue}',[CoordinatorController::class, 'viewTotalCaInCourse'])->name('coordinator.viewTotalCaInCourse');
@@ -84,7 +84,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/admin/viewsCourse',[AdministratorController::class, 'viewCourse'])->name('admin.viewCourse');
     });
 
-    Route::middleware([ 'can:ViewCoordinatorsCourses'])->group(function () {
+    Route::middleware([ 'can:ViewCoordinatorsCourses'])->group(function () { //deans, coordinators, registrar permissions included
         Route::get('/admin/viewCoordinators',[AdministratorController::class, 'viewCoordinators'])->name('admin.viewCoordinators');
         Route::get('/coordinator/viewCoordinatorsUnderDean/{schoolId}',[AdministratorController::class, 'viewCoordinatorsUnderDean'])->name('admin.viewCoordinatorsUnderDean');
 
