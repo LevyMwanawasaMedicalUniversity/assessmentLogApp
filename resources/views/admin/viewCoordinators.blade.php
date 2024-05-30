@@ -18,8 +18,8 @@
                                 <form method="post" action="{{ route('admin.importCoordinators')}}">
                                     @csrf
                                     <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-5 rounded-md">
-                                    Import
-                                </button>
+                                        Import
+                                    </button>
                                 </form>
                             @endif
                         </div>
