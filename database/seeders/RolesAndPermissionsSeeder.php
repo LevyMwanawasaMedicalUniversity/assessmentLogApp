@@ -22,6 +22,8 @@ class RolesAndPermissionsSeeder extends Seeder
         Permission::create(['name' => 'Administrator']);
         Permission::create(['name' => 'Dean']);
         Permission::create(['name' => 'Registrar']);
+        Permission::create(['name' => 'ViewCoordinatorsCourses']);
+        
 
         // Create roles and assign permissions
         $coordinator = Role::create(['name' => 'Coordinator']);
@@ -30,11 +32,20 @@ class RolesAndPermissionsSeeder extends Seeder
         $registrar= Role::create(['name' => 'Registrar']);
 
         $coordinator->givePermissionTo('Coordinator');
+        $coordinator->givePermissionTo('ViewTheContionousAssessment');
         $administrator->givePermissionTo('Administrator');
         $administrator->givePermissionTo('Coordinator');
         $administrator->givePermissionTo('Dean');
         $administrator->givePermissionTo('Registrar');
+        $administrator->givePermissionTo('ViewCoordinatorsCourses');
+        $administrator->givePermissionTo('ViewTheContionousAssessment');
         $dean->givePermissionTo('Dean');
+        $dean->givePermissionTo('ViewCoordinatorsCourses');
+        $dean->givePermissionTo('ViewTheContionousAssessment');
         $registrar->givePermissionTo('Registrar');
+        $registrar->givePermissionTo('ViewCoordinatorsCourses');
+        $registrar->givePermissionTo('ViewTheContionousAssessment');
+
+        
     }
 }

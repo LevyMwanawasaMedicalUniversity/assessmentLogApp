@@ -66,7 +66,12 @@ Breadcrumbs::for('admin.viewDeans', function ($trail) {
 });
 
 Breadcrumbs::for('admin.viewCoordinatorsUnderDean', function ($trail, $schoolId) {
-    $trail->parent('admin.viewDeans');
+    if(auth()->user()->hasRole('Dean')){
+        $trail->parent('dashboard');
+    }else{
+        $trail->parent('admin.viewDeans');
+    }
+    
     $trail->push('View Coordinators', route('admin.viewCoordinatorsUnderDean', $schoolId));
 });
 
@@ -99,11 +104,40 @@ Breadcrumbs::for('coordinator.uploadCa', function ($trail, $statusId, $courseIdV
 
     $basicInformationId = encrypt($results->basicInformationId);
 
-    // Make sure to pass the correct parameters to the parent breadcrumb
-    $trail->parent('admin.viewCoordinatorsCourses', $basicInformationId);
+    // Conditional parent based on the role
+    if (auth()->user()->hasRole('Coordinator')) {
+        $trail->parent('pages.upload');
+    } else {
+        $trail->parent('admin.viewCoordinatorsCourses', $basicInformationId);
+    }
 
     // Generate the route correctly with all required parameters
     $trail->push('Upload CA', route('coordinator.uploadCa', ['statusId' => $statusId, 'courseIdValue' => $courseIdValue]));
+});
+
+Breadcrumbs::for('coordinator.editCaInCourse', function ($trail, $statusId, $courseIdValue) {
+    $courseId = Crypt::decrypt($courseIdValue);
+
+    $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
+        ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
+        ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
+        ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
+        ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
+        ->select('courses.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName','courses.CourseDescription','basic-information.ID as basicInformationId')
+        ->where('courses.ID', $courseId)
+        ->first();
+
+    $basicInformationId = encrypt($results->basicInformationId);
+
+    // Conditional parent based on the role
+    if (auth()->user()->hasRole('Coordinator')) {
+        $trail->parent('pages.upload');
+    } else {
+        $trail->parent('admin.viewCoordinatorsCourses', $basicInformationId);
+    }
+
+    // Generate the route correctly with all required parameters
+    $trail->push('Upload CA', route('coordinator.editCaInCourse', ['courseAssessmenId' => $statusId, 'courseId' => $courseIdValue]));
 });
 
 Breadcrumbs::for('coordinator.viewAllCaInCourse', function ($trail, $statusId, $courseIdValue) {
@@ -121,7 +155,11 @@ Breadcrumbs::for('coordinator.viewAllCaInCourse', function ($trail, $statusId, $
     $basicInformationId = encrypt($results->basicInformationId);
 
     // Make sure to pass the correct parameters to the parent breadcrumb
-    $trail->parent('admin.viewCoordinatorsCourses', $basicInformationId);
+    if (auth()->user()->hasRole('Coordinator')) {
+        $trail->parent('pages.upload');
+    } else {
+        $trail->parent('admin.viewCoordinatorsCourses', $basicInformationId);
+    }
 
     // Generate the route correctly with all required parameters
     $trail->push('View CA', route('coordinator.viewAllCaInCourse', ['statusId' => $statusId, 'courseIdValue' => $courseIdValue]));
@@ -162,7 +200,11 @@ Breadcrumbs::for('coordinator.viewTotalCaInCourse', function ($trail, $statusId,
     $basicInformationId = encrypt($results->basicInformationId);
 
     // Make sure to pass the correct parameters to the parent breadcrumb
-    $trail->parent('admin.viewCoordinatorsCourses', $basicInformationId);
+    if (auth()->user()->hasRole('Coordinator')) {
+        $trail->parent('pages.upload');
+    } else {
+        $trail->parent('admin.viewCoordinatorsCourses', $basicInformationId);
+    }
         
     
     // Generate the route correctly with all required parameters

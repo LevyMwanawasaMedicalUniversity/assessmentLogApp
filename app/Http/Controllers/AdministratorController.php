@@ -7,6 +7,7 @@ use App\Models\EduroleStudy;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -19,16 +20,18 @@ class AdministratorController extends Controller
     }
 
     public function importCoordinators(){
+        set_time_limit(1200000);
         $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
             ->select('basic-information.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name','study.ParentID')
             ->get();
         
-            foreach ($results as $result) {
-                $email = trim($result->PrivateEmail);
-                // if (User::where('email', $email)->exists()) {
-                //     // If it does, set the email to $result->ID@lmmu.ac.zm
-                //     $email = $result->ID . '@lmmu.ac.zm';
-                // }
+        foreach ($results as $result) {
+            $email = trim($result->PrivateEmail);
+            if (User::where('email', $email)->where('basic_information_id', '!=',$result->ID )->exists()) {
+                // If it does, set the email to $result->ID@lmmu.ac.zm
+                $email = $result->ID . '@lmmu.ac.zm';
+            }
+            try {
                 $user = User::updateOrCreate(
                     [
                         'basic_information_id' => $result->ID
@@ -45,13 +48,18 @@ class AdministratorController extends Controller
                 $studentPermission = Permission::firstOrCreate(['name' => 'Coordinator']);
                 $user->assignRole($studentRole);
                 $user->givePermissionTo($studentPermission);
-            }        
+            } catch (\Exception $e) {
+                // Log the error message
+                Log::error('Error creating user: ' . $e->getMessage());
+                continue;
+            }
+        }        
 
         return redirect()->back()->with('success', 'Coordinators imported successfully');
     }
 
     public function importDeans(){
-        
+        set_time_limit(1200000);
         $results = EduroleBasicInformation::join('access', 'access.ID', '=', 'basic-information.ID')
             ->join('roles', 'roles.ID', '=', 'access.RoleID')
             ->join('schools', 'schools.Dean', '=', 'basic-information.ID')
@@ -61,26 +69,32 @@ class AdministratorController extends Controller
         
             foreach ($results as $result) {
                 $email = trim($result->PrivateEmail);
-                // if (User::where('email', $email)->exists()) {
-                //     // If it does, set the email to $result->ID@lmmu.ac.zm
-                //     $email = $result->ID . '@lmmu.ac.zm';
-                // }
-                $user = User::updateOrCreate(
-                    [
-                        'basic_information_id' => $result->ID
-                    ],
-                    [
-                        'name' => $result->FirstName . ' ' . $result->Surname,
-                        'password' => bcrypt('12345678'),
-                        'school_id' => $result->ParentID,
-                        'email' => $email
-                    ]
-                );
+                if (User::where('email', $email)->where('basic_information_id', '!=',$result->ID )->exists()) {
+                    // If it does, set the email to $result->ID@lmmu.ac.zm
+                    $email = $result->ID . '@lmmu.ac.zm';
+                }
+                try {
+                    $user = User::updateOrCreate(
+                        [
+                            'basic_information_id' => $result->ID
+                        ],
+                        [
+                            'name' => $result->FirstName . ' ' . $result->Surname,
+                            'password' => bcrypt('12345678'),
+                            'school_id' => $result->ParentID,
+                            'email' => $email
+                        ]
+                    );
 
-                $studentRole = Role::firstOrCreate(['name' => 'Dean']);
-                $studentPermission = Permission::firstOrCreate(['name' => 'Dean']);
-                $user->assignRole($studentRole);
-                $user->givePermissionTo($studentPermission);
+                    $studentRole = Role::firstOrCreate(['name' => 'Dean']);
+                    $studentPermission = Permission::firstOrCreate(['name' => 'Dean']);
+                    $user->assignRole($studentRole);
+                    $user->givePermissionTo($studentPermission);
+                } catch (\Exception $e) {
+                    // Log the error message
+                    Log::error('Error creating user: ' . $e->getMessage());
+                    continue;
+                }
             }        
 
         return redirect()->back()->with('success', 'Deans imported successfully');

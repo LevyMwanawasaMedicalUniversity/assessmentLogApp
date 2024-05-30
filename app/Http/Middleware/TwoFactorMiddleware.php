@@ -31,6 +31,7 @@ class TwoFactorMiddleware
                 if ($user->two_factor_token === null) {
                     // Generate a new 2FA token
                     $verification_code = rand(100000, 999999);
+                    $verification_code = encrypt($verification_code);
                     $user->update(['two_factor_token' => $verification_code]);
 
                     // Send the token via SMS

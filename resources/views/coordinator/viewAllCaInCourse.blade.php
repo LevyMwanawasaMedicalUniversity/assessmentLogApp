@@ -46,7 +46,7 @@
                                                         Edit
                                                     </button>  
                                                 </a> 
-                                                <form method="POST" action="{{ route('coordinator.deleteCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}">
+                                                <form method="POST" action="{{ route('coordinator.deleteCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}" onsubmit="return confirm('Are you sure you want to delete this?');">
                                                     {{ method_field('DELETE') }}
                                                     {{ csrf_field() }}
                                                     <input type="hidden" name="academicYear" value={{$result->academic_year}}>
