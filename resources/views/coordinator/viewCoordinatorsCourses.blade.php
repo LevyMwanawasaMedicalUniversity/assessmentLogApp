@@ -27,7 +27,7 @@
                             <th scope="col">Course Name</th>
                             <th scope="col">Course Code</th>
                             <th scope="col">Programme Name</th>
-                            <th scope="col">Actions</th>
+                            <th scope="col" class="text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -40,32 +40,34 @@
                                 <td>{{$result->CourseName}}</td>
                                 <td>{{$result->Name}}</td>
                                 @if(strpos(strtoupper($result->CourseName), 'OSCE') !== 0)
-                                    <td>
-                                        <div class="btn-group flex" role="group" aria-label="Button group">
+                                    <td class="text-right">
+                                        <div class="btn-group float-end" role="group" aria-label="Button group">
                                             @if(auth()->user()->hasPermissionTo('Coordinator'))
-                                                <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-none" data-toggle="modal" data-target="#uploadCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
+                                                <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#uploadCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
                                                     Upload
                                                 </button>
                                             @endif
-                                            <button type="button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-l-none" data-toggle="modal" data-target="#viewCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
+                                            <button type="button" class="btn btn-success font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#viewCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
                                                 View
                                             </button>
+                                            <a href="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
+                                                Settings
+                                            </a>
                                         </div>
                                     </td>
                                 @else
-                                    <td>
-                                        <div class="btn-group flex" role="group" aria-label="Button group">
+                                    <td class="text-right">
+                                        <div class="btn-group float-end" role="group" aria-label="Button group">
                                             @if(auth()->user()->hasPermissionTo('Coordinator'))
-                                                <a href="{{ route('coordinator.uploadCa', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}">
-                                                    <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-none">
-                                                        Upload
-                                                    </button>
+                                                <a href="{{ route('coordinator.uploadCa', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
+                                                    Upload
                                                 </a>
                                             @endif
-                                            <a href="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}">
-                                                <button type="button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-l-none">
-                                                    View
-                                                </button>
+                                            <a href="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
+                                                View
+                                            </a>
+                                            <a href="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID)]) }}" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
+                                                Settings
                                             </a>
                                         </div>
                                     </td>                                    

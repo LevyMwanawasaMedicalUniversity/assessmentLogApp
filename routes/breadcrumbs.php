@@ -60,6 +60,25 @@ Breadcrumbs::for('permissions.create', function ($trail) {
     $trail->push('Create Permission', route('permissions.create'));
 });
 
+/////////
+
+Breadcrumbs::for('caAssessmentTypes.index', function ($trail) {
+    $trail->parent('dashboard');
+    $trail->push('Assessment Types', route('caAssessmentTypes.index'));
+});
+
+Breadcrumbs::for('caAssessmentTypes.edit', function ($trail, $permission) {
+    $trail->parent('caAssessmentTypes.index');
+    $trail->push('Edit Assessment Type', route('caAssessmentTypes.edit', $permission));
+});
+
+Breadcrumbs::for('caAssessmentTypes.create', function ($trail) {
+    $trail->parent('caAssessmentTypes.index');
+    $trail->push('Create Assessment Type', route('caAssessmentTypes.create'));
+});
+
+///////////////////
+
 Breadcrumbs::for('admin.viewDeans', function ($trail) {
     $trail->parent('dashboard');
     $trail->push('Deans', route('admin.viewDeans'));

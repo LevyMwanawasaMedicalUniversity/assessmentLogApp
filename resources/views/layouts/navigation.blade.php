@@ -292,6 +292,12 @@
                         <span>Permissions</span>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ url('caAssessmentTypes') }}">
+                        <i class="bi bi-circle"></i>
+                        <span>CA Type Management</span>
+                    </a>
+                </li>
             </ul>
         </li><!-- End Components Nav -->
         @endif

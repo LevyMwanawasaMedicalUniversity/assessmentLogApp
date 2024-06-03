@@ -62,23 +62,23 @@ class UserController extends Controller
     // }
 
     public function store(Request $request)
-{
-    $validatedData = $request->validate([
-        'name' => 'required|string',
-        'email' => 'required|email|unique:users',
-        
-        // Add more validation rules as per your requirements
-    ]);
+    {
+        $validatedData = $request->validate([
+            'name' => 'required|string',
+            'email' => 'required|email|unique:users',
+            
+            // Add more validation rules as per your requirements
+        ]);
 
-    $user = User::create(array_merge($validatedData, [
-        'password' => Hash::make('Welcome@123')
-    ]));
+        $user = User::create(array_merge($validatedData, [
+            'password' => Hash::make('Welcome@123')
+        ]));
 
-    $user->syncRoles($request->get('role'));
+        $user->syncRoles($request->get('role'));
 
-    return redirect()->route('users.index')
-        ->withSuccess(__('User created successfully.'));
-}
+        return redirect()->route('users.index')
+            ->withSuccess(__('User created successfully.'));
+    }
 
     /**
      * Display the specified resource.

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdministratorController;
+use App\Http\Controllers\CaAssementTypesController;
 use App\Http\Controllers\CoordinatorController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PermissionsController;
@@ -37,10 +38,12 @@ Route::middleware(['auth'])->group(function () {
     // Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/dashboard', [PagesController::class, 'dashboard'])->name('dashboard');
 
-    Route::resource('user', UserController::class);
-    Route::resource('roles', RolesController::class);
-    Route::resource('permissions', PermissionsController::class);
+    
     Route::middleware('can:Administrator')->group(function () {
+        Route::resource('users', UserController::class);
+        Route::resource('roles', RolesController::class);
+        Route::resource('permissions', PermissionsController::class);
+        Route::resource('caAssessmentTypes', CaAssementTypesController::class);
         Route::get('user', [UserController::class, 'index'])->name('users.index');
         Route::get('/user/searchForUser', 'UserController@searchForUser')->name('users.searchForUser');
         Route::get('/create', [UserController::class, 'create'])->name('users.create');
@@ -67,7 +70,7 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::middleware('can:ViewTheContionousAssessment')->group(function () { //deans, & registrar permissions included
         Route::get('/coordinator/viewSpecificCaInCourse/{statusId}/{courseIdValue}',[CoordinatorController::class, 'viewSpecificCaInCourse'])->name('coordinator.viewSpecificCaInCourse');
-
+        Route::get('/coordinator/courseCASetings/{courseIdValue}',[CoordinatorController::class, 'courseCASettings'])->name('coordinator.courseCASettings');
         Route::get('/coordinator/viewTotalCaInCourse/{statusId}/{courseIdValue}',[CoordinatorController::class, 'viewTotalCaInCourse'])->name('coordinator.viewTotalCaInCourse');
         Route::get('/coordinator/viewCa/{statusId}/{courseIdValue}',[CoordinatorController::class, 'viewAllCaInCourse'])->name('coordinator.viewAllCaInCourse');
     });
