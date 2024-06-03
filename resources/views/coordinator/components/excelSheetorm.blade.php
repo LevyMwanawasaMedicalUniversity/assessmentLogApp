@@ -30,7 +30,7 @@
             <input type="hidden" name="course_id" value={{$courseId}}>
             <input type="hidden" name="course_code" value={{$results->CourseName}}>
             <input type="hidden" name="basicInformationId" value={{$results->basicInformationId}}>            
-            <input type="file" name="excelFile" accept=".xlsx" class="w-full border border-gray-300 rounded p-2 bg-white" id="excelFileInput">
+            <input type="file" name="excelFile" accept=".xls,.xlsx,.csv" class="w-full border border-gray-300 rounded p-2 bg-white" id="excelFileInput">
         </div>
 
         <!-- File Preview -->
