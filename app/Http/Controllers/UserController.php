@@ -25,7 +25,7 @@ class UserController extends Controller
             $users = User::latest()
                 ->paginate(15);
         }
-        return view('users.index', compact('users'));
+        return view('admin.users.index', compact('users'));
     }
 
     public function resetUserPassword($userId)
@@ -45,7 +45,7 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::latest()->get();
-        return view('users.create',compact('roles'));
+        return view('admin.users.create',compact('roles'));
     }
 
     /**
@@ -85,7 +85,7 @@ class UserController extends Controller
      */
     public function show(User $user) 
     {
-        return view('users.show', [
+        return view('admin.users.show', [
             'user' => $user
         ]);
     }
@@ -95,7 +95,7 @@ class UserController extends Controller
      */
     public function edit(User $user) 
     {
-        return view('users.edit', [
+        return view('admin.users.edit', [
             'user' => $user,
             'userRole' => $user->roles->pluck('name')->toArray(),
             'roles' => Role::latest()->get()

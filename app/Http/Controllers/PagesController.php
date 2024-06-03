@@ -28,7 +28,7 @@ class PagesController extends Controller
             ->select('courses.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName','courses.CourseDescription')
             ->where('basic-information.ID', $userBasicInformation)
             ->get();
-        return view('admin.viewCoordinatorsCourses', compact('results'));
+        return view('coordinator.viewCoordinatorsCourses', compact('results'));
     }
 
     public function dashboard()
@@ -84,7 +84,7 @@ class PagesController extends Controller
             ->where('basic-information.ID', $basicInformationId)
             ->get();
         
-        return view('admin.viewCoordinatorsCourses', compact('results'));
+        return view('coordinator.viewCoordinatorsCourses', compact('results'));
 
     }
 }

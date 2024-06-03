@@ -111,7 +111,7 @@ class AdministratorController extends Controller
             ->get();
             $counts = $results->countBy('ID');
             $results= $results->unique('ID');
-        return view('admin.viewCoordinators', compact('results', 'counts'));
+        return view('dean.viewCoordinators', compact('results', 'counts'));
     }
 
     public function viewCoordinatorsUnderDean($schoolId){
@@ -126,7 +126,7 @@ class AdministratorController extends Controller
             ->get();
             $counts = $results->countBy('ID');
             $results= $results->unique('ID');
-        return view('admin.viewCoordinators', compact('results', 'counts'));
+        return view('dean.viewCoordinators', compact('results', 'counts'));
     }
 
     public function viewDeans(){
@@ -138,7 +138,7 @@ class AdministratorController extends Controller
             ->get();
             $counts = $results->countBy('ID');
             $results= $results->unique('ID');
-        return view('admin.viewDeans', compact('results', 'counts'));
+        return view('registrar.viewDeans', compact('results', 'counts'));
     }
 
     public function viewCoordinatorsCourses($basicInformationId){
@@ -153,7 +153,7 @@ class AdministratorController extends Controller
             ->where('basic-information.ID', $basicInformationId)
             ->get();
         
-        return view('admin.viewCoordinatorsCourses', compact('results'));
+        return view('coordinator.viewCoordinatorsCourses', compact('results'));
 
     }
 
@@ -169,7 +169,7 @@ class AdministratorController extends Controller
             ->where('courses.ID', $courseId)
             ->first();
         
-        return view('admin.viewCourse', compact('results'));
+        return view('coordinator.viewCourse', compact('results'));
 
     }
 
