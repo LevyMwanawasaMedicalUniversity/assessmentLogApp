@@ -134,6 +134,33 @@ Breadcrumbs::for('coordinator.uploadCa', function ($trail, $statusId, $courseIdV
     $trail->push('Upload CA', route('coordinator.uploadCa', ['statusId' => $statusId, 'courseIdValue' => $courseIdValue]));
 });
 
+Breadcrumbs::for('coordinator.courseCASettings', function ($trail, $courseIdValue) {
+    $courseId = Crypt::decrypt($courseIdValue);
+
+    $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
+        ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
+        ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
+        ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
+        ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
+        ->select('courses.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName','courses.CourseDescription','basic-information.ID as basicInformationId')
+        ->where('courses.ID', $courseId)
+        ->first();
+
+    $basicInformationId = encrypt($results->basicInformationId);
+
+    // Conditional parent based on the role
+    if (auth()->user()->hasRole('Coordinator')) {
+        $trail->parent('pages.upload');
+    } else {
+        $trail->parent('admin.viewCoordinatorsCourses', $basicInformationId);
+    }
+
+    // Generate the route correctly with all required parameters
+    $trail->push('Course Settings', route('coordinator.courseCASettings', ['courseIdValue' => $courseId, ]));
+});
+
+
+
 Breadcrumbs::for('coordinator.editCaInCourse', function ($trail, $statusId, $courseIdValue) {
     $courseId = Crypt::decrypt($courseIdValue);
 

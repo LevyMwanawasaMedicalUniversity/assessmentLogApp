@@ -34,24 +34,20 @@
                                         <td class="px-4 py-2">{{$result->created_at}}</td>
                                         <td class="px-4 py-2">{{$result->academic_year}}</td>
                                         <td class="px-4 py-2">
-                                            <div class="btn-group flex" role="group" aria-label="Button group">
-                                                <a href="{{ route('coordinator.viewSpecificCaInCourse', ['statusId' => encrypt($statusId), 'courseIdValue' => encrypt($result->course_assessments_id)]) }}">
-                                                    <button type="button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-l-none">
-                                                        View
-                                                    </button>
+                                            <div class="btn-group" role="group" aria-label="Button group">
+                                                <a href="{{ route('coordinator.viewSpecificCaInCourse', ['statusId' => encrypt($statusId), 'courseIdValue' => encrypt($result->course_assessments_id)]) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-start">
+                                                    View
                                                 </a>
                                                 @if (auth()->user()->hasPermissionTo('Dean'))
-                                                <a href="{{ route('coordinator.editCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}">
-                                                    <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r-none">
-                                                        Edit
-                                                    </button>  
+                                                <a href="{{ route('coordinator.editCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
+                                                    Edit
                                                 </a> 
                                                 <form method="POST" action="{{ route('coordinator.deleteCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}" onsubmit="return confirm('Are you sure you want to delete this?');">
                                                     {{ method_field('DELETE') }}
                                                     {{ csrf_field() }}
                                                     <input type="hidden" name="academicYear" value={{$result->academic_year}}>
                                                     <input type="hidden" name="ca_type" value={{$statusId}}>
-                                                    <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-l-none">
+                                                    <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-end">
                                                         Delete
                                                     </button>
                                                 </form>

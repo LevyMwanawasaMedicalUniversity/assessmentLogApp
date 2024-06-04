@@ -18,11 +18,10 @@
                                 @csrf
                                 <div class="flex items-center">
                                     <input type="text" name="name" id="name" class="shadow appearance-none border rounded-l w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline flex-grow h-10" placeholder="Enter email address">
-                                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r h-10">Search</button>
+                                    <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-end" style="height: 2.5rem;">Search</button>                                
                                 </div>                             
                             </form>
-                            <a class="inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" href="{{ route('users.create') }}">Add user</a>
-                            
+                            <a class="d-inline-block btn btn-primary font-weight-bold py-2 px-4 rounded" href="{{ route('users.create') }}">Add user</a>                            
                         </div>
                         <!-- Table with hoverable rows -->
                         <table id="myTable" class="table table-hover">
@@ -46,17 +45,15 @@
                                 <td>{{$user->email}}</td>
                                 <td>{{$user->created_at}}</td>
                                 <td>
-                                    <div class="btn-group flex" role="group" aria-label="Button group">
-                                        <form method="POST" action="{{ route('users.resetUserPassword', $user->id) }}" class="inline-block">
+                                    <div class="btn-group" role="group" aria-label="Button group">
+                                        <form method="POST" action="{{ route('users.resetUserPassword', $user->id) }}" class="d-inline-block">
                                             @csrf
-                                            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-l-none">
+                                            <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
                                                 Reset
                                             </button>
                                         </form>
-                                        <a href="{{ route('users.edit', $user->id) }}">
-                                            <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-l-none">
-                                                Edit
-                                            </button>
+                                        <a href="{{ route('users.edit', $user->id) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
+                                            Edit
                                         </a>
                                     </div>
                                 </td> 

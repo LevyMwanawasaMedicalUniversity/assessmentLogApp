@@ -38,17 +38,14 @@
                                 <td>{{$assessmentType->assesment_type_name}}</td>
                                 <td>{{$assessmentType->created_at}}</td>
                                 <td class="text-right">
-                                    <div  class="btn-group text-right" role="group" aria-label="Button group">
-                                        
-                                        <a href="{{ route('caAssessmentTypes.edit', $assessmentType->id) }}">
-                                            <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-l-none">
-                                                Edit
-                                            </button>
+                                    <div class="btn-group float-end" role="group" aria-label="Button group">
+                                        <a href="{{ route('caAssessmentTypes.edit', $assessmentType->id) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
+                                            Edit
                                         </a>
                                         <form method="POST" action="{{ route('caAssessmentTypes.destroy', $assessmentType->id) }}" style="display: inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-l-none" onclick="return confirm('Are you sure you want to delete this item?')">
+                                            <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-0" onclick="return confirm('Are you sure you want to delete this item?')">
                                                 Delete
                                             </button>
                                         </form>

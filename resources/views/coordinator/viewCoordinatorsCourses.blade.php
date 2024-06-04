@@ -13,68 +13,67 @@
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="card-title">Your Courses</h5>
-                        <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-1 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-9">
-                    </div>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="card-title">Your Courses</h5>
+                            <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-1 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-9">
+                        </div>
 
                         <!-- Table with hoverable rows -->
-                        <table id="myTable" class="table table-hover">
-                        
-                        <thead>
-                            <tr>
-                            {{-- <th scope="col">#</th> --}}
-                            <th scope="col">Course Name</th>
-                            <th scope="col">Course Code</th>
-                            <th scope="col">Programme Name</th>
-                            <th scope="col" class="text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($results as $result)
-                            @include('coordinator.components.uploadAssessmentTypeModal')
-                            @include('coordinator.components.viewAssessmentTypeModal')
-                            <tr>
-                                {{-- <th scope="row">1</th> --}}
-                                <td>{{$result->CourseDescription}}</td>
-                                <td>{{$result->CourseName}}</td>
-                                <td>{{$result->Name}}</td>
-                                @if(strpos(strtoupper($result->CourseName), 'OSCE') !== 0)
-                                    <td class="text-right">
-                                        <div class="btn-group float-end" role="group" aria-label="Button group">
-                                            @if(auth()->user()->hasPermissionTo('Coordinator'))
-                                                <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#uploadCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
-                                                    Upload
-                                                </button>
-                                            @endif
-                                            <button type="button" class="btn btn-success font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#viewCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
-                                                View
-                                            </button>
-                                            <a href="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
-                                                Settings
-                                            </a>
-                                        </div>
-                                    </td>
-                                @else
-                                    <td class="text-right">
-                                        <div class="btn-group float-end" role="group" aria-label="Button group">
-                                            @if(auth()->user()->hasPermissionTo('Coordinator'))
-                                                <a href="{{ route('coordinator.uploadCa', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
-                                                    Upload
-                                                </a>
-                                            @endif
-                                            <a href="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
-                                                View
-                                            </a>
-                                            <a href="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID)]) }}" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
-                                                Settings
-                                            </a>
-                                        </div>
-                                    </td>                                    
-                                    @endif 
-                            </tr>                            
-                            @endforeach
-                        </tbody>
+                        <table id="myTable" class="table table-hover">                        
+                            <thead>
+                                <tr>
+                                {{-- <th scope="col">#</th> --}}
+                                <th scope="col">Course Name</th>
+                                <th scope="col">Course Code</th>
+                                <th scope="col">Programme Name</th>
+                                <th scope="col" class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($results as $result)
+                                    @include('coordinator.components.uploadAssessmentTypeModal')
+                                    @include('coordinator.components.viewAssessmentTypeModal')
+                                    <tr>
+                                        {{-- <th scope="row">1</th> --}}
+                                        <td>{{$result->CourseDescription}}</td>
+                                        <td>{{$result->CourseName}}</td>
+                                        <td>{{$result->Name}}</td>
+                                        @if(strpos(strtoupper($result->CourseName), 'OSCE') !== 0)
+                                            <td class="text-right">
+                                                <div class="btn-group float-end" role="group" aria-label="Button group">
+                                                    @if(auth()->user()->hasPermissionTo('Coordinator'))
+                                                        <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#uploadCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
+                                                            Upload
+                                                        </button>
+                                                    @endif
+                                                    <button type="button" class="btn btn-success font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#viewCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
+                                                        View
+                                                    </button>
+                                                    <a href="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID)]) }}" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
+                                                        Settings
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        @else
+                                            <td class="text-right">
+                                                <div class="btn-group float-end" role="group" aria-label="Button group">
+                                                    @if(auth()->user()->hasPermissionTo('Coordinator'))
+                                                        <a href="{{ route('coordinator.uploadCa', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
+                                                            Upload
+                                                        </a>
+                                                    @endif
+                                                    <a href="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt(4), 'courseIdValue' => encrypt($result->ID)]) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
+                                                        View
+                                                    </a>
+                                                    <a href="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID)]) }}" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
+                                                        Settings
+                                                    </a>
+                                                </div>
+                                            </td>                                    
+                                            @endif 
+                                    </tr>                            
+                                @endforeach
+                            </tbody>
                         </table>
                         <!-- End Table with hoverable rows -->
 

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AssessmentTypes;
+use App\Models\CATypeMarksAllocation;
 use App\Models\CourseAssessment;
 use App\Models\CourseAssessmentScores;
 use App\Models\EduroleBasicInformation;
@@ -32,6 +34,56 @@ class CoordinatorController extends Controller
             ->first();
         
         return view('coordinator.uploadCa', compact('results', 'caType','courseId'));
+    }
+
+    public function courseCASettings($courseIdValue){
+        $courseId = Crypt::decrypt($courseIdValue);
+        $allAssesmentTypes = AssessmentTypes::all();
+        $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
+            ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
+            ->pluck('total_marks','assessment_type_id')
+            ->toArray();
+        $course = EduroleCourses::where('ID', $courseId)->first();
+        if(empty($courseAssessmenetTypes)){
+            $marksToDeduct = 0;
+        }else{
+            $marksToDeduct = array_sum($courseAssessmenetTypes);
+        }
+        // return $marksToDeduct;
+        // return $allAssesmentTypes;
+        return view('coordinator.courseCASettings', compact('courseAssessmenetTypes','allAssesmentTypes','course','marksToDeduct'));
+    }
+
+    public function updateCourseCASetings(Request $request){
+        // Get the course ID from the request
+        $courseId = $request->input('courseId');
+    
+        // Get the array of assessment types and marks allocated from the request
+        $assessmentTypes = $request->input('assessmentType');
+        $marksAllocated = $request->input('marks_allocated');
+    
+        // Loop through the assessment types
+        foreach ($assessmentTypes as $assessmentTypeId => $isChecked) {
+            // If the checkbox for this assessment type was checked
+            if ($isChecked) {
+                // Get the marks allocated for this assessment type
+                $marks = $marksAllocated[$assessmentTypeId];
+    
+                // Update or create a new record in the CATypeMarksAllocation model
+                CATypeMarksAllocation::updateOrCreate(
+                    [
+                        'course_id' => $courseId,
+                        'assessment_type_id' => $assessmentTypeId
+                    ],
+                    [
+                        'user_id' => auth()->user()->id,
+                        'total_marks' => $marks
+                    ]
+                );
+            }
+        }
+
+        return redirect()->back()->with('success', 'Course CA settings updated successfully');
     }
 
     public function editCaInCourse($courseAssessmenId,$courseId){

@@ -31,16 +31,14 @@
                                             <td>{{ $permission->name }}</td>
                                             <td>{{ $permission->guard_name }}</td>
                                             <td>
-                                                <div class="btn-group flex justify-end" role="group" aria-label="Button group">
-                                                    <a type="button" href="{{ route('permissions.edit', $permission->id) }}">
-                                                        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-l-none">
-                                                            Edit
-                                                        </button>
+                                                <div class="btn-group float-end" role="group" aria-label="Button group">
+                                                    <a href="{{ route('permissions.edit', $permission->id) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
+                                                        Edit
                                                     </a>
                                                     <form method="POST" action="{{ route('permissions.destroy', $permission->id) }}" style="display: inline">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-l-none" onclick="return confirm('Are you sure you want to delete this item?')">
+                                                        <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-0" onclick="return confirm('Are you sure you want to delete this item?')">
                                                             Delete
                                                         </button>
                                                     </form>
