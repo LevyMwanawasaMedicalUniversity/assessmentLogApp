@@ -36,23 +36,21 @@ class CoordinatorController extends Controller
         return view('coordinator.uploadCa', compact('results', 'caType','courseId'));
     }
 
-    public function courseCASettings($courseIdValue){
+    public function courseCASettings($courseIdValue) {
         $courseId = Crypt::decrypt($courseIdValue);
         $allAssesmentTypes = AssessmentTypes::all();
         $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
             ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
-            ->pluck('total_marks','assessment_type_id')
+            ->pluck('total_marks', 'assessment_type_id')
             ->toArray();
         $course = EduroleCourses::where('ID', $courseId)->first();
-        if(empty($courseAssessmenetTypes)){
-            $marksToDeduct = 0;
-        }else{
-            $marksToDeduct = array_sum($courseAssessmenetTypes);
-        }
-        // return $marksToDeduct;
-        // return $allAssesmentTypes;
-        return view('coordinator.courseCASettings', compact('courseAssessmenetTypes','allAssesmentTypes','course','marksToDeduct'));
+    
+        $marksToDeduct = !empty($courseAssessmenetTypes) ? array_sum($courseAssessmenetTypes) : 0;
+    
+        return view('coordinator.courseCASettings', compact('courseAssessmenetTypes', 'allAssesmentTypes', 'course', 'marksToDeduct'));
     }
+    
+    
 
     public function updateCourseCASetings(Request $request){
         // Get the course ID from the request

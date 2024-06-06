@@ -20,7 +20,7 @@
                                 
                                 <div class="d-flex justify-content-between align-items-center mb-4">
                                     <h5 class="card-title">{{$course->CourseDescription}}</h5>
-                                    <h5 class="card-title">Marks Available: <span id="remainingMarks" style="font-weight: bold;">{{$total_marks}}</span></h5>
+                                    <h5 class="card-title">Marks Available: <span id="remainingMarks" style="font-weight: bold;">{{$total_marks - $marksToDeduct}}</span></h5>
                                 </div>
                                 
                                 <table id="myTable" class="table table-hover">
@@ -78,6 +78,9 @@
     </main><!-- End #main -->
 
     <script>
+        var initialTotalMarks = {{$total_marks}};
+        var totalMarks = initialTotalMarks - {{$marksToDeduct}};
+        var previousValues = {};
 
         function toggleInput(checkbox) {
             var input = checkbox.parentElement.nextElementSibling.nextElementSibling.firstElementChild;
@@ -94,10 +97,6 @@
                 updateMaxValues();
             }
         }
-        var marksToDeduct = {{$marksToDeduct}};
-        var initialTotalMarks = {{$total_marks}};
-        var totalMarks = initialTotalMarks;
-        var previousValues = {};
 
         function updateTotalMarks(input) {
             var allocatedMarks = parseInt(input.value);
@@ -125,7 +124,7 @@
         }
 
         function updateMaxValues() {
-            var inputs = document.getElementsByName('marks_allocated[]');
+            var inputs = document.querySelectorAll('input[name^="marks_allocated"]');
             for (var i = 0; i < inputs.length; i++) {
                 inputs[i].max = totalMarks + (previousValues[inputs[i].name] || 0);
             }
@@ -141,9 +140,13 @@
         }
 
         window.onload = function() {
-            
-            //totalMarks -= marksToDeduct;
-            //document.getElementById('remainingMarks').textContent = totalMarks;
+            var inputs = document.querySelectorAll('input[name^="marks_allocated"]');
+            for (var i = 0; i < inputs.length; i++) {
+                if (!inputs[i].disabled) {
+                    previousValues[inputs[i].name] = parseInt(inputs[i].value);
+                }
+            }
+            document.getElementById('remainingMarks').textContent = totalMarks;
             updateMaxValues();
             updateRemainingMarksColor();
         };
