@@ -62,7 +62,7 @@ Route::middleware(['auth'])->group(function () {
     
     Route::middleware('can:Coordinator')->group(function () {
         Route::get('/upload', [PagesController::class, 'upload'])->name('pages.upload');
-        Route::get('/coordinator/uploadCa/{statusId}/{courseIdValue}',[CoordinatorController::class, 'uploadCa'])->name('coordinator.uploadCa');
+        Route::get('/coordinator/uploadCa/{statusId}/{courseIdValue}/{basicInformationId}',[CoordinatorController::class, 'uploadCa'])->name('coordinator.uploadCa');
         
                     
         Route::POST('/coordinator/importCAFromExcelSheet',[CoordinatorController::class, 'importCAFromExcelSheet'])->name('coordinator.importCAFromExcelSheet');        
@@ -70,11 +70,11 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::middleware('can:ViewTheContionousAssessment')->group(function () { //deans, & registrar permissions included
         Route::get('/coordinator/viewSpecificCaInCourse/{statusId}/{courseIdValue}',[CoordinatorController::class, 'viewSpecificCaInCourse'])->name('coordinator.viewSpecificCaInCourse');
-        Route::get('/coordinator/courseCASetings/{courseIdValue}',[CoordinatorController::class, 'courseCASettings'])->name('coordinator.courseCASettings');
+        Route::get('/coordinator/courseCASetings/{courseIdValue}/{basicInformationId}',[CoordinatorController::class, 'courseCASettings'])->name('coordinator.courseCASettings');
         Route::POST('/coordinator/updateCourseCASetings/{courseIdValue}',[CoordinatorController::class, 'updateCourseCASetings'])->name('coordinator.updateCourseCASetings');
 
-        Route::get('/coordinator/viewTotalCaInCourse/{statusId}/{courseIdValue}',[CoordinatorController::class, 'viewTotalCaInCourse'])->name('coordinator.viewTotalCaInCourse');
-        Route::get('/coordinator/viewCa/{statusId}/{courseIdValue}',[CoordinatorController::class, 'viewAllCaInCourse'])->name('coordinator.viewAllCaInCourse');
+        Route::get('/coordinator/viewTotalCaInCourse/{statusId}/{courseIdValue}/{basicInformationId}',[CoordinatorController::class, 'viewTotalCaInCourse'])->name('coordinator.viewTotalCaInCourse');
+        Route::get('/coordinator/viewCa/{statusId}/{courseIdValue}/{basicInformationId}',[CoordinatorController::class, 'viewAllCaInCourse'])->name('coordinator.viewAllCaInCourse');
     });
     Route::middleware('can:Dean')->group(function () {
         Route::get('/coordinator/editCaInCourse/{courseAssessmenId}/{courseId}',[CoordinatorController::class, 'editCaInCourse'])->name('coordinator.editCaInCourse');
