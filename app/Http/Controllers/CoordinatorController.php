@@ -11,6 +11,7 @@ use App\Models\EduroleCourses;
 use App\Models\EduroleStudy;
 use App\Models\StudentsContinousAssessment;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -64,13 +65,18 @@ class CoordinatorController extends Controller
         $existingAssessmentTypeIds = CATypeMarksAllocation::where('course_id', $courseId)
             ->pluck('assessment_type_id')
             ->toArray();
-
+        // return $existingAssessmentTypeIds;
+        $assessmentTypes = $assessmentTypes ?? [];
         foreach ($existingAssessmentTypeIds as $existingAssessmentTypeId) {
             // If the assessment type id is not in the request, delete it
-            if (!array_key_exists($existingAssessmentTypeId, $assessmentTypes)) {
-                CATypeMarksAllocation::where('course_id', $courseId)
-                    ->where('assessment_type_id', $existingAssessmentTypeId)
-                    ->delete();
+            try{
+                if (!array_key_exists($existingAssessmentTypeId, $assessmentTypes)) {
+                    CATypeMarksAllocation::where('course_id', $courseId)
+                        ->where('assessment_type_id', $existingAssessmentTypeId)
+                        ->delete();
+                }
+            }catch(Exception $e){
+                return redirect()->back()->with('error', 'An error occurred while updating the course CA settings. Please try again.');
             }
         }
 

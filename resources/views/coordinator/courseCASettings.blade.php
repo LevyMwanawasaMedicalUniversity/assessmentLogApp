@@ -43,7 +43,7 @@
                                                         {{ array_key_exists($assesmentType->id, $courseAssessmenetTypes) 
                                                             ? 'checked'
                                                             : '' }}
-                                                        onclick="toggleInput(this)">
+                                                        onclick="toggleInput(this, {{ $courseAssessmenetTypes[$assesmentType->id] ?? 0 }})">
                                                 </td>
                                                 <td>{{ $assesmentType->assesment_type_name}}</td>
                                                 <td>
@@ -82,14 +82,17 @@
         var totalMarks = initialTotalMarks - {{$marksToDeduct}};
         var previousValues = {};
 
-        function toggleInput(checkbox) {
+        function toggleInput(checkbox, initialValue) {
             var input = checkbox.parentElement.nextElementSibling.nextElementSibling.firstElementChild;
             if (checkbox.checked) {
                 input.disabled = false;
                 input.value = 0;
-                updateTotalMarks(input);
+                previousValues[input.name] = 0;
+                updateTotalMarks(input, false);
             } else {
-                totalMarks += parseInt(input.value);
+                var previousValue = previousValues[input.name] || 0;
+                totalMarks += previousValue;
+                previousValues[input.name] = 0;
                 input.value = 0;
                 input.disabled = true;
                 document.getElementById('remainingMarks').textContent = totalMarks;
@@ -103,19 +106,8 @@
             var previousValue = previousValues[input.name] || 0;
 
             if (!isNaN(allocatedMarks)) {
-                var newTotalMarks = totalMarks + previousValue - allocatedMarks;
-
-                if (newTotalMarks < 0) {
-                    allocatedMarks = allocatedMarks + newTotalMarks;
-                    input.value = allocatedMarks;
-                    newTotalMarks = 0;
-                }
-
-                totalMarks = newTotalMarks;
+                totalMarks += previousValue - allocatedMarks;
                 previousValues[input.name] = allocatedMarks;
-            } else {
-                totalMarks += previousValue;
-                previousValues[input.name] = 0;
             }
 
             document.getElementById('remainingMarks').textContent = totalMarks;
@@ -126,7 +118,8 @@
         function updateMaxValues() {
             var inputs = document.querySelectorAll('input[name^="marks_allocated"]');
             for (var i = 0; i < inputs.length; i++) {
-                inputs[i].max = totalMarks + (previousValues[inputs[i].name] || 0);
+                var maxVal = totalMarks + (previousValues[inputs[i].name] || 0);
+                inputs[i].max = maxVal > initialTotalMarks ? initialTotalMarks : maxVal;
             }
         }
 
@@ -146,7 +139,6 @@
                     previousValues[inputs[i].name] = parseInt(inputs[i].value);
                 }
             }
-            document.getElementById('remainingMarks').textContent = totalMarks;
             updateMaxValues();
             updateRemainingMarksColor();
         };
