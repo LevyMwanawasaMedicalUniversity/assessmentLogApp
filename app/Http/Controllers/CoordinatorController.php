@@ -442,13 +442,20 @@ class CoordinatorController extends Controller
         $total = 0;
         $count = count($caScores);
         $maxScore = 0;
-        if($caType == 1) {
-            $maxScore = 10;
-        } else if($caType == 2 || $caType == 3) {
-            $maxScore = 15;
-        } else if($caType == 4) {
-            $maxScore = 100;
-        }
+
+        $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
+                    ->where('assessment_type_id', $caType)
+                    ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
+                    ->select('c_a_type_marks_allocations.total_marks')
+                    ->first();
+        $maxScore = $courseAssessmenetTypes->total_marks;
+        // if($caType == 1) {
+        //     $maxScore = 10;
+        // } else if($caType == 2 || $caType == 3) {
+        //     $maxScore = 15;
+        // } else if($caType == 4) {
+        //     $maxScore = 100;
+        // }
     
         foreach ($caScores as $caScore){
             $total += $caScore->mark;
