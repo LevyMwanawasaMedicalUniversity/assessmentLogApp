@@ -100,6 +100,8 @@ class CoordinatorController extends Controller
             }
         }
 
+        //TO DO: ADD calculateAndSubmitCA TO THIS FUNCTION
+
         return redirect()->back()->with('success', 'Course CA settings updated successfully');
     }
 
@@ -442,7 +444,7 @@ class CoordinatorController extends Controller
         $total = 0;
         $count = count($caScores);
         $maxScore = 0;
-
+        //TO DO: IMPROVE THIS
         $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
                     ->where('assessment_type_id', $caType)
                     ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
