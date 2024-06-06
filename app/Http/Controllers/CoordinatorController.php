@@ -61,12 +61,25 @@ class CoordinatorController extends Controller
         $marksAllocated = $request->input('marks_allocated');
     
         // Loop through the assessment types
+        $existingAssessmentTypeIds = CATypeMarksAllocation::where('course_id', $courseId)
+            ->pluck('assessment_type_id')
+            ->toArray();
+
+        foreach ($existingAssessmentTypeIds as $existingAssessmentTypeId) {
+            // If the assessment type id is not in the request, delete it
+            if (!array_key_exists($existingAssessmentTypeId, $assessmentTypes)) {
+                CATypeMarksAllocation::where('course_id', $courseId)
+                    ->where('assessment_type_id', $existingAssessmentTypeId)
+                    ->delete();
+            }
+        }
+
         foreach ($assessmentTypes as $assessmentTypeId => $isChecked) {
             // If the checkbox for this assessment type was checked
             if ($isChecked) {
                 // Get the marks allocated for this assessment type
                 $marks = $marksAllocated[$assessmentTypeId];
-    
+
                 // Update or create a new record in the CATypeMarksAllocation model
                 CATypeMarksAllocation::updateOrCreate(
                     [
