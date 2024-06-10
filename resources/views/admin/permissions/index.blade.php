@@ -13,7 +13,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title">Permissions</h5>
-                            <a class="inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" href="{{ route('permissions.create') }}">Add Permissions</a>
+                            <a class="btn btn-primary font-weight-bold" href="{{ route('permissions.create') }}">Add Permissions</a>
                         </div>
                         <!-- Table with hoverable rows -->
                         <table id="myTable" class="table table-hover">
@@ -27,18 +27,18 @@
                             <tbody>
                                 @if(count($permissions) > 0)
                                     @foreach($permissions as $permission)
-                                        <tr class="border-t border-b hover:bg-gray-100">
+                                        <tr class="border-top border-bottom hover">
                                             <td>{{ $permission->name }}</td>
                                             <td>{{ $permission->guard_name }}</td>
                                             <td>
                                                 <div class="btn-group float-end" role="group" aria-label="Button group">
-                                                    <a href="{{ route('permissions.edit', $permission->id) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
+                                                    <a href="{{ route('permissions.edit', $permission->id) }}" class="btn btn-primary font-weight-bold">
                                                         Edit
                                                     </a>
                                                     <form method="POST" action="{{ route('permissions.destroy', $permission->id) }}" style="display: inline">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-0" onclick="return confirm('Are you sure you want to delete this item?')">
+                                                        <button type="submit" class="btn btn-danger font-weight-bold" onclick="return confirm('Are you sure you want to delete this item?')">
                                                             Delete
                                                         </button>
                                                     </form>
@@ -48,7 +48,9 @@
                                     @endforeach
                                 @else
                                     <tr>
-                                        <h3 class="text-center">No Permissions.</h3>
+                                        <td colspan="3" class="text-center">
+                                            <h3>No Permissions.</h3>
+                                        </td>
                                     </tr>
                                 @endif
                             </tbody>
