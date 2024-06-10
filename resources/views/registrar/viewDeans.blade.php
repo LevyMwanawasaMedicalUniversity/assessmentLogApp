@@ -14,9 +14,9 @@
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title">Deans</h5>
                             @if(auth()->user()->hasPermissionTo('Administrator'))
-                                <form method="post" action="{{ route('admin.importDeans')}}">
+                                <form method="post" action="{{ route('admin.importDeans') }}">
                                     @csrf
-                                    <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-5 rounded-md">
+                                    <button type="submit" class="btn btn-success font-weight-bold">
                                         Import
                                     </button>
                                 </form>
@@ -34,13 +34,13 @@
                             </thead>
                             <tbody>
                                 @foreach($results as $result)
-                                    <tr class="border-t border-b hover:bg-gray-100">
-                                        <td>{{$result->FirstName}}</td>
-                                        <td>{{$result->Surname}}</td>
-                                        <td>{{$result->SchoolName}}</td>
+                                    <tr class="border-top border-bottom hover">
+                                        <td>{{ $result->FirstName }}</td>
+                                        <td>{{ $result->Surname }}</td>
+                                        <td>{{ $result->SchoolName }}</td>
                                         <td>
                                             <form method="GET" action="{{ route('admin.viewCoordinatorsUnderDean', ['schoolId' => encrypt($result->ParentID)]) }}">
-                                                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                                <button type="submit" class="btn btn-primary font-weight-bold">
                                                     View
                                                 </button>
                                             </form>
