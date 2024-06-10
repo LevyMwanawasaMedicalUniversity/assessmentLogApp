@@ -15,7 +15,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title">Assessment Types</h5>
                             
-                            <a class="inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" href="{{ route('caAssessmentTypes.create') }}">Add CA Type</a>
+                            <a class="btn btn-primary" href="{{ route('caAssessmentTypes.create') }}">Add CA Type</a>
                             
                         </div>
                         <!-- Table with hoverable rows -->

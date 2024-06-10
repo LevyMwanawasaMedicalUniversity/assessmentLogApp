@@ -20,43 +20,55 @@
     </div>
 
     <!-- File Upload Form -->
-    <form action="{{route('coordinator.updateCAFromExcelSheet')}}" method="POST" enctype="multipart/form-data">
-        @csrf
+        <form action="{{ route('coordinator.updateCAFromExcelSheet') }}" method="POST" enctype="multipart/form-data" class="p-4 bg-light border rounded shadow-sm">
+            @csrf
 
-        <!-- Excel File Input -->
-        <div class="mb-4">
-            <label for="excelFile" class="font-bold text-lg text-gray-700">Choose Excel (xlsx) File</label>
-            <input type="hidden" name="course_id" value={{$courseId}}>
-            <input type="hidden" name="course_assessment_id" value={{$courseAssessmentId}}>
-            <input type="hidden" name="course_code" value={{$results->CourseName}}>
-            <input type="hidden" name="basicInformationId" value={{$results->basicInformationId}}>            
-            <input type="file" name="excelFile" accept=".xls,.xlsx,.csv" class="w-full border border-gray-300 rounded p-2 bg-white" id="excelFileInput">
-        </div>
+            <!-- Form Header -->
+            <div class="mb-4">
+                <h3 class="font-weight-bold text-primary">Update Course Assessment</h3>
+                <p class="text-muted">Please upload the Excel file to update the course assessment information.</p>
+            </div>
 
-        <!-- File Preview -->
-        <div class="mb-4 hidden" id="filePreview"></div>
+            <!-- Excel File Input -->
+            <div class="form-group mb-4">
+                <label for="excelFile" class="font-weight-bold text-lg text-dark">Choose Excel (xlsx) File</label>
+                <input type="hidden" name="course_id" value="{{ $courseId }}">
+                <input type="hidden" name="course_assessment_id" value="{{ $courseAssessmentId }}">
+                <input type="hidden" name="course_code" value="{{ $results->CourseName }}">
+                <input type="hidden" name="basicInformationId" value="{{ $results->basicInformationId }}">
+                <input type="file" name="excelFile" accept=".xls,.xlsx,.csv" class="form-control-file" id="excelFileInput" required>
+                <small class="form-text text-muted">Accepted formats: .xls, .xlsx, .csv</small>
+            </div>
 
-        <!-- Loader -->
-        <div class="mb-4 hidden" id="loader">
-            <div id="percentage" class="text-gray-600">0%</div>
-            <p>Loading...</p>
-        </div>
+            <!-- File Preview -->
+            <div class="form-group mb-4 d-none" id="filePreview"></div>
 
-        <!-- Academic Year Dropdown -->
-        <div class="mb-6">
-            <label for="academicYear" class="font-bold text-lg text-gray-700">Academic Year</label>
-            <select name="academicYear" class="w-auto border border-gray-300 rounded p-2 bg-white" required>
-                @for ($year = 2019; $year <= date('Y'); $year++)
-                    <option value="{{ $year }}" {{ date('Y') == $year ? 'selected' : '' }}>{{ $year }}</option>
-                @endfor
-            </select>
-        </div>
+            <!-- Loader -->
+            <div class="form-group mb-4 d-none text-center" id="loader">
+                <div id="percentage" class="text-muted">0%</div>
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <p>Loading...</p>
+            </div>
 
-        <!-- Submit Button -->
-        <div>
-            <button type="submit" class="bg-blue-500 text-white rounded px-4 py-2 hover:bg-blue-600">
-                Upload
-            </button>
-        </div>
-    </form>
+            <!-- Academic Year Dropdown -->
+            <div class="form-group mb-6">
+                <label for="academicYear" class="font-weight-bold text-lg text-dark">Academic Year</label>
+                <select name="academicYear" class="form-control w-auto" required>
+                    @for ($year = 2019; $year <= date('Y'); $year++)
+                        <option value="{{ $year }}" {{ date('Y') == $year ? 'selected' : '' }}>{{ $year }}</option>
+                    @endfor
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    Upload
+                </button>
+            </div>
+        </form>
+
+
 </div> 
