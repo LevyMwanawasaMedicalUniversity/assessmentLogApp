@@ -15,6 +15,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CoordinatorController extends Controller
 {
@@ -60,8 +61,10 @@ class CoordinatorController extends Controller
         // Get the array of assessment types and marks allocated from the request
         $assessmentTypes = $request->input('assessmentType');
         $marksAllocated = $request->input('marks_allocated');
-    
+        
         // Loop through the assessment types
+        
+        
         $existingAssessmentTypeIds = CATypeMarksAllocation::where('course_id', $courseId)
             ->pluck('assessment_type_id')
             ->toArray();
@@ -99,6 +102,34 @@ class CoordinatorController extends Controller
                 );
             }
         }
+
+        
+        $courseAssessmenetTypes= CATypeMarksAllocation::where('course_id', $courseId)
+            ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
+            ->get();
+        $academicYear = 2024;
+        $getCoure = EduroleCourses::where('ID', $courseId)->first();
+        $courseCode = $getCoure->Name;
+        $studentssWithResults = CourseAssessmentScores::where('course_code', $courseCode)
+            ->get();
+
+        // return $courseAssessmenetTypes;
+        
+        
+
+        // return $courseCode;
+
+        foreach ($courseAssessmenetTypes as $courseAssessmentType){
+
+            $studentsInAssessmentType = CourseAssessmentScores::where('course_code', $courseCode)
+            // ->join('')    
+            // ->where('course_assessment_id', $courseAssessmentType->assessment_type_id)
+                ->get();
+            // Log::info($studentsInAssessmentType);
+            foreach ($studentsInAssessmentType as $studentNumber){
+                $this->refreshCAMark($courseId, $academicYear, $courseAssessmentType->assessment_type_id , $studentNumber->student_id, $studentNumber->course_assessment_id);
+            }
+        }     
 
         //TO DO: ADD calculateAndSubmitCA TO THIS FUNCTION
 
@@ -391,133 +422,73 @@ class CoordinatorController extends Controller
         return redirect()->back()->with('success', 'Data imported successfully');
         // return redirect()->route('coordinator.uploadCa', ['courseIdValue' => $request->course_id, 'statusId' => $request->status])->with('success', 'Data imported successfully');
     }
-
-    private function refreshCAMark($courseId, $academicYear, $caType, $studentNumber){
-        $caScores = CourseAssessmentScores::where('course_assessments.course_id', $courseId)
-            ->where('course_assessments.academic_year', $academicYear)
-            ->where('course_assessments.ca_type', $caType)
-            ->where('course_assessment_scores.student_id', $studentNumber)
-            ->select('course_assessment_scores.cas_score as mark')
-            ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'course_assessment_scores.course_assessment_id')
-            ->get();
     
-        $total = 0;
-        $count = 0;
-        $maxScore = 0;
-        if($caType == 1) {
-            $maxScore = 10;
-        } else if($caType == 2 || $caType == 3) {
-            $maxScore = 15;
-        } else if($caType == 4) {
-            $maxScore = 100;
-        }
-    
-        foreach ($caScores as $caScore){
-            // Adjust the mark to be out of the maxScore for the status
-            $adjustedMark = ($caScore->mark / 100) * $maxScore;
-            $total += $adjustedMark;
-            $count += 1;
-        }
-        if($count > 0){
-            $average = $total / $count;
-            // Save or update the average in the StudentsContiousAssessment table
-            StudentsContinousAssessment::where([
-                'course_id' => $courseId, // 'course_id' => $courseId, 'academic_year' => $academicYear, 'ca_type' => $caType, 'student_id' => $studentNumber
-                'student_id' => $studentNumber, 
-                'academic_year' => $academicYear, 
-                'ca_type' => $caType
-            ])->update(['sca_score' => $average]);
-        }
-        
+    private function calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $excludeCurrent = false){
+        $caScores = $this->getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $excludeCurrent);
+        $total = $caScores->sum('mark');
+        $count = $caScores->count();
+        $maxScore = $this->getMaxScore($courseId, $caType);
+        $average = $count > 0 ? $total / $count : 0;
+        $adjustedAverage = ($average / 100) * $maxScore;
+        $this->saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage);
     }
     
-
-    private function calculateAndSubmitCA($courseId, $academicYear, $caType, $studentNumber,$courseAssessmentId){
-        $caScores = CourseAssessmentScores::where('course_assessments.course_id', $courseId)
+    private function getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $excludeCurrent){
+        return CourseAssessmentScores::where('course_assessments.course_id', $courseId)
             ->where('course_assessments.academic_year', $academicYear)
             ->where('course_assessments.ca_type', $caType)
             ->where('course_assessment_scores.student_id', $studentNumber)
+            ->when($excludeCurrent, function ($query) use ($courseAssessmentId) {
+                return $query->where('course_assessment_scores.course_assessment_id', '!=', $courseAssessmentId);
+            })
             ->select('course_assessment_scores.cas_score as mark')
             ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'course_assessment_scores.course_assessment_id')
             ->get();
+    }
     
-        $total = 0;
-        $count = count($caScores);
-        $maxScore = 0;
-        //TO DO: IMPROVE THIS
+    private function getMaxScore($courseId, $caType){
         $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
                     ->where('assessment_type_id', $caType)
                     ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
                     ->select('c_a_type_marks_allocations.total_marks')
                     ->first();
-        $maxScore = $courseAssessmenetTypes->total_marks;
-        // if($caType == 1) {
-        //     $maxScore = 10;
-        // } else if($caType == 2 || $caType == 3) {
-        //     $maxScore = 15;
-        // } else if($caType == 4) {
-        //     $maxScore = 100;
-        // }
+        return $courseAssessmenetTypes->total_marks;
+    }
     
-        foreach ($caScores as $caScore){
-            $total += $caScore->mark;
-        }
-    
-        $average = $total / $count;
-    
-        // Adjust the average to be out of the maxScore for the status
-        $adjustedAverage = ($average / 100) * $maxScore;
-    
-        // Save or update the average in the StudentsContiousAssessment table
+    private function saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage){
         $studentCA = StudentsContinousAssessment::firstOrNew(['student_id' => $studentNumber, 'course_id' => $courseId, 'academic_year' => $academicYear, 'ca_type' => $caType]);
         $studentCA->course_assessment_id = $courseAssessmentId;
         $studentCA->sca_score = $adjustedAverage;
         $studentCA->save();
     }
-
-    private function renewCABeforeDelete($courseId, $academicYear, $caType, $studentNumber,$courseAssessmentId){
-        $caScores = CourseAssessmentScores::where('course_assessments.course_id', $courseId)
-            ->where('course_assessments.academic_year', $academicYear)
-            ->where('course_assessments.ca_type', $caType)
-            ->where('course_assessment_scores.student_id', $studentNumber)
-            ->where('course_assessment_scores.course_assessment_id', '!=', $courseAssessmentId)
-            ->select('course_assessment_scores.cas_score as mark')
-            ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'course_assessment_scores.course_assessment_id')
-            ->get();
     
-        $total = 0;
-        $count = count($caScores);
-        $maxScore = 0;
-        if($caType == 1) {
-            $maxScore = 10;
-        } else if($caType == 2 || $caType == 3) {
-            $maxScore = 15;
-        } else if($caType == 4) {
-            $maxScore = 100;
-        }
-        if($count > 0){
+    private function calculateAndSubmitCA($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId){
+        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId);
+    }
     
-            foreach ($caScores as $caScore){
-                $total += $caScore->mark;
-            }
-        
-            $average = $total / $count;
-        
-            // Adjust the average to be out of the maxScore for the status
-            $adjustedAverage = ($average / 100) * $maxScore;
-            $studentCA = StudentsContinousAssessment::firstOrNew(['student_id' => $studentNumber, 'course_id' => $courseId, 'academic_year' => $academicYear, 'ca_type' => $caType]);
-            $studentCA->course_assessment_id = $courseAssessmentId;
-            $studentCA->sca_score = $adjustedAverage;
-            $studentCA->save();
-        }else{
-            StudentsContinousAssessment::where([
-                'course_id' => $courseId, // 'course_id' => $courseId, 'academic_year' => $academicYear, 'ca_type' => $caType, 'student_id' => $studentNumber
-                'student_id' => $studentNumber, 
-                'academic_year' => $academicYear, 
-                'ca_type' => $caType
-            ])->delete();
-        }    
-        // Save or update the average in the StudentsContiousAssessment table
-        
+    private function renewCABeforeDelete($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId){
+        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, true);
+    }
+    
+    private function refreshCAMark($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId){
+        // $caScores = $this->getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, null, false);
+        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, false);
+        // $total = $caScores->sum('mark');
+        // $count = $caScores->count();
+        // $maxScore = $this->getMaxScore($courseId, $caType);
+        // foreach ($caScores as $caScore){
+        //     $adjustedMark = ($caScore->mark / 100) * $maxScore;
+        //     $total += $adjustedMark;
+        //     $count += 1;
+        // }
+        // if($count > 0){
+        //     $average = $total / $count;
+        //     StudentsContinousAssessment::where([
+        //         'course_id' => $courseId,
+        //         'student_id' => $studentNumber, 
+        //         'academic_year' => $academicYear, 
+        //         'ca_type' => $caType
+        //     ])->update(['sca_score' => $average]);
+        // }
     }
 }

@@ -185,11 +185,16 @@ Breadcrumbs::for('coordinator.viewSpecificCaInCourse', function ($trail, $status
             ->first();
     $courseCode = $results->course_code;
     $getCourses = EduroleCourses::where('courses.Name', $courseCode)
-        ->select('courses.ID')
+        ->select('courses.ID','study.ProgrammesAvailable')
+        ->join('program-course-link', 'program-course-link.CourseID', '=', 'courses.ID')
+        ->join('programmes', 'programmes.ID', '=', 'program-course-link.ProgramID')
+        ->join('study-program-link', 'study-program-link.ProgramID', '=', 'programmes.ID')
+        ->join('study', 'study.ID', '=', 'study-program-link.StudyID')
         ->first();
     $courseIdValueForBreadCrumb = Crypt::encrypt($getCourses->ID);
+    $basicInformationId = encrypt($getCourses->ProgrammesAvailable);
         
-    $trail->parent('coordinator.viewAllCaInCourse', $statusId, $courseIdValueForBreadCrumb);
+    $trail->parent('coordinator.viewAllCaInCourse', $statusId, $courseIdValueForBreadCrumb, $basicInformationId);
 
     // Generate the route correctly with all required parameters
     $trail->push('View The Marks', route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusId, 'courseIdValue' => $courseIdValue]));
