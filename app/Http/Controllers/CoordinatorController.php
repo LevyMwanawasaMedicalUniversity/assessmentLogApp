@@ -171,20 +171,14 @@ class CoordinatorController extends Controller
     }
 
     private function setAssesmentType($statusId){
-        if($statusId == 1){
-            return 'Assignment';
-        }else if($statusId == 2){
-            return 'Test';
-        }else if($statusId == 3){
-            return 'Mock Exam';
-        }else if($statusId == 4){
-            return 'Practical';
-        }
+        $getAssesmntType = AssessmentTypes::where('id', $statusId)->first();
+        return $getAssesmntType->assesment_type_name;
     }
 
-    public function viewSpecificCaInCourse($statusId, $courseIdValue){
+    public function viewSpecificCaInCourse($statusId, $courseIdValue, $assessmentNumber){
         $courseId = Crypt::decrypt($courseIdValue);
         $statusId = Crypt::decrypt($statusId);
+        $assessmentNumber = Crypt::decrypt($assessmentNumber);
         // return $statusId;
         // return $courseId;
         $results = CourseAssessment::where('course_assessments.course_assessments_id', $courseId)
@@ -214,7 +208,7 @@ class CoordinatorController extends Controller
 
         // return $results;
     
-        $assessmentType = $this->setAssesmentType($statusId);
+        $assessmentType = $this->setAssesmentType($statusId) .' '. $assessmentNumber;
         return view('coordinator.viewSpecificCaInCourse', compact('results', 'courseId','assessmentType','courseDetails','statusId'));
     }
 

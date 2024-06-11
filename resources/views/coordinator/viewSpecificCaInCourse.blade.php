@@ -2,7 +2,7 @@
     <main id="main" class="main">
     <div class="pagetitle">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{$assessmentType }}s for {{$courseDetails->CourseDescription}} - {{$courseDetails->Name}}
+            {{$assessmentType }} for {{$courseDetails->CourseDescription}} - {{$courseDetails->Name}}
         </h2>
         <nav>
             {{ Breadcrumbs::render() }}
@@ -15,7 +15,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="card-title">{{$assessmentType }}s</h5>
+                            <h5 class="card-title">{{$assessmentType }}</h5>
                             <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search by student number.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         </div>
                         <!-- Table with hoverable rows -->
