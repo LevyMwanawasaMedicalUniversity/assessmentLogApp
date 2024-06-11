@@ -32,14 +32,14 @@
                                         <td class="px-4 py-2">{{$assessmentType }} {{ $loop->iteration }}</td>
                                         <td class="px-4 py-2">{{$result->updated_at}}</td>
                                         <td class="px-4 py-2">{{$result->created_at}}</td>
-                                        <td class="px-4 py-2">{{$result->academic_year}}</td>
+                                        <td class="px-4 py-2">{{$result->academic_year}} {{$basicInformationId}}</td>
                                         <td class="px-4 py-2">
                                             <div class="btn-group" role="group" aria-label="Button group">
                                                 <a href="{{ route('coordinator.viewSpecificCaInCourse', ['statusId' => encrypt($statusId), 'courseIdValue' => encrypt($result->course_assessments_id)]) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-start">
                                                     View
                                                 </a>
                                                 @if (auth()->user()->hasPermissionTo('Dean'))
-                                                <a href="{{ route('coordinator.editCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
+                                                <a href="{{ route('coordinator.editCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId)]) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
                                                     Edit
                                                 </a> 
                                                 <form method="POST" action="{{ route('coordinator.deleteCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}" onsubmit="return confirm('Are you sure you want to delete this?');">

@@ -137,7 +137,7 @@ Breadcrumbs::for('coordinator.courseCASettings', function ($trail, $courseIdValu
 
 
 
-Breadcrumbs::for('coordinator.editCaInCourse', function ($trail, $statusId, $courseIdValue) {
+Breadcrumbs::for('coordinator.editCaInCourse', function ($trail, $statusId, $courseIdValue ,$basicInformationId) {
     $courseId = Crypt::decrypt($courseIdValue);
 
     $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
@@ -159,7 +159,7 @@ Breadcrumbs::for('coordinator.editCaInCourse', function ($trail, $statusId, $cou
     }
 
     // Generate the route correctly with all required parameters
-    $trail->push('Upload CA', route('coordinator.editCaInCourse', ['courseAssessmenId' => $statusId, 'courseId' => $courseIdValue]));
+    $trail->push('Upload CA', route('coordinator.editCaInCourse', ['courseAssessmenId' => $statusId, 'courseId' => $courseIdValue, 'basicInformationId' => $basicInformationId]));
 });
 
 Breadcrumbs::for('coordinator.viewAllCaInCourse', function ($trail, $statusId, $courseIdValue,$basicInformationId) {

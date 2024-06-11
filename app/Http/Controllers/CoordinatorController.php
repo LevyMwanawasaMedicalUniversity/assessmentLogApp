@@ -19,10 +19,11 @@ use Illuminate\Support\Facades\Log;
 
 class CoordinatorController extends Controller
 {
-    public function uploadCa($caType, $courseIdValue){
+    public function uploadCa($caType, $courseIdValue,$basicInformationId){
 
         $courseId = Crypt::decrypt($courseIdValue);
         $caType = Crypt::decrypt($caType);
+        $basicInformationId = Crypt::decrypt($basicInformationId);
 
         // return $courseId;
 
@@ -35,7 +36,7 @@ class CoordinatorController extends Controller
             ->where('courses.ID', $courseId)
             ->first();
         
-        return view('coordinator.uploadCa', compact('results', 'caType','courseId'));
+        return view('coordinator.uploadCa', compact('results', 'caType','courseId','basicInformationId'));
     }
 
     public function courseCASettings($courseIdValue) {
@@ -136,9 +137,10 @@ class CoordinatorController extends Controller
         return redirect()->back()->with('success', 'Course CA settings updated successfully');
     }
 
-    public function editCaInCourse($courseAssessmenId,$courseId){
+    public function editCaInCourse($courseAssessmenId,$courseId, $basicInformationId){
         $courseAssessmentId = Crypt::decrypt($courseAssessmenId);
         $courseId = Crypt::decrypt($courseId);
+        $basicInformationId = Crypt::decrypt($basicInformationId);
         $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
             ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
             ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
@@ -147,12 +149,13 @@ class CoordinatorController extends Controller
             ->select('courses.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName','courses.CourseDescription','basic-information.ID as basicInformationId')
             ->where('courses.ID', $courseId)
             ->first();
-        return view('coordinator.editCaInCourse', compact('results', 'courseId','courseAssessmentId'));
+        return view('coordinator.editCaInCourse', compact('results', 'courseId','courseAssessmentId','basicInformationId'));
     }
 
-    public function viewAllCaInCourse($statusId, $courseIdValue){
+    public function viewAllCaInCourse($statusId, $courseIdValue, $basicInformationId){
         $courseId = Crypt::decrypt($courseIdValue);
         $statusId = Crypt::decrypt($statusId);
+        $basicInformationId = Crypt::decrypt($basicInformationId);
 
         $courseDetails = EduroleCourses::where('ID', $courseId)->first();
 
@@ -164,7 +167,7 @@ class CoordinatorController extends Controller
         // return $results;
         $assessmentType = $this->setAssesmentType($statusId);
 
-        return view('coordinator.viewAllCaInCourse', compact('results', 'statusId', 'courseId','courseDetails','assessmentType'));
+        return view('coordinator.viewAllCaInCourse', compact('results', 'statusId', 'courseId','courseDetails','assessmentType','basicInformationId'));
     }
 
     private function setAssesmentType($statusId){
@@ -215,25 +218,26 @@ class CoordinatorController extends Controller
         return view('coordinator.viewSpecificCaInCourse', compact('results', 'courseId','assessmentType','courseDetails','statusId'));
     }
 
-    public function viewTotalCaInCourse($statusId, $courseIdValue){
+    public function viewTotalCaInCourse($statusId, $courseIdValue, $basicInformationId){
         $courseId = Crypt::decrypt($courseIdValue);
         $caType = Crypt::decrypt($statusId);
+        $basicInformationId = Crypt::decrypt($basicInformationId);
         $courseDetails = EduroleCourses::where('ID', $courseId)->first();
         // return $courseDetails;
-        if($caType != 4){            
-            $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
-                ->whereIn('ca_type', [1,2,3]) 
-                ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
-                ->groupBy('students_continous_assessments.student_id')
-                ->get();
+        // if($caType != 4){            
+        $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
+            // ->whereIn('ca_type', [1,2,3]) 
+            ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
+            ->groupBy('students_continous_assessments.student_id')
+            ->get();
             
-        }else{
-            $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
-                ->where('ca_type', 4) 
-                ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
-                ->groupBy('students_continous_assessments.student_id')
-                ->get();
-        }
+        // }else{
+        //     $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
+        //         ->where('ca_type', 4) 
+        //         ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
+        //         ->groupBy('students_continous_assessments.student_id')
+        //         ->get();
+        // }
 
         $resultsArrayStudentNumbers = $results->pluck('student_id')->toArray();
         $resultsFromBasicInformation= EduroleBasicInformation::join('student-study-link', 'student-study-link.StudentID', '=', 'basic-information.ID')
@@ -357,7 +361,8 @@ class CoordinatorController extends Controller
             'course_code' => 'required',   
             'basicInformationId' => 'required',  
         ]);
-        
+
+        // return $request->basicInformationId;
 
         $newAssessment = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)
             ->update([
@@ -365,6 +370,7 @@ class CoordinatorController extends Controller
                 'basic_information_id' => $request->basicInformationId,
             ]);
         $getCaType = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)->first();
+        // return $getCaType;
         $caType = $getCaType->ca_type;
 
         // return $caType;
@@ -447,9 +453,8 @@ class CoordinatorController extends Controller
     }
     
     private function getMaxScore($courseId, $caType){
-        $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
-                    ->where('assessment_type_id', $caType)
-                    ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
+        $courseAssessmenetTypes = CATypeMarksAllocation::where('c_a_type_marks_allocations.course_id', $courseId)
+                    ->where('c_a_type_marks_allocations.assessment_type_id', $caType)                    
                     ->select('c_a_type_marks_allocations.total_marks')
                     ->first();
         return $courseAssessmenetTypes->total_marks;
@@ -470,25 +475,7 @@ class CoordinatorController extends Controller
         $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, true);
     }
     
-    private function refreshCAMark($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId){
-        // $caScores = $this->getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, null, false);
-        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, false);
-        // $total = $caScores->sum('mark');
-        // $count = $caScores->count();
-        // $maxScore = $this->getMaxScore($courseId, $caType);
-        // foreach ($caScores as $caScore){
-        //     $adjustedMark = ($caScore->mark / 100) * $maxScore;
-        //     $total += $adjustedMark;
-        //     $count += 1;
-        // }
-        // if($count > 0){
-        //     $average = $total / $count;
-        //     StudentsContinousAssessment::where([
-        //         'course_id' => $courseId,
-        //         'student_id' => $studentNumber, 
-        //         'academic_year' => $academicYear, 
-        //         'ca_type' => $caType
-        //     ])->update(['sca_score' => $average]);
-        // }
+    private function refreshCAMark($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId){        
+        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, false);        
     }
 }
