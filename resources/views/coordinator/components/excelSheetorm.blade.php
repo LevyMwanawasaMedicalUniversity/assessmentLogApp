@@ -35,7 +35,11 @@
                 <input type="hidden" name="ca_type" value="{{ $caType }}">
                 <input type="hidden" name="course_id" value="{{ $courseId }}">
                 <input type="hidden" name="course_code" value="{{ $results->CourseName }}">
-                <input type="hidden" name="basicInformationId" value="{{ $basicInformationId }}">
+                @if($basicInformationId)
+                    <input type="hidden" name="basicInformationId" value="{{ $basicInformationId }}">
+                @else
+                    <input type="hidden" name="basicInformationId" value="{{auth()->user()->basic_information_id}}">
+                @endif
                 <input type="file" name="excelFile" accept=".xls,.xlsx,.csv" class="form-control-file" id="excelFileInput" required>
                 <small class="form-text text-muted">Accepted formats: .xls, .xlsx, .csv</small>
             </div>
