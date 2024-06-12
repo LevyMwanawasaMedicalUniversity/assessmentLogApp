@@ -339,9 +339,10 @@ class CoordinatorController extends Controller
         }
         $statusIdToRoute = encrypt($request->ca_type);
         $courseIdToRoute = encrypt($newAssessment->course_assessments_id);
+        $assessmentNumber= encrypt(1);
 
         // return redirect()->back()->with('success', 'Data imported successfully');
-        return redirect()->route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusIdToRoute, 'courseIdValue' => $courseIdToRoute])->with('success', 'Data imported successfully');
+        return redirect()->route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusIdToRoute, 'courseIdValue' => $courseIdToRoute, 'assessmentNumber' => $assessmentNumber])->with('success', 'Data imported successfully');
     }
 
     public function updateCAFromExcelSheet(Request $request){
