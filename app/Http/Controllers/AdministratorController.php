@@ -35,7 +35,9 @@ class AdministratorController extends Controller
             }
     
             try {
-                $password = $this->generateRandomPassword();
+                // Check if user already exists
+                $existingUser = User::where('basic_information_id', $result->ID)->first();
+                $password = $existingUser ? null : $this->generateRandomPassword();
     
                 $user = User::updateOrCreate(
                     [
@@ -43,18 +45,20 @@ class AdministratorController extends Controller
                     ],
                     [
                         'name' => $result->Firstname . ' ' . $result->Surname,
-                        'password' => bcrypt($password),
+                        'password' => $password ? bcrypt($password) : $existingUser->password,
                         'school_id' => $result->ParentID,
                         'email' => $email
                     ]
                 );
     
-                $studentRole = Role::firstOrCreate(['name' => 'Coordinator']);
-                $studentPermission = Permission::firstOrCreate(['name' => 'Coordinator']);
-                $user->assignRole($studentRole);
-                $user->givePermissionTo($studentPermission);
+                $coordinatorRole = Role::firstOrCreate(['name' => 'Coordinator']);
+                $coordinatorPermission = Permission::firstOrCreate(['name' => 'Coordinator']);
+                $user->assignRole($coordinatorRole);
+                $user->givePermissionTo($coordinatorPermission);
     
-                $this->sendCredentialsEmail($user, $password);
+                if ($password) {
+                    $this->sendCredentialsEmail($user, $password);
+                }
     
             } catch (\Exception $e) {
                 Log::error('Error creating user: ' . $e->getMessage());
@@ -63,7 +67,7 @@ class AdministratorController extends Controller
         }        
     
         return redirect()->back()->with('success', 'Coordinators imported successfully');
-    }
+    }    
 
     public function importDeans(){
         set_time_limit(1200000);
@@ -81,7 +85,9 @@ class AdministratorController extends Controller
             }
     
             try {
-                $password = $this->generateRandomPassword();
+                // Check if user already exists
+                $existingUser = User::where('basic_information_id', $result->ID)->first();
+                $password = $existingUser ? null : $this->generateRandomPassword();
     
                 $user = User::updateOrCreate(
                     [
@@ -89,18 +95,20 @@ class AdministratorController extends Controller
                     ],
                     [
                         'name' => $result->FirstName . ' ' . $result->Surname,
-                        'password' => bcrypt($password),
+                        'password' => $password ? bcrypt($password) : $existingUser->password,
                         'school_id' => $result->ParentID,
                         'email' => $email
                     ]
                 );
     
-                $studentRole = Role::firstOrCreate(['name' => 'Dean']);
-                $studentPermission = Permission::firstOrCreate(['name' => 'Dean']);
-                $user->assignRole($studentRole);
-                $user->givePermissionTo($studentPermission);
+                $deanRole = Role::firstOrCreate(['name' => 'Dean']);
+                $deanPermission = Permission::firstOrCreate(['name' => 'Dean']);
+                $user->assignRole($deanRole);
+                $user->givePermissionTo($deanPermission);
     
-                $this->sendCredentialsEmail($user, $password);
+                if ($password) {
+                    $this->sendCredentialsEmail($user, $password);
+                }
     
             } catch (\Exception $e) {
                 Log::error('Error creating user: ' . $e->getMessage());
@@ -109,7 +117,7 @@ class AdministratorController extends Controller
         }        
     
         return redirect()->back()->with('success', 'Deans imported successfully');
-    }
+    }    
     
     private function generateRandomPassword($length = 10) {
         return Str::random($length);
@@ -124,7 +132,7 @@ class AdministratorController extends Controller
             'password' => $password
         ];
     
-        Mail::to('azwelsimwinga@gmail.com')->send(new \App\Mail\UserCredentialsMail($details));
+        Mail::to($user->email)->send(new \App\Mail\UserCredentialsMail($details));
     }
     
 
