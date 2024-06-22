@@ -18,35 +18,48 @@ class RolesAndPermissionsSeeder extends Seeder
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         // Create permissions
-        Permission::create(['name' => 'Coordinator']);
-        Permission::create(['name' => 'Administrator']);
-        Permission::create(['name' => 'Dean']);
-        Permission::create(['name' => 'Registrar']);
-        Permission::create(['name' => 'ViewCoordinatorsCourses']);
-        Permission::create(['name' => 'ViewTheContionousAssessment']);
-        
+        $permissions = [
+            'Coordinator',
+            'Administrator',
+            'Dean',
+            'Registrar',
+            'ViewCoordinatorsCourses',
+            'ViewTheContionousAssessment'
+        ];
 
-        // Create roles and assign permissions
-        $coordinator = Role::create(['name' => 'Coordinator']);
-        $administrator = Role::create(['name' => 'Administrator']);
-        $dean = Role::create(['name' => 'Dean']);
-        $registrar= Role::create(['name' => 'Registrar']);
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission]);
+        }
 
-        $coordinator->givePermissionTo('Coordinator');
-        $coordinator->givePermissionTo('ViewTheContionousAssessment');
-        $administrator->givePermissionTo('Administrator');
-        $administrator->givePermissionTo('Coordinator');
-        $administrator->givePermissionTo('Dean');
-        $administrator->givePermissionTo('Registrar');
-        $administrator->givePermissionTo('ViewCoordinatorsCourses');
-        $administrator->givePermissionTo('ViewTheContionousAssessment');
-        $dean->givePermissionTo('Dean');
-        $dean->givePermissionTo('ViewCoordinatorsCourses');
-        $dean->givePermissionTo('ViewTheContionousAssessment');
-        $registrar->givePermissionTo('Registrar');
-        $registrar->givePermissionTo('ViewCoordinatorsCourses');
-        $registrar->givePermissionTo('ViewTheContionousAssessment');
+        // Create roles
+        $roles = [
+            'Coordinator' => [
+                'Coordinator',
+                'ViewTheContionousAssessment'
+            ],
+            'Administrator' => [
+                'Administrator',
+                'Coordinator',
+                'Dean',
+                'Registrar',
+                'ViewCoordinatorsCourses',
+                'ViewTheContionousAssessment'
+            ],
+            'Dean' => [
+                'Dean',
+                'ViewCoordinatorsCourses',
+                'ViewTheContionousAssessment'
+            ],
+            'Registrar' => [
+                'Registrar',
+                'ViewCoordinatorsCourses',
+                'ViewTheContionousAssessment'
+            ],
+        ];
 
-        
+        foreach ($roles as $roleName => $rolePermissions) {
+            $role = Role::firstOrCreate(['name' => $roleName]);
+            $role->syncPermissions($rolePermissions);
+        }
     }
 }

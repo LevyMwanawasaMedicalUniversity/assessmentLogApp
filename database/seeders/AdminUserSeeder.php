@@ -15,17 +15,22 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        $admin = User::create([
-            'name' => 'Dev User',
-            'email' => 'dev@lmmu.com',
-            'password' => bcrypt('Lmmu@D3v!'),
-        ]);
+        // Create or update the admin user
+        $admin = User::updateOrCreate(
+            ['email' => 'dev@lmmu.com'],
+            [
+                'name' => 'Dev User',
+                'password' => bcrypt('Lmmu@D3v!'),
+            ]
+        );
 
         // Create the admin role if it doesn't exist
         $adminRole = Role::firstOrCreate(['name' => 'Administrator']);
 
-        // Assign the admin role to the admin user
-        $admin->assignRole($adminRole);
+        // Assign the admin role to the admin user if not already assigned
+        if (!$admin->hasRole('Administrator')) {
+            $admin->assignRole($adminRole);
+        }
 
         // Assign all permissions to the admin role (optional)
         $adminRole->syncPermissions(Permission::all());

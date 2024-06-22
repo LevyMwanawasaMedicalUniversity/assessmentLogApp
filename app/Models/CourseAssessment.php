@@ -4,11 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+use OwenIt\Auditing\Auditable;
 
-class CourseAssessment extends Model
+class CourseAssessment extends Model implements AuditableContract
 {
-    use HasFactory;
+    use HasFactory, Auditable;
+
     protected $primaryKey = 'course_assessments_id';
+
     protected $fillable = [
         'course_id',
         'ca_type',

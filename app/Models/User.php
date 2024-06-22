@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use OwenIt\Auditing\Contracts\Auditable as AuditableContract;
+use OwenIt\Auditing\Auditable;
 
-class User extends Authenticatable 
+class User extends Authenticatable implements AuditableContract
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, Auditable;
 
     /**
      * The attributes that are mass assignable.
@@ -19,11 +20,11 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
-        'school_id', // Add this line
+        'school_id',
         'email',
         'password',
-        'basic_information_id', 
-        'phone_number', 
+        'basic_information_id',
+        'phone_number',
         'two_factor_token'
     ];
 
