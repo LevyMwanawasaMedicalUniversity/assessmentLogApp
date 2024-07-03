@@ -41,13 +41,14 @@ class AdministratorController extends Controller
     
                 $user = User::updateOrCreate(
                     [
-                        'basic_information_id' => $result->ID
+                        
+                        'email' => $email
                     ],
                     [
                         'name' => $result->Firstname . ' ' . $result->Surname,
                         'password' => $password ? bcrypt($password) : $existingUser->password,
                         'school_id' => $result->ParentID,
-                        'email' => $email
+                        'basic_information_id' => $result->ID
                     ]
                 );
     
