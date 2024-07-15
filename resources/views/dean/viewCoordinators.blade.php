@@ -32,6 +32,8 @@
                                 <th scope="col">Firstname</th>
                                 <th scope="col">Lastname</th>
                                 <th scope="col">Programme Coordinated</th>
+                                <th scope="col">Courses Coordinated</th>
+                                <th scope="col">Courses With CA</th>
                                 <th scope="col">Actions</th>
                             </tr>
                         </thead>
@@ -40,17 +42,19 @@
                             @include('coordinator.components.uploadAssessmentTypeModal')
                             @include('coordinator.components.viewAssessmentTypeModal')
                             <tr>
-                                {{-- <th scope="row">1</th> --}}
                                 <td>{{ $result->Firstname }}</td>
                                 <td>{{ $result->Surname }}</td>
                                 <td>{{ $result->Name }}</td>
+                                <td>{{ $counts[$result->ID] ?? '0' }} Courses</td>
+                                <td><a href="{{route('coordinator.viewOnlyProgrammesWithCaForCoordinator',$result->ID)}}">{{ $withCa[$result->ID] ?? '0' }} Courses</a></td>
                                 <td>
                                     <form method="GET" action="{{ route('admin.viewCoordinatorsCourses', ['basicInformationId' => encrypt($result->ID)]) }}">
                                         <button type="submit" class="btn btn-primary font-weight-bold">
                                             View
                                         </button>
                                     </form>
-                                </td> 
+                                </td>
+                                
                             </tr>                            
                             @endforeach
                         </tbody>

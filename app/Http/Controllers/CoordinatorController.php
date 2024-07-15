@@ -56,6 +56,7 @@ class CoordinatorController extends Controller
     public function viewOnlyProgrammesWithCa(){
 
         $coursesFromLMMAX = $this->getCoursesFromLMMAX();
+        // return $coursesFromLMMAX;
 
         $results = $this->getCoursesFromEdurole()
             ->whereIn('courses.Name', $coursesFromLMMAX)
@@ -63,6 +64,21 @@ class CoordinatorController extends Controller
 
         // return $results;
         return view('admin.viewCoursesWithCa', compact('results'));
+    }
+
+    public function viewOnlyProgrammesWithCaForCoordinator($coordinatorId){
+
+        $coursesFromLMMAX = $this->getCoursesFromLMMAX();
+        // return $coursesFromLMMAX;
+
+        $results = $this->getCoursesFromEdurole()
+            ->whereIn('courses.Name', $coursesFromLMMAX)
+            ->where('basic-information.ID', $coordinatorId)
+            ->get();
+
+        // return $results;
+        return view('admin.viewCoursesWithCa', compact('results','coordinatorId'));
+
     }
     
 

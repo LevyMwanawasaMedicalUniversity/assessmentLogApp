@@ -73,6 +73,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/coordinator/courseCASetings/{courseIdValue}/{basicInformationId}',[CoordinatorController::class, 'courseCASettings'])->name('coordinator.courseCASettings');
         Route::POST('/coordinator/updateCourseCASetings/{courseIdValue}',[CoordinatorController::class, 'updateCourseCASetings'])->name('coordinator.updateCourseCASetings');
         Route::get('viewOnlyProgrammesWithCa',[CoordinatorController::class, 'viewOnlyProgrammesWithCa'])->name('coordinator.viewOnlyProgrammesWithCa');
+        Route::get('viewOnlyProgrammesWithCaForCoordinator/{coordinator}',[CoordinatorController::class, 'viewOnlyProgrammesWithCaForCoordinator'])->name('coordinator.viewOnlyProgrammesWithCaForCoordinator');
         Route::get('/coordinator/viewTotalCaInCourse/{statusId}/{courseIdValue}/{basicInformationId}',[CoordinatorController::class, 'viewTotalCaInCourse'])->name('coordinator.viewTotalCaInCourse');
         Route::get('/coordinator/viewCa/{statusId}/{courseIdValue}/{basicInformationId}',[CoordinatorController::class, 'viewAllCaInCourse'])->name('coordinator.viewAllCaInCourse');
     });

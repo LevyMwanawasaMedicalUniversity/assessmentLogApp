@@ -145,9 +145,14 @@ class AdministratorController extends Controller
             ->select('basic-information.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName')
             // ->where('basic-information.ID', $basicInformationId)
             ->get();
-            $counts = $results->countBy('ID');
-            $results= $results->unique('ID');
-        return view('dean.viewCoordinators', compact('results', 'counts'));
+        $coursesWithCA = $this->getCoursesFromLMMAX();
+        
+        // return $coursesWithCA;
+        $counts = $results->countBy('ID');
+
+        $withCa = $results->whereIn('CourseName', $coursesWithCA)->countBy('ID');
+        $results= $results->unique('ID');
+        return view('dean.viewCoordinators', compact('results', 'counts','withCa'));
     }
 
     public function viewCoordinatorsUnderDean($schoolId){
