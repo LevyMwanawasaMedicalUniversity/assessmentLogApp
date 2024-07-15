@@ -61,8 +61,8 @@ class CoordinatorController extends Controller
             ->whereIn('courses.Name', $coursesFromLMMAX)
             ->get();
 
-        return $coursesWithCA;
-        return "we here";
+        
+        return view('admin.viewCoursesWithCa', compact('coursesWithCA'));
     }
     
 
