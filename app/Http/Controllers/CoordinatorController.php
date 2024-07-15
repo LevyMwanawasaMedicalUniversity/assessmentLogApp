@@ -57,12 +57,12 @@ class CoordinatorController extends Controller
 
         $coursesFromLMMAX = $this->getCoursesFromLMMAX();
 
-        $coursesWithCA = $this->getCoursesFromEdurole()
+        $results = $this->getCoursesFromEdurole()
             ->whereIn('courses.Name', $coursesFromLMMAX)
             ->get();
 
-        
-        return view('admin.viewCoursesWithCa', compact('coursesWithCA'));
+        // return $results;
+        return view('admin.viewCoursesWithCa', compact('results'));
     }
     
 
