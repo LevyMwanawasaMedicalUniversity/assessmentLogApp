@@ -53,6 +53,9 @@ class CoordinatorController extends Controller
         return view('coordinator.courseCASettings', compact('courseAssessmenetTypes', 'allAssesmentTypes', 'course', 'marksToDeduct'));
     }
     
+    public function viewOnlyProgrammesWithCa(){
+        return "we here";
+    }
     
 
     public function updateCourseCASetings(Request $request){

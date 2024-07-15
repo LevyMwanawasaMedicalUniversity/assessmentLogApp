@@ -71,17 +71,18 @@
 
                     <div class="card-body">
                     <h5 class="card-title">Courses From LM-MAX <span>| Total</span></h5>
+                    <a href="{{route('coordinator.viewOnlyProgrammesWithCa')}}">
+                        <div class="d-flex align-items-center">
+                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-receipt"></i>
+                            </div>
+                            <div class="ps-3">
+                            <h6>{{$coursesWithCA->unique('ID')->count()}}</h6>
+                            <span class="text-success small pt-1 fw-bold">With Continous Assessments</span>
 
-                    <div class="d-flex align-items-center">
-                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                        <i class="bi bi-receipt"></i>
+                            </div>
                         </div>
-                        <div class="ps-3">
-                        <h6>{{$coursesWithCA->unique('ID')->count()}}</h6>
-                        <span class="text-success small pt-1 fw-bold">With Continous Assessments</span>
-
-                        </div>
-                    </div>
+                    </a>
 
                     </div>
                 </div>
