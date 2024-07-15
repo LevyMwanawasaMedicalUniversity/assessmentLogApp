@@ -54,6 +54,14 @@ class CoordinatorController extends Controller
     }
     
     public function viewOnlyProgrammesWithCa(){
+
+        $coursesFromLMMAX = $this->getCoursesFromLMMAX();
+
+        $coursesWithCA = $this->getCoursesFromEdurole()
+            ->whereIn('courses.Name', $coursesFromLMMAX)
+            ->get();
+
+        return $coursesWithCA;
         return "we here";
     }
     
