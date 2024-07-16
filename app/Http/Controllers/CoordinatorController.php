@@ -330,13 +330,6 @@ class CoordinatorController extends Controller
         ]);
 
         try {
-            $newAssessment = CourseAssessment::create([
-                'course_id' => $request->course_id,
-                'ca_type' => $request->ca_type,
-                'academic_year' => $request->academicYear,
-                'basic_information_id' => $request->basicInformationId,
-            ]);
-
             if ($request->hasFile('excelFile')) {
                 $file = $request->file('excelFile');
                 $reader = ReaderEntityFactory::createXLSXReader();
@@ -368,6 +361,13 @@ class CoordinatorController extends Controller
 
                 DB::beginTransaction();
                 try {
+                    $newAssessment = CourseAssessment::create([
+                        'course_id' => $request->course_id,
+                        'ca_type' => $request->ca_type,
+                        'academic_year' => $request->academicYear,
+                        'basic_information_id' => $request->basicInformationId,
+                    ]);
+
                     foreach ($data as $entry) {
                         CourseAssessmentScores::updateOrCreate(
                             [
@@ -397,6 +397,7 @@ class CoordinatorController extends Controller
             return back()->with('error', 'An error occurred during the upload process. Please try again. Error: ' . $e->getMessage());
         }
     }
+
 
 
     public function updateCAFromExcelSheet(Request $request){
