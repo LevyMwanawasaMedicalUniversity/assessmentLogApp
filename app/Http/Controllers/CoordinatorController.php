@@ -309,81 +309,89 @@ class CoordinatorController extends Controller
         return redirect()->back()->with('success', 'Data deleted successfully');
     }
 
-    public function importCAFromExcelSheet(Request $request){
-        set_time_limit(1200000);
-        // Validate the form data
+    public function importCAFromExcelSheet(Request $request)
+    {
+        set_time_limit(0);
+        ini_set('memory_limit', '512M'); // Adjust as needed
+
         $request->validate([
             'excelFile' => 'required|mimes:xls,xlsx,csv',
             'academicYear' => 'required',
             'ca_type' => 'required',
             'course_id' => 'required',
-            'course_code' => 'required',   
-            'basicInformationId' => 'required',  
+            'course_code' => 'required',
+            'basicInformationId' => 'required',
         ]);
 
-        $newAssessment =CourseAssessment::Create([
-            'course_id' => $request->course_id,
-            'ca_type' => $request->ca_type,
-            'academic_year' => $request->academicYear,
-            'basic_information_id' => $request->basicInformationId,
-        ]);
+        try {
+            $newAssessment = CourseAssessment::create([
+                'course_id' => $request->course_id,
+                'ca_type' => $request->ca_type,
+                'academic_year' => $request->academicYear,
+                'basic_information_id' => $request->basicInformationId,
+            ]);
 
-        if ($request->hasFile('excelFile')) {
-            $file = $request->file('excelFile');
+            if ($request->hasFile('excelFile')) {
+                $file = $request->file('excelFile');
+                $reader = ReaderEntityFactory::createXLSXReader();
+                $reader->open($file->getPathname());
 
-            // Initialize the Box/Spout reader
-            $reader = ReaderEntityFactory::createXLSXReader();
-            $reader->open($file->getPathname());
+                $isHeaderRow = true;
+                $data = [];
+                foreach ($reader->getSheetIterator() as $sheet) {
+                    foreach ($sheet->getRowIterator() as $row) {
+                        if ($isHeaderRow) {
+                            $isHeaderRow = false;
+                            continue;
+                        }
+                        try {
+                            $studentNumber = $row->getCellAtIndex(0)->getValue();
+                            $mark = (float) $row->getCellAtIndex(1)->getValue();
+                        } catch (\Exception $e) {
+                            $reader->close();
+                            return back()->with('error', 'Please format excel sheet correctly.');
+                        }
 
-            $isHeaderRow = false;
-            $data = [];
-            foreach ($reader->getSheetIterator() as $sheet) {
-                foreach ($sheet->getRowIterator() as $row) {
-                    // Skip the header row
-                    if ($isHeaderRow) {
-                        $isHeaderRow = false;
-                        continue;
+                        $data[] = [
+                            'student_number' => $studentNumber,
+                            'mark' => $mark,
+                        ];
                     }
-                    try{
-                        $studentNumber = $row->getCellAtIndex(0)->getValue();                    
-                        $mark = $row->getCellAtIndex(1)->getValue();
-                        // $courseCode = $row->getCellAtIndex(2)->getValue();
-                    } catch (\Exception $e) {
-                        return back()->with('error', 'Please format excel sheet correctly.');
-                    }
-
-                    $data[] = [
-                        'student_number' => $studentNumber,
-                        'mark' => $mark,
-                    ];
                 }
-                
+                $reader->close();
+
+                DB::beginTransaction();
+                try {
+                    foreach ($data as $entry) {
+                        CourseAssessmentScores::updateOrCreate(
+                            [
+                                'course_assessment_id' => $newAssessment->course_assessments_id,
+                                'student_id' => trim($entry['student_number']),
+                                'course_code' => $request->course_code,
+                            ],
+                            [
+                                'cas_score' => $entry['mark'],
+                            ]
+                        );
+                        $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $request->ca_type, trim($entry['student_number']), $newAssessment->course_assessments_id);
+                    }
+                    DB::commit();
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    return back()->with('error', 'An error occurred while importing the data. Please try again. Error: ' . $e->getMessage());
+                }
             }
-            $reader->close();
 
-            // try{
-                foreach ($data as $entry){
-                    CourseAssessmentScores::updateOrCreate([
-                        'course_assessment_id' => $newAssessment->course_assessments_id,
-                        'student_id' => trim($entry['student_number']),                        
-                        'course_code' => $request->course_code,
-                    ],[                        
-                        'cas_score' => $entry['mark'],                      
-                    ]);
-                    $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $request->ca_type, trim($entry['student_number']),$newAssessment->course_assessments_id);
-                }
-            // }catch(\Exception $e){
-            //     return back()->with('error', 'An error occurred while importing the data. Please try again.');
-            // }
+            $statusIdToRoute = encrypt($request->ca_type);
+            $courseIdToRoute = encrypt($newAssessment->course_assessments_id);
+            $assessmentNumber = encrypt(1);
 
+            return redirect()->route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusIdToRoute, 'courseIdValue' => $courseIdToRoute, 'assessmentNumber' => $assessmentNumber])->with('success', 'Data imported successfully');
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred during the upload process. Please try again. Error: ' . $e->getMessage());
         }
-        $statusIdToRoute = encrypt($request->ca_type);
-        $courseIdToRoute = encrypt($newAssessment->course_assessments_id);
-        $assessmentNumber= encrypt(1);
-
-        // return redirect()->back()->with('success', 'Data imported successfully');
-        return redirect()->route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusIdToRoute, 'courseIdValue' => $courseIdToRoute, 'assessmentNumber' => $assessmentNumber])->with('success', 'Data imported successfully');
     }
+
 
     public function updateCAFromExcelSheet(Request $request){
         set_time_limit(1200000);
