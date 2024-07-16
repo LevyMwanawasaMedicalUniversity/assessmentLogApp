@@ -39,6 +39,13 @@ class CoordinatorController extends Controller
         return view('coordinator.uploadCa', compact('results', 'caType','courseId','basicInformationId'));
     }
 
+    public function showCaWithin($courseId){
+
+        return Crypt::decrypt($courseId);
+        return "we are here";
+
+    }
+
     public function courseCASettings($courseIdValue) {
         $courseId = Crypt::decrypt($courseIdValue);
         $allAssesmentTypes = AssessmentTypes::all();
@@ -76,7 +83,7 @@ class CoordinatorController extends Controller
             ->where('basic-information.ID', $coordinatorId)
             ->get();
 
-        // return $results;
+        // return $results[0]->ID;
         return view('admin.viewCoursesWithCa', compact('results','coordinatorId'));
 
     }
