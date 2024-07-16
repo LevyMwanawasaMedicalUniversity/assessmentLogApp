@@ -41,14 +41,20 @@ class CoordinatorController extends Controller
 
     public function showCaWithin($courseId){
         $courseId = Crypt::decrypt($courseId);
-        $assessmentDetails = CourseAssessment::select('assessment_types.assesment_type_name', DB::raw('count(*) as total'))
-            ->where('course_id', $courseId)
-            ->join('assessment_types', 'assessment_types.id', '=', 'course_assessments.ca_type')
-            ->groupBy('assessment_types.id')
-            ->get();
+        $assessmentDetails = CourseAssessment::select(
+            'course_assessments.basic_information_id',
+            'assessment_types.assesment_type_name',
+            'assessment_types.id',
+            DB::raw('count(course_assessments.course_assessments_id) as total')
+        )
+        ->where('course_assessments.course_id', $courseId)
+        ->join('assessment_types', 'assessment_types.id', '=', 'course_assessments.ca_type')
+        ->groupBy('assessment_types.id','course_assessments.basic_information_id', 'assessment_types.assesment_type_name')
+        ->get();
+    
 
         // return $assessmentDetails;
-        return view('admin.showCaInCourse', compact('assessmentDetails'));
+        return view('admin.showCaInCourse', compact('assessmentDetails','courseId'));
 
     }
 

@@ -26,7 +26,7 @@
                             <tbody>
                                 @foreach ($assessmentDetails as $assessment)
                                 <tr>
-                                    <td>{{ $assessment->assesment_type_name }}</td>
+                                    <td><a href="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt($assessment->id),'courseIdValue' => encrypt($courseId),'basicInformationId' => encrypt($assessment->basic_information_id)]) }}">{{ $assessment->assesment_type_name }}</a></td>
                                     <td>{{ $assessment->total }}</td>
                                 </tr>
                                 @endforeach
