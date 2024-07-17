@@ -32,8 +32,8 @@
                                 <th scope="col">Firstname</th>
                                 <th scope="col">Lastname</th>
                                 <th scope="col">Programme Coordinated</th>
-                                <th scope="col">Courses Coordinated</th>
-                                <th scope="col">Courses With CA</th>
+                                <th scope="col">Courses Coordinated <span class="text-primary">( {{ $totalCoursesCoordinated }} )</span></th>
+                                <th scope="col">Courses With CA <span class="text-success">( {{$totalCoursesWithCA}} )</span></th>
                                 <th scope="col">Actions</th>
                             </tr>
                         </thead>

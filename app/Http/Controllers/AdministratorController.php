@@ -142,6 +142,7 @@ class AdministratorController extends Controller
             ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
             ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
             ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
+            ->join('schools', 'schools.ID', '=', 'study.ParentID')
             ->select('basic-information.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName')
             // ->where('basic-information.ID', $basicInformationId)
             ->get();
@@ -152,7 +153,10 @@ class AdministratorController extends Controller
 
         $withCa = $results->whereIn('CourseName', $coursesWithCA)->countBy('ID');
         $results= $results->unique('ID');
-        return view('dean.viewCoordinators', compact('results', 'counts','withCa'));
+
+        $totalCoursesCoordinated = $counts->sum();
+        $totalCoursesWithCA = $withCa->sum();
+        return view('dean.viewCoordinators', compact('results', 'counts','withCa','totalCoursesCoordinated','totalCoursesWithCA'));
     }
 
     public function viewCoordinatorsUnderDean($schoolId){
