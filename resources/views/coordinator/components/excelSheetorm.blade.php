@@ -13,8 +13,10 @@
         @endif
 
         @if (session('error'))
-            <div class="bg-red-100 text-red-800 px-4 py-2 rounded">
-                {{ session('error') }}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-octagon me-1"></i>
+                    {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
     </div>
@@ -40,8 +42,8 @@
                 @else
                     <input type="hidden" name="basicInformationId" value="{{auth()->user()->basic_information_id}}">
                 @endif
-                <input type="file" name="excelFile" accept=".xls,.xlsx,.csv" class="form-control-file" id="excelFileInput" required>
-                <small class="form-text text-muted">Accepted formats: .xls, .xlsx, .csv</small>
+                <input type="file" name="excelFile" accept=".xlsx" class="form-control-file" id="excelFileInput" required>
+                <small class="form-text text-muted">Accepted formats: .xlsx</small>
             </div>
 
             <!-- File Preview -->

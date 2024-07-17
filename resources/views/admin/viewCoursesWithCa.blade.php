@@ -13,7 +13,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title">Courses With Continous Assessments</h5>
-                            <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search by date uploaded.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search by course code." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         </div>
                         <!-- Table with hoverable rows -->
                         <table id="myTable" class="table table-hover">

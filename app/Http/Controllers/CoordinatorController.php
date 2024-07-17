@@ -317,6 +317,7 @@ class CoordinatorController extends Controller
 
     public function importCAFromExcelSheet(Request $request)
     {
+        // return "Hello";
         set_time_limit(0);
         ini_set('memory_limit', '512M'); // Adjust as needed
 
@@ -332,8 +333,25 @@ class CoordinatorController extends Controller
         try {
             if ($request->hasFile('excelFile')) {
                 $file = $request->file('excelFile');
+                $filePath = $file->getPathname();
+
+                if (!is_readable($filePath)) {
+                    return back()->with('error', 'The uploaded file could not be read. Please try again.');
+                }
+
                 $reader = ReaderEntityFactory::createXLSXReader();
-                $reader->open($file->getPathname());
+                $reader->open($filePath);
+
+                // Check if the workbook has only one sheet
+                $sheetCount = iterator_count($reader->getSheetIterator());
+                // return $sheetCount;
+                if ($sheetCount > 1) {
+                    $reader->close();
+                    return back()->with('error', 'The uploaded Excel workbook must contain exactly one sheet.');
+                }
+
+                $reader->close();
+                $reader->open($filePath); // Re-open to reset the iterator
 
                 $isHeaderRow = true;
                 $data = [];
@@ -382,7 +400,7 @@ class CoordinatorController extends Controller
                         $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $request->ca_type, trim($entry['student_number']), $newAssessment->course_assessments_id);
                     }
                     DB::commit();
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     DB::rollBack();
                     return back()->with('error', 'An error occurred while importing the data. Please try again. Error: ' . $e->getMessage());
                 }
@@ -393,12 +411,10 @@ class CoordinatorController extends Controller
             $assessmentNumber = encrypt(1);
 
             return redirect()->route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusIdToRoute, 'courseIdValue' => $courseIdToRoute, 'assessmentNumber' => $assessmentNumber])->with('success', 'Data imported successfully');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return back()->with('error', 'An error occurred during the upload process. Please try again. Error: ' . $e->getMessage());
         }
     }
-
-
 
     public function updateCAFromExcelSheet(Request $request){
         set_time_limit(1200000);
