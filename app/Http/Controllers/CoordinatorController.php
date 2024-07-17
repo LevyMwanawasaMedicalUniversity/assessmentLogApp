@@ -354,11 +354,15 @@ class CoordinatorController extends Controller
                 $reader->close();
                 $reader->open($filePath); // Re-open to reset the iterator
 
-                $isHeaderRow = true;
+                
                 $data = [];
                 foreach ($reader->getSheetIterator() as $sheet) {
                     foreach ($sheet->getRowIterator() as $row) {
-                        
+                        $actualColumnCount = count($row->getCells());
+                        if ($actualColumnCount != $expectedColumnCount) {
+                            $reader->close();
+                            return back()->with('error', "The uploaded Excel sheet must contain exactly $expectedColumnCount columns.");
+                        }
                         try {
                             $studentNumber = $row->getCellAtIndex(0)->getValue();
                             $mark = (float) $row->getCellAtIndex(1)->getValue();
