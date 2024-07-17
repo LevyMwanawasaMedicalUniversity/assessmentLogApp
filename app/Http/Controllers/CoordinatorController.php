@@ -329,6 +329,7 @@ class CoordinatorController extends Controller
             'course_code' => 'required',
             'basicInformationId' => 'required',
         ]);
+        $expectedColumnCount = 2;
 
         try {
             if ($request->hasFile('excelFile')) {
@@ -357,10 +358,7 @@ class CoordinatorController extends Controller
                 $data = [];
                 foreach ($reader->getSheetIterator() as $sheet) {
                     foreach ($sheet->getRowIterator() as $row) {
-                        if ($isHeaderRow) {
-                            $isHeaderRow = false;
-                            continue;
-                        }
+                        
                         try {
                             $studentNumber = $row->getCellAtIndex(0)->getValue();
                             $mark = (float) $row->getCellAtIndex(1)->getValue();
