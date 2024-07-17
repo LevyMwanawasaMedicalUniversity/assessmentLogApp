@@ -450,15 +450,12 @@ class CoordinatorController extends Controller
             $reader = ReaderEntityFactory::createXLSXReader();
             $reader->open($file->getPathname());
 
-            $isHeaderRow = false;
+        
             $data = [];
             foreach ($reader->getSheetIterator() as $sheet) {
                 foreach ($sheet->getRowIterator() as $row) {
                     // Skip the header row
-                    if ($isHeaderRow) {
-                        $isHeaderRow = false;
-                        continue;
-                    }
+                    
                     try{
                         $studentNumber = $row->getCellAtIndex(0)->getValue();                    
                         $mark = $row->getCellAtIndex(1)->getValue();
