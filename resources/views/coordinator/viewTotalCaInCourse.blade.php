@@ -2,7 +2,7 @@
         <main id="main" class="main">
     <div class="pagetitle">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Total CAs for {{$courseDetails->CourseDescription}} - {{$courseDetails->Name}}
+            Total CAs for {{$courseDetails->CourseDescription}} - {{$courseDetails->Name}} for {{$results->count()}} students
         </h2>
         @include('layouts.alerts')
         <nav>
@@ -25,6 +25,7 @@
                         <table id="myTable" class="table table-hover">
                             <thead>
                                 <tr>
+                                    <th>#</th>
                                     <th class="px-4 py-2">Student Number</th>
                                     <th class="px-4 py-2">FirstName</th>
                                     <th class="px-4 py-2">LastName</th> 
@@ -37,6 +38,7 @@
                             <tbody>
                                 @foreach($results as $result)
                                     <tr class="border-t border-b hover:bg-gray-100">
+                                        <td class="px-4 py-2">{{$loop->iteration}}</td>
                                         <td class="px-4 py-2">{{ $result->student_id }}</td>
                                         @if($result->basic_information)
                                             <td class="px-4 py-2">{{ $result->basic_information->FirstName }}</td>

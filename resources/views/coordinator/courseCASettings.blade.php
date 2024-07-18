@@ -27,6 +27,7 @@
                                 <table id="myTable" class="table table-hover">
                                     <thead>
                                         <tr>
+                                        <th scope="col">#</th>
                                         <th scope="col">Select</th>
                                         <th scope="col">Assessment Type</th>
                                         <th scope="col">Marks Allocated</th>
@@ -35,7 +36,9 @@
                                     <tbody>
                                         @foreach ($allAssesmentTypes as $assesmentType)
                                             <tr>
+                                                <td>{{$loop->iteration}}</td>
                                                 <td>
+                                                
                                                     <input type="hidden" name="courseId" value="{{$course->ID}}">
                                                     <input type="checkbox" 
                                                         name="assessmentType[{{ $assesmentType->id }}]"

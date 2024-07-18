@@ -23,7 +23,7 @@
                         <table id="myTable" class="table table-hover">                        
                             <thead>
                                 <tr>
-                                {{-- <th scope="col">#</th> --}}
+                                <th scope="col">#</th>
                                 <th scope="col">Course Name</th>
                                 <th scope="col">Course Code</th>
                                 <th scope="col">Programme Name</th>
@@ -36,6 +36,7 @@
                                     @include('coordinator.components.viewAssessmentTypeModal')
                                     <tr>
                                         {{-- <th scope="row">1</th> --}}
+                                        <td>{{$loop->iteration}}</td>
                                         <td>{{$result->CourseDescription}}</td>
                                         <td>{{$result->CourseName}}</td>
                                         <td>{{$result->Name}}</td>

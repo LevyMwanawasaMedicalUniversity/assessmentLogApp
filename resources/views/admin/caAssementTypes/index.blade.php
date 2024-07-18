@@ -26,6 +26,7 @@
                             <tr>
                             
                             {{-- <th scope="col">#</th> --}}
+                            <th>#</th>
                             <th scope="col">Name</th>
                             <th scope="col">Creation date</th>
                             <th class="text-right" scope="col">Actions</th>
@@ -36,6 +37,7 @@
                             
                             <tr>
                                 {{-- <th scope="row">1</th> --}}
+                                <td>{{$loop->iteration}}</td>
                                 <td>{{$assessmentType->assesment_type_name}}</td>
                                 <td>{{$assessmentType->created_at}}</td>
                                 <td class="text-right">

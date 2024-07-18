@@ -21,6 +21,7 @@
                         <table id="myTable" class="table table-hover">
                         <thead>
                             <tr>
+                            <th>#</th>
                             <th scope="col">Name</th>
                             <th scope="col" class="text-right">Actions</th>
                             </tr>
@@ -29,6 +30,7 @@
                         @if(count($roles ) > 0)
                             @foreach ($roles as $key => $role)
                             <tr class="border-top border-bottom hover">
+                                <td>{{ $key + 1 }}</td>
                                 <td class="px-4 py-2">{{ $role->name }}</td>
                                 <td class="px-4 py-2">
                                     <div class="btn-group float-end" role="group" aria-label="Button group">

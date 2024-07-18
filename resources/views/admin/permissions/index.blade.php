@@ -20,6 +20,7 @@
                         <table id="myTable" class="table table-hover">
                             <thead>
                                 <tr>
+                                    <th>#</th>
                                     <th scope="col">Name</th>
                                     <th scope="col">Auth Guard</th>
                                     <th scope="col" class="text-right">Actions</th>
@@ -29,6 +30,7 @@
                                 @if(count($permissions) > 0)
                                     @foreach($permissions as $permission)
                                         <tr class="border-top border-bottom hover">
+                                            <td>{{ $loop->iteration }}</td>
                                             <td>{{ $permission->name }}</td>
                                             <td>{{ $permission->guard_name }}</td>
                                             <td>

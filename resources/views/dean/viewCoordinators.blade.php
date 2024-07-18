@@ -29,7 +29,7 @@
                         {{-- <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"> --}}
                         <thead>
                             <tr>
-                                {{-- <th scope="col">#</th> --}}
+                                <th scope="col">#</th>
                                 <th scope="col">Firstname</th>
                                 <th scope="col">Lastname</th>
                                 <th scope="col">Programme Coordinated</th>
@@ -43,6 +43,8 @@
                             @include('coordinator.components.uploadAssessmentTypeModal')
                             @include('coordinator.components.viewAssessmentTypeModal')
                             <tr>
+                                {{-- <th scope="row">1</th> --}}
+                                <td>{{$loop->iteration}}</td>
                                 <td>{{ $result->Firstname }}</td>
                                 <td>{{ $result->Surname }}</td>
                                 <td>{{ $result->Name }}</td>

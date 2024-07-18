@@ -20,6 +20,7 @@
                         <table id="myTable" class="table table-hover">
                             <thead>
                                 <tr>
+                                    <th>#</th>
                                     <th class="px-4 py-2">Course Code</th>
                                     <th class="px-4 py-2">Firstname</th>
                                     <th class="px-4 py-2">Lastname</th>
@@ -32,6 +33,7 @@
                             <tbody>
                                 @foreach($results as $result)
                                     <tr class="border-t border-b hover:bg-gray-100">
+                                        <td class="px-4 py-2">{{$loop->iteration}}</td>
                                         <td class="px-4 py-2"><a href="{{route('coordinator.showCaWithin',encrypt($result->ID))}}">{{$result->CourseName}}</a></td>
                                         <td class="px-4 py-2">{{$result->Firstname}}</td>
                                         <td class="px-4 py-2">{{$result->Surname}}</td>

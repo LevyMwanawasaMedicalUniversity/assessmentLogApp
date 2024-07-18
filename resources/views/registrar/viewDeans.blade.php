@@ -27,6 +27,7 @@
                         <table id="myTable" class="table table-hover">
                             <thead>
                                 <tr>
+                                    <th scope="col">#</th>
                                     <th scope="col">Firstname</th>
                                     <th scope="col">Lastname</th>
                                     <th scope="col">School</th>
@@ -36,6 +37,7 @@
                             <tbody>
                                 @foreach($results as $result)
                                     <tr class="border-top border-bottom hover">
+                                        <td>{{ $loop->iteration }}</td>
                                         <td>{{ $result->FirstName }}</td>
                                         <td>{{ $result->Surname }}</td>
                                         <td>{{ $result->SchoolName }}</td>
