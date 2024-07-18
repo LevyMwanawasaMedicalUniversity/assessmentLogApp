@@ -13,7 +13,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="card-title">Courses With Continous Assessments</h5>
+                            <h5 class="card-title">Courses With Continous Assessments {{$results->count()}}</h5>
                             <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search by course code." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         </div>
                         <!-- Table with hoverable rows -->
@@ -60,7 +60,7 @@
         table = document.getElementById("myTable");
         tr = table.getElementsByTagName("tr");
         for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[0]; // Change the index based on the column you want to filter
+            td = tr[i].getElementsByTagName("td")[1]; // Change the index based on the column you want to filter
             if (td) {
                 txtValue = td.textContent || td.innerText;
                 if (txtValue.toUpperCase().indexOf(filter) > -1) {
