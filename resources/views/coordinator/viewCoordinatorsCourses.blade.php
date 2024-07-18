@@ -4,6 +4,7 @@
 
     <div class="pagetitle">
         <h1>My Courses</h1>
+        @include('layouts.alerts')
         <nav>
             {{ Breadcrumbs::render() }}
         </nav>

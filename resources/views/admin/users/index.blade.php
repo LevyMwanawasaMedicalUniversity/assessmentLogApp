@@ -3,6 +3,7 @@
 
     <div class="pagetitle">
         <h1>Users</h1>
+        @include('layouts.alerts')
         <nav>
             {{ Breadcrumbs::render() }}
         </nav>

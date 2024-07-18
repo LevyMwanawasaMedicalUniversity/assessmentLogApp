@@ -3,6 +3,7 @@
 
         <div class="pagetitle">
         <h1>Dashboard</h1>
+        @include('layouts.alerts')
         <nav>
             
             

@@ -3,6 +3,7 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ $results->CourseDescription }} {{ $results->CourseName }}
         </h2>
+        @include('layouts.alerts')
     </x-slot>
 
     <div class="py-12">

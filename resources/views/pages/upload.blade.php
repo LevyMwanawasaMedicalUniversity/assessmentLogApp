@@ -3,6 +3,7 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Upload Page') }}
         </h2>
+        @include('layouts.alerts')
     </x-slot>
 
     <div class="py-12">

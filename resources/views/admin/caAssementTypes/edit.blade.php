@@ -7,6 +7,7 @@
 
     <div class="pagetitle">
         <h1>Edit Assessment Type</h1>
+        @include('layouts.alerts')
         <nav>
             {{ Breadcrumbs::render() }}
         </nav>

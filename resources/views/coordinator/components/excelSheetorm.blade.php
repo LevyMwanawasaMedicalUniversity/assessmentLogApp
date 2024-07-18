@@ -5,21 +5,7 @@
     </div>
 
     <!-- Alert Messages -->
-    <div class="w-full mb-6">
-        @if (session('success'))
-            <div class="bg-green-100 text-green-800 px-4 py-2 rounded">
-                {{ session('success') }}
-            </div>
-        @endif
-
-        @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-octagon me-1"></i>
-                    {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-    </div>
+    
 
     <!-- File Upload Form -->    
         <form action="{{ route('coordinator.importCAFromExcelSheet') }}" method="POST" enctype="multipart/form-data" class="p-4 bg-light border rounded shadow-sm">

@@ -4,6 +4,7 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             Total CAs for {{$courseDetails->CourseDescription}} - {{$courseDetails->Name}}
         </h2>
+        @include('layouts.alerts')
         <nav>
             {{ Breadcrumbs::render() }}
         </nav>

@@ -2,6 +2,7 @@
     <main id="main" class="main">
         <div class="pagetitle">
             <h1>{{$course->Name}} Course Settings</h1>
+            @include('layouts.alerts')
             <nav>
                 {{ Breadcrumbs::render() }}
             </nav>

@@ -3,6 +3,7 @@
 
     <div class="pagetitle">
         <h1>Coordinators</h1>
+        @include('layouts.alerts')
         <nav>
             {{ Breadcrumbs::render() }}
         </nav>

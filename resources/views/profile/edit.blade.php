@@ -2,6 +2,7 @@
     <main id="main">
         <div class="container py-4">
             <h1 class="mb-4">Edit Profile</h1>
+            @include('layouts.alerts')
             <div class="row">
                 <div class="col-12">
                     <div class="card mb-4">

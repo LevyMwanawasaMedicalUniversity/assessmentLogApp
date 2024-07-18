@@ -2,6 +2,7 @@
     <main id="main" class="main">
     <div class="pagetitle">
         <h1>Edit Permission</h1>
+        @include('layouts.alerts')
         <nav>
             {{ Breadcrumbs::render() }}
         </nav>
