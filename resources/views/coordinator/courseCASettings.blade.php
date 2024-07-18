@@ -40,6 +40,7 @@
                                                 <td>
                                                 
                                                     <input type="hidden" name="courseId" value="{{$course->ID}}">
+                                                    <input type="hidden" name="basicInformationId" value="{{$basicInformationId}}">
                                                     <input type="checkbox" 
                                                         name="assessmentType[{{ $assesmentType->id }}]"
                                                         value="{{ $assesmentType->id }}"

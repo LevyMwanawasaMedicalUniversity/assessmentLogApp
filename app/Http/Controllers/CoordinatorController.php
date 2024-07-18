@@ -58,7 +58,7 @@ class CoordinatorController extends Controller
 
     }
 
-    public function courseCASettings($courseIdValue) {
+    public function courseCASettings($courseIdValue, $basicInformationId){ 
         $courseId = Crypt::decrypt($courseIdValue);
         $allAssesmentTypes = AssessmentTypes::all();
         $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
@@ -69,7 +69,7 @@ class CoordinatorController extends Controller
     
         $marksToDeduct = !empty($courseAssessmenetTypes) ? array_sum($courseAssessmenetTypes) : 0;
     
-        return view('coordinator.courseCASettings', compact('courseAssessmenetTypes', 'allAssesmentTypes', 'course', 'marksToDeduct'));
+        return view('coordinator.courseCASettings', compact('courseAssessmenetTypes', 'allAssesmentTypes', 'course', 'marksToDeduct','basicInformationId'));
     }
     
     public function viewOnlyProgrammesWithCa(){
@@ -104,6 +104,7 @@ class CoordinatorController extends Controller
     public function updateCourseCASetings(Request $request){
         // Get the course ID from the request
         $courseId = $request->input('courseId');
+        $basicInformationId = $request->input('basicInformationId');
     
         // Get the array of assessment types and marks allocated from the request
         $assessmentTypes = $request->input('assessmentType');
@@ -179,8 +180,11 @@ class CoordinatorController extends Controller
         }     
 
         //TO DO: ADD calculateAndSubmitCA TO THIS FUNCTION
-
-        return redirect()->back()->with('success', 'Course CA settings updated successfully');
+        if(auth()->user()->hasRole('Coordinator')){
+            return redirect()->route('pages.upload')->with('success', $courseCode.' CA settings updated successfully');
+        }else{
+            return redirect()->route('admin.viewCoordinatorsCourses',$basicInformationId)->with('success', $courseCode.' CA settings updated successfully');
+        }
     }
 
     public function editCaInCourse($courseAssessmenId,$courseId, $basicInformationId){
