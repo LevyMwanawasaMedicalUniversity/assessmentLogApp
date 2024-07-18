@@ -50,14 +50,15 @@
                             <div class="col-12 mb-3">
                                 <label for="role" class="form-label">Role</label>
                                 <select class="form-control" name="role" required>
-                                    <option value="">Select role</option>
-                                    @foreach($roles as $role)
-                                        <option value="{{ $role->name }}"
-                                            {{ $user->hasRole($role->name) ? 'selected' : '' }}>
+                                <option value="">Select role</option>
+                                @foreach($roles as $role)
+                                    @if($role->name != 'Dean' && $role->name != 'Coordinator')
+                                        <option value="{{ $role->name }}" {{ $user->hasRole($role->name) ? 'selected' : '' }}>
                                             {{ $role->name }}
                                         </option>
-                                    @endforeach
-                                </select>
+                                    @endif
+                                @endforeach
+                            </select>
                                 @if ($errors->has('role'))
                                     <span class="text-danger">{{ $errors->first('role') }}</span>
                                 @endif

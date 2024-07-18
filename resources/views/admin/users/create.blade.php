@@ -48,9 +48,11 @@
                                 <select class="form-control" name="role" required>
                                     <option value="">Select role</option>
                                     @foreach($roles as $role)
-                                        <option value="{{ $role->name }}">
-                                            {{ $role->name }}
-                                        </option>
+                                        @if($role->name != 'Dean' && $role->name != 'Coordinator')
+                                            <option value="{{ $role->name }}">
+                                                {{ $role->name }}
+                                            </option>
+                                        @endif
                                     @endforeach
                                 </select>
                                 @if ($errors->has('role'))
