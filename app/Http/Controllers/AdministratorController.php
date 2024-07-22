@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Mail;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Str;
+use OwenIt\Auditing\Models\Audit;
 
 class AdministratorController extends Controller
 {
@@ -135,6 +136,14 @@ class AdministratorController extends Controller
         Mail::to($user->email)->send(new \App\Mail\UserCredentialsMail($details));
     }
     
+    public function auditTrails(){
+
+        $audits = Audit::with('user')
+        ->orderBy('created_at', 'desc')
+        ->paginate(15); // Eager load the related user
+
+        return view('admin.users.audits', compact('audits'));
+    }
 
     public function viewCoordinators(){
         $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')

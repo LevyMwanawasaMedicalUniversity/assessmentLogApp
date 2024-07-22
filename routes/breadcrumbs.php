@@ -15,6 +15,11 @@ Breadcrumbs::for('pages.upload', function ($trail) {
     $trail->push('My Courses', route('pages.upload'));
 });
 
+Breadcrumbs::for('admin.auditTrails', function ($trail) {
+    $trail->parent('dashboard');
+    $trail->push('Audit Trails', route('admin.auditTrails'));
+});
+
 Breadcrumbs::for('users.index', function ($trail) {
     $trail->parent('dashboard');
     $trail->push('Users', route('users.index'));

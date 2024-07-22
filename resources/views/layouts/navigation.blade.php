@@ -295,6 +295,12 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{{ route('admin.auditTrails') }}">
+                        <i class="bi bi-circle"></i>
+                        <span>Audit Trails</span>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ url('caAssessmentTypes') }}">
                         <i class="bi bi-circle"></i>
                         <span>CA Type Management</span>
