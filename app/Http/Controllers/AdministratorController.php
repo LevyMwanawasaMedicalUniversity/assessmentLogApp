@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CourseAssessment;
 use App\Models\EduroleBasicInformation;
 use App\Models\EduroleStudy;
 use App\Models\User;
@@ -145,8 +146,29 @@ class AdministratorController extends Controller
         return view('admin.users.audits', compact('audits'));
     }
 
-    public function editCourseAssessmentDescription(){
-        return view('coordinator.editCourseAssessmentDescription');
+    public function editCourseAssessmentDescription($courseAssessmentId,$statusId){
+
+        $courseAssessmentId = Crypt::decrypt($courseAssessmentId);
+        $statusId = Crypt::decrypt($statusId);
+        $result = CourseAssessment::where('course_assessments_id',$courseAssessmentId)
+                ->first();
+        // return $result;
+        return view('coordinator.editCourseAssessmentDescription',compact('result'));
+    }
+
+    public function updateCourseAssessmentDescription(Request $request, $courseAssessmentId){
+
+        $description = $request->description;
+        
+        if($description){
+            $courseAssessment = CourseAssessment::find($courseAssessmentId);
+            $courseAssessment->description = $description;
+            $courseAssessment->save();
+        }
+
+        
+
+        return back()->with('success', 'Updated successfully click "View CA"');
     }
 
     public function viewCoordinators(){

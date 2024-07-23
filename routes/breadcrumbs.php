@@ -205,6 +205,33 @@ Breadcrumbs::for('coordinator.viewSpecificCaInCourse', function ($trail, $status
     $trail->push('View The Marks', route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusId, 'courseIdValue' => $courseIdValue, 'assessmentNumber' => $assessmentNumber]));
 });
 
+Breadcrumbs::for('editCourseAssessmentDescription', function ($trail, $courseAssessmentId, $statusId) {
+    // Make sure to pass the correct parameters to the parent breadcrumb
+    $courseAssessmentId = Crypt::decrypt($courseAssessmentId);
+    $statusId = Crypt::decrypt($statusId);
+    $results = CourseAssessment::where('course_assessments.course_assessments_id', $courseAssessmentId)
+            // ->where('ca_type', $statusId)
+            ->join('course_assessment_scores', 'course_assessments.course_assessments_id', '=', 'course_assessment_scores.course_assessment_id')
+            ->orderBy('course_assessments.created_at', 'asc')
+            ->first();
+    $courseAssessmentId = $results->course_assessments_id;
+    $courseCode = $results->course_code;
+    $getCourses = EduroleCourses::where('courses.Name', $courseCode)
+        ->select('courses.ID','study.ProgrammesAvailable')
+        ->join('program-course-link', 'program-course-link.CourseID', '=', 'courses.ID')
+        ->join('programmes', 'programmes.ID', '=', 'program-course-link.ProgramID')
+        ->join('study-program-link', 'study-program-link.ProgramID', '=', 'programmes.ID')
+        ->join('study', 'study.ID', '=', 'study-program-link.StudyID')
+        ->first();
+    $courseIdValueForBreadCrumb = Crypt::encrypt($getCourses->ID);
+    $basicInformationId = encrypt($getCourses->ProgrammesAvailable);
+        
+    $trail->parent('coordinator.viewAllCaInCourse', encrypt($statusId), $courseIdValueForBreadCrumb, $basicInformationId);
+
+    // Generate the route correctly with all required parameters
+    $trail->push('View The Marks', route('editCourseAssessmentDescription', ['courseAssessmentId' => $courseAssessmentId, 'statusId' => $statusId]));
+});
+
 Breadcrumbs::for('coordinator.viewTotalCaInCourse', function ($trail, $statusId, $courseIdValue ,$basicInformationId) {
     $courseId = Crypt::decrypt($courseIdValue);
 
