@@ -164,9 +164,7 @@ class AdministratorController extends Controller
             $courseAssessment = CourseAssessment::find($courseAssessmentId);
             $courseAssessment->description = $description;
             $courseAssessment->save();
-        }
-
-        
+        }       
 
         return back()->with('success', 'Updated successfully click "View CA"');
     }
