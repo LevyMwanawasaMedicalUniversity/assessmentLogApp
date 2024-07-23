@@ -45,13 +45,13 @@
                                         <a href="{{ route('caAssessmentTypes.edit', $assessmentType->id) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
                                             Edit
                                         </a>
-                                        <form method="POST" action="{{ route('caAssessmentTypes.destroy', $assessmentType->id) }}" style="display: inline">
+                                        {{-- <form method="POST" action="{{ route('caAssessmentTypes.destroy', $assessmentType->id) }}" style="display: inline">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-0" onclick="return confirm('Are you sure you want to delete this item?')">
                                                 Delete
                                             </button>
-                                        </form>
+                                        </form> --}}
                                     </div>
                                 </td> 
                             </tr>                            

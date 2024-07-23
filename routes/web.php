@@ -94,6 +94,8 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware([ 'can:ViewCoordinatorsCourses'])->group(function () { //deans, coordinators, registrar permissions included
         Route::get('/admin/viewCoordinators',[AdministratorController::class, 'viewCoordinators'])->name('admin.viewCoordinators');
         Route::get('/coordinator/viewCoordinatorsUnderDean/{schoolId}',[AdministratorController::class, 'viewCoordinatorsUnderDean'])->name('admin.viewCoordinatorsUnderDean');
+        Route::get('/editCourseAssessmentDescription/{courseAssessmentId}',[AdministratorController::class, 'editCourseAssessmentDescription'])->name('editCourseAssessmentDescription');
+        Route::get('/updateCourseAssessmentDescription/{courseAssessmentId}',[AdministratorController::class, 'updateCourseAssessmentDescription'])->name('updateCourseAssessmentDescription');
 
         Route::get('/admin/viewCoordinatorsCourses/{basicInformationId}',[AdministratorController::class, 'viewCoordinatorsCourses'])->name('admin.viewCoordinatorsCourses');
     });  

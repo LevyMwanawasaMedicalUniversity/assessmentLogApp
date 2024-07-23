@@ -14,23 +14,25 @@
             <div class="row">
                 <div class="col-lg-12">
                     <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5>Upload CA</h5>
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title">Upload CA</h5>
-
                             <!-- Vertical Form -->
-                            <div class="container mx-auto px-4">
-                                <div class="flex flex-wrap -mx-4">
-                                    <div class="w-full px-4">
+                            <div class="container px-4">
+                                <div class="row pt-3">
+                                    <div class="col-12">
                                         @include('coordinator.components.excelSheetorm')
                                     </div>
                                 </div>
                             </div>
-
-                            
                         </div>
                     </div>
+
                 </div>
             </div>
         </section>
     </main><!-- End #main -->
 </x-app-layout>
+
+

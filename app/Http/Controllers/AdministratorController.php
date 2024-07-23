@@ -145,6 +145,10 @@ class AdministratorController extends Controller
         return view('admin.users.audits', compact('audits'));
     }
 
+    public function editCourseAssessmentDescription(){
+        return view('coordinator.editCourseAssessmentDescription');
+    }
+
     public function viewCoordinators(){
         $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
             ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')

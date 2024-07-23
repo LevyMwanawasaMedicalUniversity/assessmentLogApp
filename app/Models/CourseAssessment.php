@@ -15,6 +15,7 @@ class CourseAssessment extends Model implements AuditableContract
 
     protected $fillable = [
         'course_id',
+        'description',
         'ca_type',
         'basic_information_id',
         'academic_year'

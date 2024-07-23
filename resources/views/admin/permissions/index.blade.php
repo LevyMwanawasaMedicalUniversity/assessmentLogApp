@@ -38,13 +38,13 @@
                                                     <a href="{{ route('permissions.edit', $permission->id) }}" class="btn btn-primary font-weight-bold">
                                                         Edit
                                                     </a>
-                                                    <form method="POST" action="{{ route('permissions.destroy', $permission->id) }}" style="display: inline">
+                                                    {{-- <form method="POST" action="{{ route('permissions.destroy', $permission->id) }}" style="display: inline">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-danger font-weight-bold" onclick="return confirm('Are you sure you want to delete this item?')">
                                                             Delete
                                                         </button>
-                                                    </form>
+                                                    </form> --}}
                                                 </div>
                                             </td>
                                         </tr>

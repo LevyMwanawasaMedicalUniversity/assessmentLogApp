@@ -1,7 +1,7 @@
 <div class="bg-white shadow rounded-lg p-6 border border-gray-300">
     <!-- Header -->
     <div class="mb-6">
-        <h4 class="text-lg font-bold text-gray-800">Upload Excel Sheet Of Marks</h4>
+        {{-- <h4 class="text-lg font-bold text-gray-800">Upload Excel Sheet Of Marks</h4> --}}
     </div>
 
     <!-- Alert Messages -->
@@ -19,18 +19,23 @@
 
             <!-- Excel File Input -->
             <div class="form-group mb-4">
+                <label for="description" class="font-weight-bold text-lg text-dark">Description</label>
+                <textarea name="description" rows="2" cols="50" class="form-control" placeholder="Enter short assessment description here..."></textarea>
+            </div>
+            <div class="form-group mb-4">
                 <label for="excelFile" class="font-weight-bold text-lg text-dark">Choose Excel (xlsx) File</label>
-                <input type="hidden" name="ca_type" value="{{ $caType }}">
-                <input type="hidden" name="course_id" value="{{ $courseId }}">
-                <input type="hidden" name="course_code" value="{{ $results->CourseName }}">
-                @if($basicInformationId)
-                    <input type="hidden" name="basicInformationId" value="{{ $basicInformationId }}">
-                @else
-                    <input type="hidden" name="basicInformationId" value="{{auth()->user()->basic_information_id}}">
-                @endif
                 <input type="file" name="excelFile" accept=".xlsx" class="form-control-file" id="excelFileInput" required>
                 <small class="form-text text-muted">Accepted formats: .xlsx</small>
             </div>
+            <input type="hidden" name="ca_type" value="{{ $caType }}">
+            <input type="hidden" name="course_id" value="{{ $courseId }}">
+            <input type="hidden" name="course_code" value="{{ $results->CourseName }}">
+
+            @if($basicInformationId)
+                <input type="hidden" name="basicInformationId" value="{{ $basicInformationId }}">
+            @else
+                <input type="hidden" name="basicInformationId" value="{{auth()->user()->basic_information_id}}">
+            @endif
 
             <!-- File Preview -->
             <div class="form-group mb-4 d-none" id="filePreview"></div>

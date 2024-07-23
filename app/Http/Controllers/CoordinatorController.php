@@ -388,6 +388,7 @@ class CoordinatorController extends Controller
                     $newAssessment = CourseAssessment::create([
                         'course_id' => $request->course_id,
                         'ca_type' => $request->ca_type,
+                        'description' => $request->description,
                         'academic_year' => $request->academicYear,
                         'basic_information_id' => $request->basicInformationId,
                     ]);
@@ -495,7 +496,7 @@ class CoordinatorController extends Controller
         }
 
         return redirect()->back()->with('success', 'Data imported successfully');
-        // return redirect()->route('coordinator.uploadCa', ['courseIdValue' => $request->course_id, 'statusId' => $request->status])->with('success', 'Data imported successfully');
+        // return redirect()->route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusIdToRoute, 'courseIdValue' => $courseIdToRoute, 'assessmentNumber' => $assessmentNumber])->with('success', 'Data imported successfully');
     }
     
     private function calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $excludeCurrent = false){
