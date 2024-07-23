@@ -19,7 +19,7 @@
 
             <!-- Excel File Input -->
             <div class="form-group mb-4">
-                <label for="description" class="font-weight-bold text-lg text-dark">Description</label>
+                <label for="description" class="font-weight-bold text-lg text-dark">Description (Optional)</label>
                 <textarea name="description" rows="2" cols="50" class="form-control" placeholder="Enter short assessment description here..."></textarea>
             </div>
             <div class="form-group mb-4">
