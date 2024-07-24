@@ -25,9 +25,13 @@ class User extends Authenticatable implements AuditableContract
         'password',
         'basic_information_id',
         'phone_number',
-        'two_factor_token'
+        'two_factor_token',
+        'last_login_at'
     ];
 
+    protected $dates = [
+        'last_login_at',
+    ];
     /**
      * The attributes that should be hidden for serialization.
      *

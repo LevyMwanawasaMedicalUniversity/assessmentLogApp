@@ -33,7 +33,9 @@
                             <th scope="col">#</th>
                             <th scope="col">Name</th>
                             <th scope="col">Email</th>
+                            <th scope="col">Last Login<BR>(Since 24-07-2024)</th>
                             <th scope="col">Creation date</th>
+                            
                             <th scope="col">Actions</th>
                             </tr>
                         </thead>
@@ -45,6 +47,7 @@
                                 <td>{{$loop->iteration}}</td>
                                 <td>{{$user->name}}</td>
                                 <td>{{$user->email}}</td>
+                                <td>{{ $user->last_login_at ? $user->last_login_at : 'NEVER' }}</td>
                                 <td>{{$user->created_at}}</td>
                                 <td>
                                     <div class="btn-group" role="group" aria-label="Button group">

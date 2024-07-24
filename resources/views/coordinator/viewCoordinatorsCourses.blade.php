@@ -27,6 +27,7 @@
                                 <th scope="col">Course Name</th>
                                 <th scope="col">Course Code</th>
                                 <th scope="col">Programme Name</th>
+                                <th scope="col">Delivery Mode</th>
                                 <th scope="col" class="text-right">Actions</th>
                                 </tr>
                             </thead>
