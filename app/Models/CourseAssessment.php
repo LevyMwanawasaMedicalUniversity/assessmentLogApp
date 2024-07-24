@@ -18,6 +18,7 @@ class CourseAssessment extends Model implements AuditableContract
         'description',
         'ca_type',
         'basic_information_id',
-        'academic_year'
+        'academic_year',
+        'delivery_mode'
     ];
 }

@@ -1,7 +1,11 @@
 <x-app-layout>
     <main id="main" class="main">
     <div class="pagetitle">
-        <h1>{{$assessmentType }}s for {{$courseDetails->CourseDescription}} - {{$courseDetails->Name}}</h1>
+        <h1>{{$assessmentType }}s for {{$courseDetails->CourseDescription}} - {{$courseDetails->Name}} 
+            <span style="color: {{ $results->first()->delivery_mode == 'Distance' ? 'green' : ($results->first()->delivery_mode == 'Fulltime' ? 'blue' : 'black') }}">
+            {{ $results->first()->delivery_mode }}
+            </span>
+        </h1>
         @include('layouts.alerts')
         <nav>
             {{ Breadcrumbs::render() }}
@@ -24,6 +28,7 @@
                                         <th>#</th>
                                         <th class="px-4 py-2">Upload Number</th>
                                         <th class="px-4 py-2">Description</th>
+                                        
                                         <th class="px-4 py-2">Time Created</th>
                                         <th class="px-4 py-2">Time Updated</th>
                                         <th class="px-4 py-2">Academic Year</th>
@@ -36,6 +41,7 @@
                                             <td class="px-4 py-2">{{$loop->iteration}}</td>
                                             <td class="px-4 py-2">{{$assessmentType }} {{ $loop->iteration }}</td>
                                             <td class="px-4 py-2"><a href="{{ route('editCourseAssessmentDescription', ['courseAssessmentId' => encrypt($result->course_assessments_id), 'statusId' => encrypt($result->ca_type)]) }}">{{ $result->description ? $result->description : 'No Description' }}</a></td>
+                                            
                                             <td class="px-4 py-2">{{$result->updated_at}}</td>
                                             <td class="px-4 py-2">{{$result->created_at}}</td>
                                             <td class="px-4 py-2">{{$result->academic_year}}</td>

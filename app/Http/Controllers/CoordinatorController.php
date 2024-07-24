@@ -19,8 +19,8 @@ use Illuminate\Support\Facades\Log;
 
 class CoordinatorController extends Controller
 {
-    public function uploadCa($caType, $courseIdValue,$basicInformationId){
-
+    public function uploadCa(Request $request,$caType, $courseIdValue,$basicInformationId){
+        $delivery = $request->delivery; 
         $courseId = Crypt::decrypt($courseIdValue);
         $caType = Crypt::decrypt($caType);
         $basicInformationId = Crypt::decrypt($basicInformationId);
@@ -36,7 +36,9 @@ class CoordinatorController extends Controller
             ->where('courses.ID', $courseId)
             ->first();
         
-        return view('coordinator.uploadCa', compact('results', 'caType','courseId','basicInformationId'));
+            return view('coordinator.uploadCa', compact('results', 'caType', 'courseId', 'basicInformationId', 'delivery'))
+                ->with('info', 'Kindly note that you are uploading under ' . $delivery . ' education');
+
     }
 
     public function showCaWithin($courseId){
@@ -94,6 +96,7 @@ class CoordinatorController extends Controller
             ->whereIn('courses.Name', $coursesFromLMMAX)
             ->where('basic-information.ID', $coordinatorId)
             ->get();
+        // return $results;
 
         // return $results[0]->ID;
         return view('admin.viewCoursesWithCa', compact('results','coordinatorId'));
@@ -202,15 +205,17 @@ class CoordinatorController extends Controller
         return view('coordinator.editCaInCourse', compact('results', 'courseId','courseAssessmentId','basicInformationId'));
     }
 
-    public function viewAllCaInCourse($statusId, $courseIdValue, $basicInformationId){
+    public function viewAllCaInCourse($statusId, $courseIdValue, $basicInformationId, $delivery){
         $courseId = Crypt::decrypt($courseIdValue);
         $statusId = Crypt::decrypt($statusId);
         $basicInformationId = Crypt::decrypt($basicInformationId);
+        $delivery = Crypt::decrypt($delivery);
 
         $courseDetails = EduroleCourses::where('ID', $courseId)->first();
 
         $results = CourseAssessment::where('course_id', $courseId)
             ->where('ca_type', $statusId)
+            ->where('delivery_mode', $delivery)
             // ->join('course_assessment_scores', 'course_assessments.id', '=', 'course_assessment_scores.course_assessment_id')
             ->orderBy('course_assessments.course_assessments_id', 'asc')
             ->get();
@@ -262,10 +267,11 @@ class CoordinatorController extends Controller
         return view('coordinator.viewSpecificCaInCourse', compact('results', 'courseId','assessmentType','courseDetails','statusId'));
     }
 
-    public function viewTotalCaInCourse($statusId, $courseIdValue, $basicInformationId){
+    public function viewTotalCaInCourse($statusId, $courseIdValue, $basicInformationId,$delivery){
         $courseId = Crypt::decrypt($courseIdValue);
         $caType = Crypt::decrypt($statusId);
         $basicInformationId = Crypt::decrypt($basicInformationId);
+        $delivery = Crypt::decrypt($delivery);
         $courseDetails = EduroleCourses::where('ID', $courseId)->first();
         // return $courseDetails;
         // if($caType != 4){            
@@ -324,7 +330,7 @@ class CoordinatorController extends Controller
         // return "Hello";
         set_time_limit(0);
         ini_set('memory_limit', '512M'); // Adjust as needed
-
+        
         $request->validate([
             'excelFile' => 'required|mimes:xls,xlsx,csv',
             'academicYear' => 'required',
@@ -332,6 +338,7 @@ class CoordinatorController extends Controller
             'course_id' => 'required',
             'course_code' => 'required',
             'basicInformationId' => 'required',
+            'delivery' => 'required',
         ]);
         $expectedColumnCount = 2;
 
@@ -391,6 +398,7 @@ class CoordinatorController extends Controller
                         'description' => $request->description,
                         'academic_year' => $request->academicYear,
                         'basic_information_id' => $request->basicInformationId,
+                        'delivery_mode' => $request->delivery,
                     ]);
 
                     foreach ($data as $entry) {
@@ -416,6 +424,7 @@ class CoordinatorController extends Controller
             $statusIdToRoute = encrypt($request->ca_type);
             $courseIdToRoute = encrypt($newAssessment->course_assessments_id);
             $assessmentNumber = encrypt(1);
+            $delivery = encrypt($request->delivery);
 
             return redirect()->route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusIdToRoute, 'courseIdValue' => $courseIdToRoute, 'assessmentNumber' => $assessmentNumber])->with('success', 'Data imported successfully');
         } catch (Exception $e) {

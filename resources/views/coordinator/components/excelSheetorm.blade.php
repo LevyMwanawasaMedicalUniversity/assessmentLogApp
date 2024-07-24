@@ -13,7 +13,7 @@
 
             <!-- Form Header -->
             <div class="mb-4">
-                <h3 class="font-weight-bold text-primary">Import Course Assessment</h3>
+                <h3 class="font-weight-bold text-primary">Import {{$delivery}} Course Assessment</h3>
                 <p class="text-muted">Please upload the Excel file to import the course assessment information.</p>
             </div>
 
@@ -30,6 +30,7 @@
             <input type="hidden" name="ca_type" value="{{ $caType }}">
             <input type="hidden" name="course_id" value="{{ $courseId }}">
             <input type="hidden" name="course_code" value="{{ $results->CourseName }}">
+            <input type="hidden" name="delivery" value="{{ $delivery }}">
 
             @if($basicInformationId)
                 <input type="hidden" name="basicInformationId" value="{{ $basicInformationId }}">

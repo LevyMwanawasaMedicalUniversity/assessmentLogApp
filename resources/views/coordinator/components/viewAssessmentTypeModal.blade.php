@@ -1,10 +1,14 @@
 <div class="container">
-    <div class="modal fade" id="viewCourseModal{{ $result->ID }}" tabindex="-1" role="dialog" aria-labelledby="viewCourseModalLabel" aria-hidden="true">
+    <div class="modal fade" id="viewCourseModal{{ $result->ID }}{{ $result->Delivery }}" tabindex="-1" role="dialog" aria-labelledby="viewCourseModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title" id="viewCourseModalLabel">
-                        <b>Select Assessment Type To View</b>
+                        <b>Select Assessment Type To View
+                            <b style="color: {{ $result->Delivery == 'Fulltime' ? 'blue' : ($result->Delivery == 'Distance' ? 'green' : 'black') }}">
+                                {{$result->Delivery}}
+                            </b>
+                        </b>
                     </h3>
                     <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -21,7 +25,13 @@
 
                 @endphp
                 <div class="modal-body">
-                    <b class="mb-3"><span class="mb-3">{{$result->CourseDescription}} - {{$result->CourseName}}</span></b>
+                    <b class="mb-3"><span class="mb-3">{{$result->CourseDescription}} - {{$result->CourseName}}
+                        <span >{{$result->CourseDescription}} - {{$result->CourseName}} 
+                            <b style="color: {{ $result->Delivery == 'Fulltime' ? 'blue' : ($result->Delivery == 'Distance' ? 'green' : 'black') }}">
+                                {{$result->Delivery}}
+                            </b>
+                        </span>
+                    </b>
                     {{-- {{$courseAssessmenetTypes}} --}}
                     <div class="container">
                         <div class="d-flex flex-column"> <!-- Flex container with vertical spacing -->
@@ -29,7 +39,8 @@
                             @if($courseAssessmenetTypes->count() > 0)
                                 @if( $totalMarks == 40)
                                     @foreach ($courseAssessmenetTypes as $courseAssessmenetType )
-                                        <form method="GET" action="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt($courseAssessmenetType->id), 'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId)]) }}">
+                                        <form method="GET" action="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt($courseAssessmenetType->id), 'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery'=>encrypt($result->Delivery)]) }}">
+                                            <input type="hidden" name="delivery" value="{{ $result->Delivery }}">
                                             <button type="submit" class="btn btn-light shadow-sm text-center mb-3" style="border: 2px solid green;">
                                                 <div class="p-3 text-dark">
                                                     {{ $courseAssessmenetType->assesment_type_name }}
@@ -37,7 +48,7 @@
                                             </button>
                                         </form>                                
                                     @endforeach
-                                    <form method="GET" action="{{ route('coordinator.viewTotalCaInCourse', ['statusId' => encrypt($result->caType),'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId)]) }}">
+                                    <form method="GET" action="{{ route('coordinator.viewTotalCaInCourse', ['statusId' => encrypt($result->caType),'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery'=>encrypt($result->Delivery)]) }}">
                                         <button type="submit" class="btn btn-light shadow-sm text-center mb-3" style="border: 2px solid black;">
                                             <div class="p-3 text-dark">
                                                 {{ __("Total CA") }}

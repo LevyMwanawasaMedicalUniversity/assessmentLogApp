@@ -167,7 +167,7 @@ Breadcrumbs::for('coordinator.editCaInCourse', function ($trail, $statusId, $cou
     $trail->push('Upload CA', route('coordinator.editCaInCourse', ['courseAssessmenId' => $statusId, 'courseId' => $courseIdValue, 'basicInformationId' => $basicInformationId]));
 });
 
-Breadcrumbs::for('coordinator.viewAllCaInCourse', function ($trail, $statusId, $courseIdValue,$basicInformationId) {
+Breadcrumbs::for('coordinator.viewAllCaInCourse', function ($trail, $statusId, $courseIdValue,$basicInformationId, $delivery) {
     $courseId = Crypt::decrypt($courseIdValue);
 
     if (auth()->user()->hasRole('Coordinator')) {
@@ -177,7 +177,7 @@ Breadcrumbs::for('coordinator.viewAllCaInCourse', function ($trail, $statusId, $
     }
 
     // Generate the route correctly with all required parameters
-    $trail->push('View CA', route('coordinator.viewAllCaInCourse', ['statusId' => $statusId, 'courseIdValue' => $courseIdValue, 'basicInformationId' => $basicInformationId]));
+    $trail->push('View CA', route('coordinator.viewAllCaInCourse', ['statusId' => $statusId, 'courseIdValue' => $courseIdValue, 'basicInformationId' => $basicInformationId,'delivery' => $delivery]));
 });
 
 Breadcrumbs::for('coordinator.viewSpecificCaInCourse', function ($trail, $statusId, $courseIdValue, $assessmentNumber) {
@@ -189,6 +189,7 @@ Breadcrumbs::for('coordinator.viewSpecificCaInCourse', function ($trail, $status
             ->orderBy('course_assessments.created_at', 'asc')
             ->first();
     $courseCode = $results->course_code;
+    $delivery = encrypt($results->delivery_mode);
     $getCourses = EduroleCourses::where('courses.Name', $courseCode)
         ->select('courses.ID','study.ProgrammesAvailable')
         ->join('program-course-link', 'program-course-link.CourseID', '=', 'courses.ID')
@@ -199,7 +200,7 @@ Breadcrumbs::for('coordinator.viewSpecificCaInCourse', function ($trail, $status
     $courseIdValueForBreadCrumb = Crypt::encrypt($getCourses->ID);
     $basicInformationId = encrypt($getCourses->ProgrammesAvailable);
         
-    $trail->parent('coordinator.viewAllCaInCourse', $statusId, $courseIdValueForBreadCrumb, $basicInformationId);
+    $trail->parent('coordinator.viewAllCaInCourse', $statusId, $courseIdValueForBreadCrumb, $basicInformationId, $delivery);
 
     // Generate the route correctly with all required parameters
     $trail->push('View The Marks', route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusId, 'courseIdValue' => $courseIdValue, 'assessmentNumber' => $assessmentNumber]));
@@ -232,7 +233,7 @@ Breadcrumbs::for('editCourseAssessmentDescription', function ($trail, $courseAss
     $trail->push('View The Marks', route('editCourseAssessmentDescription', ['courseAssessmentId' => $courseAssessmentId, 'statusId' => $statusId]));
 });
 
-Breadcrumbs::for('coordinator.viewTotalCaInCourse', function ($trail, $statusId, $courseIdValue ,$basicInformationId) {
+Breadcrumbs::for('coordinator.viewTotalCaInCourse', function ($trail, $statusId, $courseIdValue ,$basicInformationId,$delivery) {
     $courseId = Crypt::decrypt($courseIdValue);
 
     // Make sure to pass the correct parameters to the parent breadcrumb
@@ -244,7 +245,7 @@ Breadcrumbs::for('coordinator.viewTotalCaInCourse', function ($trail, $statusId,
         
     
     // Generate the route correctly with all required parameters
-    $trail->push('Total Ca', route('coordinator.viewTotalCaInCourse', ['statusId' => $statusId, 'courseIdValue' => $courseIdValue, 'basicInformationId' => $basicInformationId]));
+    $trail->push('Total Ca', route('coordinator.viewTotalCaInCourse', ['statusId' => $statusId, 'courseIdValue' => $courseIdValue, 'basicInformationId' => $basicInformationId,'delivery' => $delivery]));
 });
 
 

@@ -42,17 +42,19 @@
                                             <td>{{$result->CourseDescription}}</td>
                                             <td>{{$result->CourseName}}</td>
                                             <td>{{$result->Name}}</td>
-                                            <td>{{$result->Delivery}}</td>
+                                            <td style="color: {{ $result->Delivery == 'Fulltime' ? 'blue' : ($result->Delivery == 'Distance' ? 'green' : 'black') }}">
+                                                {{$result->Delivery}}
+                                            </td>
                                             <td class="text-right">
                                                     <div class="btn-group float-end" role="group" aria-label="Button group">
                                                         @if(auth()->user()->hasPermissionTo('Coordinator'))
-                                                            <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#uploadCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
+                                                            <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#uploadCourseModal{{ $result->ID }}{{ $result->Delivery }}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
                                                                 Upload
                                                             </button>
                                                         @endif
-                                                        <button type="button" class="btn btn-success font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#viewCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
-                                                            View
-                                                        </button>
+                                                            <button type="button" class="btn btn-success font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#viewCourseModal{{ $result->ID }}{{ $result->Delivery }}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
+                                                                View
+                                                            </button>
                                                         <a href="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId)]) }}" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
                                                             Settings
                                                         </a>
