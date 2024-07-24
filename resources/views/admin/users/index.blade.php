@@ -47,7 +47,9 @@
                                 <td>{{$loop->iteration}}</td>
                                 <td>{{$user->name}}</td>
                                 <td>{{$user->email}}</td>
-                                <td>{{ $user->last_login_at ? $user->last_login_at : 'NEVER' }}</td>
+                                <td style="color: {{ $user->last_login_at ? 'blue' : 'red' }};">
+                                    {{ $user->last_login_at ? $user->last_login_at : 'NEVER' }}
+                                </td>
                                 <td>{{$user->created_at}}</td>
                                 <td>
                                     <div class="btn-group" role="group" aria-label="Button group">

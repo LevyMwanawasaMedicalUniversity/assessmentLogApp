@@ -33,6 +33,7 @@
                                 <th scope="col">Firstname</th>
                                 <th scope="col">Lastname</th>
                                 <th scope="col">Programme Coordinated</th>
+                                <th scope="col">Last Login<BR>(Since 24-07-2024)</th>
                                 <th scope="col">Courses Coordinated <span class="text-primary"> {{ $totalCoursesCoordinated }} </span></th>
                                 <th scope="col">Courses With CA <span class="text-success"> {{$totalCoursesWithCA}} </span></th>
                                 <th scope="col">Actions</th>
@@ -48,6 +49,9 @@
                                 <td>{{ $result->Firstname }}</td>
                                 <td>{{ $result->Surname }}</td>
                                 <td>{{ $result->Name }}</td>
+                                <td style="color: {{ $result->last_login_at ? 'blue' : 'red' }};">
+                                    {{ $result->last_login_at ? $result->last_login_at : 'NEVER' }}
+                                </td>
                                 <td>{{ $counts[$result->ID] ?? '0' }} Courses</td>
                                 <td><a href="{{route('coordinator.viewOnlyProgrammesWithCaForCoordinator',$result->ID)}}">{{ $withCa[$result->ID] ?? '0' }} Courses</a></td>
                                 <td>

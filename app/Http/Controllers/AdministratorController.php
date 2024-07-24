@@ -179,6 +179,14 @@ class AdministratorController extends Controller
             ->select('basic-information.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName')
             // ->where('basic-information.ID', $basicInformationId)
             ->get();
+        $results->each(function ($result) {
+            $user = User::where('basic_information_id', $result->ID)->first();
+            if ($user) {
+                $result->user = $user;
+            }
+        });
+
+        // return $results;
         $coursesWithCA = $this->getCoursesFromLMMAX();
         
         // return $coursesWithCA;
