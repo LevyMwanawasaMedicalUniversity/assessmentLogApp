@@ -227,8 +227,14 @@ class AdministratorController extends Controller
             ->join('study', 'study.ParentID', '=', 'schools.ID')
             ->select('basic-information.FirstName', 'basic-information.Surname', 'basic-information.ID', 'roles.RoleName', 'schools.ID as ParentID', 'study.ID as StudyID', 'schools.Name as SchoolName')
             ->get();
-            $counts = $results->countBy('ID');
-            $results= $results->unique('ID');
+        $counts = $results->countBy('ID');
+        $results= $results->unique('ID');
+        $results->each(function ($result) {
+            $user = User::where('basic_information_id', $result->ID)->first();
+            if ($user) {
+                $result->user = $user;
+            }
+        });
         return view('registrar.viewDeans', compact('results', 'counts'));
     }
 

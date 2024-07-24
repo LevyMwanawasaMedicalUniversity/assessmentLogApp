@@ -30,6 +30,7 @@
                                     <th scope="col">#</th>
                                     <th scope="col">Firstname</th>
                                     <th scope="col">Lastname</th>
+                                    <th scope="col">Last Login<BR>(Since 24-07-2024)</th>
                                     <th scope="col">School</th>
                                     <th scope="col">Actions</th>
                                 </tr>
@@ -40,6 +41,9 @@
                                         <td>{{ $loop->iteration }}</td>
                                         <td>{{ $result->FirstName }}</td>
                                         <td>{{ $result->Surname }}</td>
+                                        <td style="color: {{ $result->last_login_at ? 'blue' : 'red' }};">
+                                            {{ $result->last_login_at ? $result->last_login_at : 'NEVER' }}
+                                        </td>
                                         <td>{{ $result->SchoolName }}</td>
                                         <td>
                                             <form method="GET" action="{{ route('admin.viewCoordinatorsUnderDean', ['schoolId' => encrypt($result->ParentID)]) }}">
