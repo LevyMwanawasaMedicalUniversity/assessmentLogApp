@@ -177,7 +177,7 @@ class AdministratorController extends Controller
             ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
             ->join('schools', 'schools.ID', '=', 'study.ParentID')
             ->select('basic-information.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName')
-            ->groupBy('basic-information.ID')
+            // ->groupBy('basic-information.ID')
             ->get();
 
         // return $results;
@@ -195,8 +195,8 @@ class AdministratorController extends Controller
         $counts = $results->countBy('ID');
 
         $withCa = $results->whereIn('CourseName', $coursesWithCA)->countBy('ID');
-        $results= $results->unique('ID');
-
+        $results= $results->unique('ID', 'Name');
+        // return $results;
         $totalCoursesCoordinated = $counts->sum();
         $totalCoursesWithCA = $withCa->sum();
         return view('dean.viewCoordinators', compact('results', 'counts','withCa','totalCoursesCoordinated','totalCoursesWithCA'));
@@ -228,7 +228,7 @@ class AdministratorController extends Controller
             ->join('schools', 'schools.Dean', '=', 'basic-information.ID')
             ->join('study', 'study.ParentID', '=', 'schools.ID')
             ->select('basic-information.FirstName', 'basic-information.Surname', 'basic-information.ID', 'roles.RoleName', 'schools.ID as ParentID', 'study.ID as StudyID', 'schools.Name as SchoolName')
-            ->groupBy('basic-information.ID')
+            // ->groupBy('basic-information.ID')
             ->get();
         $counts = $results->countBy('ID');
         $results= $results->unique('ID');
