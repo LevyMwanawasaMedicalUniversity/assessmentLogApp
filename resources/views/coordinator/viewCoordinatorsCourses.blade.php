@@ -42,6 +42,7 @@
                                             <td>{{$result->CourseDescription}}</td>
                                             <td>{{$result->CourseName}}</td>
                                             <td>{{$result->Name}}</td>
+                                            <td>{{$result->Delivery}}</td>
                                             <td class="text-right">
                                                     <div class="btn-group float-end" role="group" aria-label="Button group">
                                                         @if(auth()->user()->hasPermissionTo('Coordinator'))
