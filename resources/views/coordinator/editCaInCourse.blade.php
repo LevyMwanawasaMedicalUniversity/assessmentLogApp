@@ -3,7 +3,8 @@
     <main id="main" class="main">
         <div class="pagetitle">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ $results->CourseDescription }} - {{$results->CourseName}}
+                {{ $results->CourseDescription }} - {{$results->CourseName}} 
+                <span style="color: {{ $delivery == 'Fulltime' ? 'blue' : ($delivery == 'Distance' ? 'green' : 'black') }}">{{$delivery}}</span>
             </h2>
             @include('layouts.alerts')
             <nav>

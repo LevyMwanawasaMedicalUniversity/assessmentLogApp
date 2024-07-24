@@ -60,8 +60,9 @@ class CoordinatorController extends Controller
 
     }
 
-    public function courseCASettings($courseIdValue, $basicInformationId){ 
+    public function courseCASettings($courseIdValue, $basicInformationId, $delivery){ 
         $courseId = Crypt::decrypt($courseIdValue);
+        $delivery = Crypt::decrypt($delivery);
         $allAssesmentTypes = AssessmentTypes::all();
         $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
             ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
@@ -71,7 +72,7 @@ class CoordinatorController extends Controller
     
         $marksToDeduct = !empty($courseAssessmenetTypes) ? array_sum($courseAssessmenetTypes) : 0;
     
-        return view('coordinator.courseCASettings', compact('courseAssessmenetTypes', 'allAssesmentTypes', 'course', 'marksToDeduct','basicInformationId'));
+        return view('coordinator.courseCASettings', compact('delivery','courseAssessmenetTypes', 'allAssesmentTypes', 'course', 'marksToDeduct','basicInformationId'));
     }
     
     public function viewOnlyProgrammesWithCa(){
@@ -108,6 +109,7 @@ class CoordinatorController extends Controller
         // Get the course ID from the request
         $courseId = $request->input('courseId');
         $basicInformationId = $request->input('basicInformationId');
+        $delivery = $request->input('delivery');
     
         // Get the array of assessment types and marks allocated from the request
         $assessmentTypes = $request->input('assessmentType');
@@ -178,7 +180,7 @@ class CoordinatorController extends Controller
                 ->get();
             // Log::info($studentsInAssessmentType);
             foreach ($studentsInAssessmentType as $studentNumber){
-                $this->refreshCAMark($courseId, $academicYear, $courseAssessmentType->assessment_type_id , $studentNumber->student_id, $studentNumber->course_assessment_id);
+                $this->refreshCAMark($courseId, $academicYear, $courseAssessmentType->assessment_type_id , $studentNumber->student_id, $studentNumber->course_assessment_id,$delivery);
             }
         }     
 
@@ -202,7 +204,10 @@ class CoordinatorController extends Controller
             ->select('courses.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName','courses.CourseDescription','basic-information.ID as basicInformationId')
             ->where('courses.ID', $courseId)
             ->first();
-        return view('coordinator.editCaInCourse', compact('results', 'courseId','courseAssessmentId','basicInformationId'));
+        $courseAssessment = CourseAssessment::where('course_assessments_id', $courseAssessmentId)->first();
+        // $delivery;
+        $delivery = $courseAssessment->delivery_mode;
+        return view('coordinator.editCaInCourse', compact('delivery','results', 'courseId','courseAssessmentId','basicInformationId'));
     }
 
     public function viewAllCaInCourse($statusId, $courseIdValue, $basicInformationId, $delivery){
@@ -222,7 +227,7 @@ class CoordinatorController extends Controller
         // return $results;
         $assessmentType = $this->setAssesmentType($statusId);
 
-        return view('coordinator.viewAllCaInCourse', compact('results', 'statusId', 'courseId','courseDetails','assessmentType','basicInformationId'));
+        return view('coordinator.viewAllCaInCourse', compact('delivery','results', 'statusId', 'courseId','courseDetails','assessmentType','basicInformationId'));
     }
 
     private function setAssesmentType($statusId){
@@ -309,7 +314,7 @@ class CoordinatorController extends Controller
         $courseAssessmentId = Crypt::decrypt($courseAssessmenId);
         $courseId = Crypt::decrypt($courseId);
         $courseAssessments = CourseAssessmentScores::where('course_assessment_id', $courseAssessmentId)->pluck('student_id')->toArray();
-
+        $delivery = $request->delivery;
         // return $courseId;
         // return $courseAssessments;
         // return $request->academicYear;
@@ -317,7 +322,7 @@ class CoordinatorController extends Controller
         CourseAssessment::where('course_assessments_id', $courseAssessmentId)->delete();
         foreach ($courseAssessments as $entry){
             
-            $this->renewCABeforeDelete($courseId, $request->academicYear, $request->ca_type, trim($entry),$courseAssessmentId);
+            $this->renewCABeforeDelete($courseId, $request->academicYear, $request->ca_type, trim($entry),$courseAssessmentId,$delivery);
         }
         // CourseAssessment::where('course_assessments_id', $courseAssessmentId)->delete();
         
@@ -407,12 +412,13 @@ class CoordinatorController extends Controller
                                 'course_assessment_id' => $newAssessment->course_assessments_id,
                                 'student_id' => trim($entry['student_number']),
                                 'course_code' => $request->course_code,
+                                'delivery_mode' => $request->delivery,
                             ],
                             [
                                 'cas_score' => $entry['mark'],
                             ]
                         );
-                        $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $request->ca_type, trim($entry['student_number']), $newAssessment->course_assessments_id);
+                        $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $request->ca_type, trim($entry['student_number']), $newAssessment->course_assessments_id,$request->delivery);
                     }
                     DB::commit();
                 } catch (Exception $e) {
@@ -441,7 +447,8 @@ class CoordinatorController extends Controller
             'course_assessment_id' => 'required',            
             'course_id' => 'required',
             'course_code' => 'required',   
-            'basicInformationId' => 'required',  
+            'basicInformationId' => 'required',
+            'delivery' => 'required',
         ]);
 
         // return $request->basicInformationId;
@@ -496,7 +503,7 @@ class CoordinatorController extends Controller
                     ],[                        
                         'cas_score' => $entry['mark'],                      
                     ]);
-                    $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $caType, trim($entry['student_number']),$request->course_assessment_id);
+                    $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $caType, trim($entry['student_number']),$request->course_assessment_id, $request->delivery);
                 }
             // }catch(\Exception $e){
             //     return back()->with('error', 'An error occurred while importing the data. Please try again.');
@@ -508,20 +515,21 @@ class CoordinatorController extends Controller
         // return redirect()->route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusIdToRoute, 'courseIdValue' => $courseIdToRoute, 'assessmentNumber' => $assessmentNumber])->with('success', 'Data imported successfully');
     }
     
-    private function calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $excludeCurrent = false){
-        $caScores = $this->getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $excludeCurrent);
+    private function calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery, $excludeCurrent = false){
+        $caScores = $this->getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery, $excludeCurrent);
         $total = $caScores->sum('mark');
         $count = $caScores->count();
-        $maxScore = $this->getMaxScore($courseId, $caType);
+        $maxScore = $this->getMaxScore($courseId, $caType,$delivery);
         $average = $count > 0 ? $total / $count : 0;
         $adjustedAverage = ($average / 100) * $maxScore;
-        $this->saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage);
+        $this->saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage,$delivery);
     }
     
-    private function getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $excludeCurrent){
+    private function getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery, $excludeCurrent){
         return CourseAssessmentScores::where('course_assessments.course_id', $courseId)
             ->where('course_assessments.academic_year', $academicYear)
             ->where('course_assessments.ca_type', $caType)
+            ->where('course_assessments.delivery_mode', $delivery)
             ->where('course_assessment_scores.student_id', $studentNumber)
             ->when($excludeCurrent, function ($query) use ($courseAssessmentId) {
                 return $query->where('course_assessment_scores.course_assessment_id', '!=', $courseAssessmentId);
@@ -531,30 +539,31 @@ class CoordinatorController extends Controller
             ->get();
     }
     
-    private function getMaxScore($courseId, $caType){
+    private function getMaxScore($courseId, $caType, $delivery){
         $courseAssessmenetTypes = CATypeMarksAllocation::where('c_a_type_marks_allocations.course_id', $courseId)
-                    ->where('c_a_type_marks_allocations.assessment_type_id', $caType)                    
+                    ->where('c_a_type_marks_allocations.assessment_type_id', $caType)
+                    ->where('c_a_type_marks_allocations.delivery_mode', $delivery)                    
                     ->select('c_a_type_marks_allocations.total_marks')
                     ->first();
         return $courseAssessmenetTypes->total_marks;
     }
     
-    private function saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage){
-        $studentCA = StudentsContinousAssessment::firstOrNew(['student_id' => $studentNumber, 'course_id' => $courseId, 'academic_year' => $academicYear, 'ca_type' => $caType]);
+    private function saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery){
+        $studentCA = StudentsContinousAssessment::firstOrNew(['student_id' => $studentNumber, 'course_id' => $courseId, 'academic_year' => $academicYear, 'ca_type' => $caType, 'delivery_mode' => $delivery]);
         $studentCA->course_assessment_id = $courseAssessmentId;
         $studentCA->sca_score = $adjustedAverage;
         $studentCA->save();
     }
     
-    private function calculateAndSubmitCA($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId){
-        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId);
+    private function calculateAndSubmitCA($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery){
+        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery);
     }
     
-    private function renewCABeforeDelete($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId){
-        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, true);
+    private function renewCABeforeDelete($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery){
+        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, true);
     }
     
-    private function refreshCAMark($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId){        
-        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, false);        
+    private function refreshCAMark($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery){        
+        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, false);        
     }
 }

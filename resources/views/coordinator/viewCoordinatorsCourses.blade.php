@@ -55,7 +55,7 @@
                                                             <button type="button" class="btn btn-success font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#viewCourseModal{{ $result->ID }}{{ $result->Delivery }}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
                                                                 View
                                                             </button>
-                                                        <a href="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId)]) }}" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
+                                                        <a href="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId), 'delivery' =>encrypt($result->Delivery)]) }}" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
                                                             Settings
                                                         </a>
                                                     </div>

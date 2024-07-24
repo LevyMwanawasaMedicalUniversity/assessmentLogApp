@@ -56,14 +56,14 @@
                                         </button>
                                     </form>
                                 @else
-                                    <a href="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId)]) }}" >
+                                    <a href="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery' =>encrypt($result->Delivery)]) }}" >
                                         <div class="alert alert-warning" role="alert">
                                             The distribution of the total marks is incomplete. Please click here to allocate the remaining 40 marks.   
                                         </div>
                                     </a>
                                 @endif
                             @else
-                                <a href="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId)]) }}" >
+                                <a href="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery' =>encrypt($result->Delivery)]) }}" >
                                     <div class="alert alert-danger" role="alert">
                                         No Assessment Type Found , click here to set up Assessment Types.
                                     </div>

@@ -127,7 +127,7 @@ Breadcrumbs::for('coordinator.uploadCa', function ($trail, $statusId, $courseIdV
     $trail->push('Upload CA', route('coordinator.uploadCa', ['statusId' => $statusId, 'courseIdValue' => $courseIdValue, 'basicInformationId' => $basicInformationId]));
 });
 
-Breadcrumbs::for('coordinator.courseCASettings', function ($trail, $courseIdValue,$basicInformationId ) {
+Breadcrumbs::for('coordinator.courseCASettings', function ($trail, $courseIdValue,$basicInformationId, $delivery ) {
     $courseId = Crypt::decrypt($courseIdValue);
 
     if (auth()->user()->hasRole('Coordinator')) {
@@ -137,7 +137,7 @@ Breadcrumbs::for('coordinator.courseCASettings', function ($trail, $courseIdValu
     }
 
     // Generate the route correctly with all required parameters
-    $trail->push('Course Settings', route('coordinator.courseCASettings', ['courseIdValue' => $courseId, 'basicInformationId' => $basicInformationId]));
+    $trail->push('Course Settings', route('coordinator.courseCASettings', ['courseIdValue' => $courseId, 'basicInformationId' => $basicInformationId,'delivery' => $delivery]));
 });
 
 

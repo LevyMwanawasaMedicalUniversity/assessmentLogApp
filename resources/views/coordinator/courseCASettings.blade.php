@@ -1,7 +1,11 @@
 <x-app-layout>
     <main id="main" class="main">
         <div class="pagetitle">
-            <h1>{{$course->Name}} Course Settings</h1>
+            <h1>{{$course->Name}} Course Settings 
+                <span style="color: {{ $delivery == 'Distance' ? 'green' : ($delivery == 'Fulltime' ? 'blue' : 'black') }}">
+                    {{ $delivery }}
+                </span>
+            </h1>
             @include('layouts.alerts')
             <nav>
                 {{ Breadcrumbs::render() }}
@@ -41,6 +45,7 @@
                                                 
                                                     <input type="hidden" name="courseId" value="{{$course->ID}}">
                                                     <input type="hidden" name="basicInformationId" value="{{$basicInformationId}}">
+                                                    <input type="hidden" name="delivery" value="{{$delivery}}">
                                                     <input type="checkbox" 
                                                         name="assessmentType[{{ $assesmentType->id }}]"
                                                         value="{{ $assesmentType->id }}"

@@ -2,8 +2,8 @@
     <main id="main" class="main">
     <div class="pagetitle">
         <h1>{{$assessmentType }}s for {{$courseDetails->CourseDescription}} - {{$courseDetails->Name}} 
-            <span style="color: {{ $results->first()->delivery_mode == 'Distance' ? 'green' : ($results->first()->delivery_mode == 'Fulltime' ? 'blue' : 'black') }}">
-            {{ $results->first()->delivery_mode }}
+            <span style="color: {{ $delivery == 'Distance' ? 'green' : ($delivery == 'Fulltime' ? 'blue' : 'black') }}">
+            {{ $delivery }}
             </span>
         </h1>
         @include('layouts.alerts')
@@ -59,6 +59,7 @@
                                                         {{ csrf_field() }}
                                                         <input type="hidden" name="academicYear" value={{$result->academic_year}}>
                                                         <input type="hidden" name="ca_type" value={{$statusId}}>
+                                                        <input type="hidden" name="delivery" value={{$delivery}}>
                                                         <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-end">
                                                             Delete
                                                         </button>

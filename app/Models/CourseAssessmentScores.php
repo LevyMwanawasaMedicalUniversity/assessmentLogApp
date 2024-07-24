@@ -19,6 +19,7 @@ class CourseAssessmentScores extends Model implements AuditableContract
         'course_code',
         'cas_score',
         'created_by',
-        'updated_by'
+        'updated_by',
+        'delivery_mode'
     ];
 }

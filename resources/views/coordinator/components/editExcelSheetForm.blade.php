@@ -1,8 +1,8 @@
 <div class="bg-white shadow rounded-lg p-6 border border-gray-300">
     <!-- Header -->
-    <div class="mb-6">
+    {{-- <div class="mb-6">
         <h4 class="text-lg font-bold text-gray-800">Upload Excel Sheet Of Marks</h4>
-    </div>
+    </div> --}}
 
     <!-- Alert Messages -->
     <div class="w-full mb-6">
@@ -36,6 +36,7 @@
             <input type="hidden" name="course_assessment_id" value="{{ $courseAssessmentId }}">
             <input type="hidden" name="course_code" value="{{ $results->CourseName }}">
             <input type="hidden" name="basicInformationId" value="{{ $basicInformationId }}">
+            <input type="hidden" name="delivery" value="{{ $delivery }}">
             <input type="file" name="excelFile" accept=".xlsx" class="form-control-file" id="excelFileInput" required>
             <small class="form-text text-muted">Accepted formats: .xlsx</small>
         </div>
