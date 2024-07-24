@@ -25,47 +25,49 @@
                             @endif
                         </div>
                         <!-- Table with hoverable rows -->
-                        <table id="myTable" class="table table-hover">
-                        {{-- <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"> --}}
-                        <thead>
-                            <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">Firstname</th>
-                                <th scope="col">Lastname</th>
-                                <th scope="col">Programme Coordinated</th>
-                                <th scope="col">Last Login<BR>(Since 24-07-2024)</th>
-                                <th scope="col">Courses Coordinated <span class="text-primary"> {{ $totalCoursesCoordinated }} </span></th>
-                                <th scope="col">Courses With CA <span class="text-success"> {{$totalCoursesWithCA}} </span></th>
-                                <th scope="col">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($results as $result)
-                            @include('coordinator.components.uploadAssessmentTypeModal')
-                            @include('coordinator.components.viewAssessmentTypeModal')
-                            <tr>
-                                {{-- <th scope="row">1</th> --}}
-                                <td>{{$loop->iteration}}</td>
-                                <td>{{ $result->Firstname }}</td>
-                                <td>{{ $result->Surname }}</td>
-                                <td>{{ $result->Name }}</td>
-                                <td style="color: {{ $result->last_login_at ? 'blue' : 'red' }};">
-                                    {{ $result->last_login_at ? $result->last_login_at : 'NEVER' }}
-                                </td>
-                                <td>{{ $counts[$result->ID] ?? '0' }} Courses</td>
-                                <td><a href="{{route('coordinator.viewOnlyProgrammesWithCaForCoordinator',$result->ID)}}">{{ $withCa[$result->ID] ?? '0' }} Courses</a></td>
-                                <td>
-                                    <form method="GET" action="{{ route('admin.viewCoordinatorsCourses', ['basicInformationId' => encrypt($result->ID)]) }}">
-                                        <button type="submit" class="btn btn-primary font-weight-bold">
-                                            View
-                                        </button>
-                                    </form>
-                                </td>
-                                
-                            </tr>                            
-                            @endforeach
-                        </tbody>
-                        </table>
+                        <div style="overflow-x:auto;">
+                            <table id="myTable" class="table table-hover">
+                                {{-- <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"> --}}
+                                <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Firstname</th>
+                                        <th scope="col">Lastname</th>
+                                        <th scope="col">Programme Coordinated</th>
+                                        <th scope="col">Last Login<BR>(Since 24-07-2024)</th>
+                                        <th scope="col">Courses Coordinated <span class="text-primary"> {{ $totalCoursesCoordinated }} </span></th>
+                                        <th scope="col">Courses With CA <span class="text-success"> {{$totalCoursesWithCA}} </span></th>
+                                        <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($results as $result)
+                                        @include('coordinator.components.uploadAssessmentTypeModal')
+                                        @include('coordinator.components.viewAssessmentTypeModal')
+                                        <tr>
+                                            {{-- <th scope="row">1</th> --}}
+                                            <td>{{$loop->iteration}}</td>
+                                            <td>{{ $result->Firstname }}</td>
+                                            <td>{{ $result->Surname }}</td>
+                                            <td>{{ $result->Name }}</td>
+                                            <td style="color: {{ $result->last_login_at ? 'blue' : 'red' }};">
+                                                {{ $result->last_login_at ? $result->last_login_at : 'NEVER' }}
+                                            </td>
+                                            <td>{{ $counts[$result->ID] ?? '0' }} Courses</td>
+                                            <td><a href="{{route('coordinator.viewOnlyProgrammesWithCaForCoordinator',$result->ID)}}">{{ $withCa[$result->ID] ?? '0' }} Courses</a></td>
+                                            <td>
+                                                <form method="GET" action="{{ route('admin.viewCoordinatorsCourses', ['basicInformationId' => encrypt($result->ID)]) }}">
+                                                    <button type="submit" class="btn btn-primary font-weight-bold">
+                                                        View
+                                                    </button>
+                                                </form>
+                                            </td>
+                                            
+                                        </tr>                            
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                         <!-- End Table with hoverable rows -->
 
                     </div>

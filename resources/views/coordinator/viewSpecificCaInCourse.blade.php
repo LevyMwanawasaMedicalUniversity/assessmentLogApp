@@ -20,36 +20,38 @@
                             <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search by student number.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         </div>
                         <!-- Table with hoverable rows -->
-                        <table id="myTable" class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th class="px-4 py-2">Student Number</th>
-                                    <th class="px-4 py-2">FirstName</th>
-                                    <th class="px-4 py-2">LastName</th> 
-                                    <th class="px-4 py-2">Programme</th>
-                                    <th class="px-4 py-2">School</th>                               
-                                    <th class="px-4 py-2">Academic Year</th>
-                                    <th class="px-4 py-2">Mark</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($results as $result)
-                                    @if($result->basic_information)
-                                        <tr class="border-t border-b hover:bg-gray-100">
-                                            <td class="px-4 py-2">{{$loop->iteration}}</td>
-                                            <td class="px-4 py-2">{{$result->basic_information->ID }}</td>
-                                            <td class="px-4 py-2">{{$result->basic_information->FirstName}}</td>
-                                            <td class="px-4 py-2">{{$result->basic_information->Surname}}</td>
-                                            <td class="px-4 py-2">{{$result->basic_information->Programme}}</td>
-                                            <td class="px-4 py-2">{{$result->basic_information->School}}</td>                                            
-                                            <td class="px-4 py-2">{{$result->academic_year}}</td>
-                                            <td class="px-4 py-2">{{$result->cas_score}}</td>
-                                        </tr>
-                                    @endif
-                                @endforeach
-                            </tbody>
-                        </table>
+                        <div style="overflow-x:auto;">
+                            <table id="myTable" class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th class="px-4 py-2">Student Number</th>
+                                        <th class="px-4 py-2">FirstName</th>
+                                        <th class="px-4 py-2">LastName</th> 
+                                        <th class="px-4 py-2">Programme</th>
+                                        <th class="px-4 py-2">School</th>                               
+                                        <th class="px-4 py-2">Academic Year</th>
+                                        <th class="px-4 py-2">Mark</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($results as $result)
+                                        @if($result->basic_information)
+                                            <tr class="border-t border-b hover:bg-gray-100">
+                                                <td class="px-4 py-2">{{$loop->iteration}}</td>
+                                                <td class="px-4 py-2">{{$result->basic_information->ID }}</td>
+                                                <td class="px-4 py-2">{{$result->basic_information->FirstName}}</td>
+                                                <td class="px-4 py-2">{{$result->basic_information->Surname}}</td>
+                                                <td class="px-4 py-2">{{$result->basic_information->Programme}}</td>
+                                                <td class="px-4 py-2">{{$result->basic_information->School}}</td>                                            
+                                                <td class="px-4 py-2">{{$result->academic_year}}</td>
+                                                <td class="px-4 py-2">{{$result->cas_score}}</td>
+                                            </tr>
+                                        @endif
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                         <!-- End Table with hoverable rows -->
                     </div>
                 </div>

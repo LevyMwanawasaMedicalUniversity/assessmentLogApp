@@ -17,52 +17,54 @@
                             <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search by date uploaded.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         </div>
                         <!-- Table with hoverable rows -->
-                        <table id="myTable" class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th class="px-4 py-2">Upload Number</th>
-                                    <th class="px-4 py-2">Description</th>
-                                    <th class="px-4 py-2">Time Created</th>
-                                    <th class="px-4 py-2">Time Updated</th>
-                                    <th class="px-4 py-2">Academic Year</th>
-                                    <th class="px-4 py-2">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($results as $result)
-                                    <tr class="border-t border-b hover:bg-gray-100">
-                                        <td class="px-4 py-2">{{$loop->iteration}}</td>
-                                        <td class="px-4 py-2">{{$assessmentType }} {{ $loop->iteration }}</td>
-                                        <td class="px-4 py-2"><a href="{{ route('editCourseAssessmentDescription', ['courseAssessmentId' => encrypt($result->course_assessments_id), 'statusId' => encrypt($result->ca_type)]) }}">{{ $result->description ? $result->description : 'No Description' }}</a></td>
-                                        <td class="px-4 py-2">{{$result->updated_at}}</td>
-                                        <td class="px-4 py-2">{{$result->created_at}}</td>
-                                        <td class="px-4 py-2">{{$result->academic_year}}</td>
-                                        <td class="px-4 py-2">
-                                            <div class="btn-group" role="group" aria-label="Button group">
-                                                <a href="{{ route('coordinator.viewSpecificCaInCourse', ['statusId' => encrypt($statusId), 'courseIdValue' => encrypt($result->course_assessments_id), 'assessmentNumber' => encrypt($loop->iteration)]) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-start">
-                                                    View
-                                                </a>
-                                                @if (auth()->user()->hasPermissionTo('Dean'))
-                                                <a href="{{ route('coordinator.editCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId)]) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
-                                                    Edit
-                                                </a> 
-                                                <form method="POST" action="{{ route('coordinator.deleteCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}" onsubmit="return confirm('Are you sure you want to delete this?');">
-                                                    {{ method_field('DELETE') }}
-                                                    {{ csrf_field() }}
-                                                    <input type="hidden" name="academicYear" value={{$result->academic_year}}>
-                                                    <input type="hidden" name="ca_type" value={{$statusId}}>
-                                                    <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-end">
-                                                        Delete
-                                                    </button>
-                                                </form>
-                                                @endif
-                                            </div>
-                                        </td>                                                                     
+                        <div style="overflow-x:auto;">
+                            <table id="myTable" class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th class="px-4 py-2">Upload Number</th>
+                                        <th class="px-4 py-2">Description</th>
+                                        <th class="px-4 py-2">Time Created</th>
+                                        <th class="px-4 py-2">Time Updated</th>
+                                        <th class="px-4 py-2">Academic Year</th>
+                                        <th class="px-4 py-2">Actions</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach($results as $result)
+                                        <tr class="border-t border-b hover:bg-gray-100">
+                                            <td class="px-4 py-2">{{$loop->iteration}}</td>
+                                            <td class="px-4 py-2">{{$assessmentType }} {{ $loop->iteration }}</td>
+                                            <td class="px-4 py-2"><a href="{{ route('editCourseAssessmentDescription', ['courseAssessmentId' => encrypt($result->course_assessments_id), 'statusId' => encrypt($result->ca_type)]) }}">{{ $result->description ? $result->description : 'No Description' }}</a></td>
+                                            <td class="px-4 py-2">{{$result->updated_at}}</td>
+                                            <td class="px-4 py-2">{{$result->created_at}}</td>
+                                            <td class="px-4 py-2">{{$result->academic_year}}</td>
+                                            <td class="px-4 py-2">
+                                                <div class="btn-group" role="group" aria-label="Button group">
+                                                    <a href="{{ route('coordinator.viewSpecificCaInCourse', ['statusId' => encrypt($statusId), 'courseIdValue' => encrypt($result->course_assessments_id), 'assessmentNumber' => encrypt($loop->iteration)]) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-start">
+                                                        View
+                                                    </a>
+                                                    @if (auth()->user()->hasPermissionTo('Dean'))
+                                                    <a href="{{ route('coordinator.editCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId)]) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
+                                                        Edit
+                                                    </a> 
+                                                    <form method="POST" action="{{ route('coordinator.deleteCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}" onsubmit="return confirm('Are you sure you want to delete this?');">
+                                                        {{ method_field('DELETE') }}
+                                                        {{ csrf_field() }}
+                                                        <input type="hidden" name="academicYear" value={{$result->academic_year}}>
+                                                        <input type="hidden" name="ca_type" value={{$statusId}}>
+                                                        <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-end">
+                                                            Delete
+                                                        </button>
+                                                    </form>
+                                                    @endif
+                                                </div>
+                                            </td>                                                                     
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                         <!-- End Table with hoverable rows -->
                     </div>
                 </div>

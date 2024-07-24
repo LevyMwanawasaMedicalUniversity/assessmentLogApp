@@ -20,46 +20,48 @@
                         </div>
 
                         <!-- Table with hoverable rows -->
-                        <table id="myTable" class="table table-hover">                        
-                            <thead>
-                                <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">Course Name</th>
-                                <th scope="col">Course Code</th>
-                                <th scope="col">Programme Name</th>
-                                <th scope="col">Delivery Mode</th>
-                                <th scope="col" class="text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($results as $result)
-                                    @include('coordinator.components.uploadAssessmentTypeModal')
-                                    @include('coordinator.components.viewAssessmentTypeModal')
+                        <div style="overflow-x:auto;">
+                            <table id="myTable" class="table table-hover">                        
+                                <thead>
                                     <tr>
-                                        {{-- <th scope="row">1</th> --}}
-                                        <td>{{$loop->iteration}}</td>
-                                        <td>{{$result->CourseDescription}}</td>
-                                        <td>{{$result->CourseName}}</td>
-                                        <td>{{$result->Name}}</td>
-                                        <td class="text-right">
-                                                <div class="btn-group float-end" role="group" aria-label="Button group">
-                                                    @if(auth()->user()->hasPermissionTo('Coordinator'))
-                                                        <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#uploadCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
-                                                            Upload
+                                    <th scope="col">#</th>
+                                    <th scope="col">Course Name</th>
+                                    <th scope="col">Course Code</th>
+                                    <th scope="col">Programme Name</th>
+                                    <th scope="col">Delivery Mode</th>
+                                    <th scope="col" class="text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($results as $result)
+                                        @include('coordinator.components.uploadAssessmentTypeModal')
+                                        @include('coordinator.components.viewAssessmentTypeModal')
+                                        <tr>
+                                            {{-- <th scope="row">1</th> --}}
+                                            <td>{{$loop->iteration}}</td>
+                                            <td>{{$result->CourseDescription}}</td>
+                                            <td>{{$result->CourseName}}</td>
+                                            <td>{{$result->Name}}</td>
+                                            <td class="text-right">
+                                                    <div class="btn-group float-end" role="group" aria-label="Button group">
+                                                        @if(auth()->user()->hasPermissionTo('Coordinator'))
+                                                            <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#uploadCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
+                                                                Upload
+                                                            </button>
+                                                        @endif
+                                                        <button type="button" class="btn btn-success font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#viewCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
+                                                            View
                                                         </button>
-                                                    @endif
-                                                    <button type="button" class="btn btn-success font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#viewCourseModal{{ $result->ID }}" data-courseid="{{ $result->ID }}">
-                                                        View
-                                                    </button>
-                                                    <a href="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId)]) }}" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
-                                                        Settings
-                                                    </a>
-                                                </div>
-                                            </td>
-                                    </tr>                            
-                                @endforeach
-                            </tbody>
-                        </table>
+                                                        <a href="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId)]) }}" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
+                                                            Settings
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                        </tr>                            
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                         <!-- End Table with hoverable rows -->
 
                     </div>

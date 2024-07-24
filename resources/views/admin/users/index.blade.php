@@ -25,50 +25,52 @@
                             <a class="d-inline-block btn btn-primary font-weight-bold py-2 px-4 rounded" href="{{ route('users.create') }}">Add user</a>                            
                         </div>
                         <!-- Table with hoverable rows -->
-                        <table id="myTable" class="table table-hover">
-                        {{-- <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"> --}}
-                        <thead>
-                            <tr>
-                            
-                            <th scope="col">#</th>
-                            <th scope="col">Name</th>
-                            <th scope="col">Email</th>
-                            <th scope="col">Last Login<BR>(Since 24-07-2024)</th>
-                            <th scope="col">Creation date</th>
-                            
-                            <th scope="col">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($users as $user)
-                            
-                            <tr>
-                                {{-- <th scope="row">1</th> --}}
-                                <td>{{$loop->iteration}}</td>
-                                <td>{{$user->name}}</td>
-                                <td>{{$user->email}}</td>
-                                <td style="color: {{ $user->last_login_at ? 'blue' : 'red' }};">
-                                    {{ $user->last_login_at ? $user->last_login_at : 'NEVER' }}
-                                </td>
-                                <td>{{$user->created_at}}</td>
-                                <td>
-                                    <div class="btn-group" role="group" aria-label="Button group">
-                                        <form method="POST" action="{{ route('users.resetUserPassword', $user->id) }}" class="d-inline-block">
-                                            @csrf
-                                            <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
-                                                Reset
-                                            </button>
-                                        </form>
-                                        <a href="{{ route('users.edit', $user->id) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
-                                            Edit
-                                        </a>
-                                    </div>
-                                </td> 
-                            </tr>                            
-                            @endforeach
-                            
-                        </tbody>
-                        </table>
+                        <div style="overflow-x:auto;">
+                            <table id="myTable" class="table table-hover">
+                                {{-- <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"> --}}
+                                <thead>
+                                    <tr>
+                                    
+                                    <th scope="col">#</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Email</th>
+                                    <th scope="col">Last Login<BR>(Since 24-07-2024)</th>
+                                    <th scope="col">Creation date</th>
+                                    
+                                    <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($users as $user)
+                                        
+                                        <tr>
+                                            {{-- <th scope="row">1</th> --}}
+                                            <td>{{$loop->iteration}}</td>
+                                            <td>{{$user->name}}</td>
+                                            <td>{{$user->email}}</td>
+                                            <td style="color: {{ $user->last_login_at ? 'blue' : 'red' }};">
+                                                {{ $user->last_login_at ? $user->last_login_at : 'NEVER' }}
+                                            </td>
+                                            <td>{{$user->created_at}}</td>
+                                            <td>
+                                                <div class="btn-group" role="group" aria-label="Button group">
+                                                    <form method="POST" action="{{ route('users.resetUserPassword', $user->id) }}" class="d-inline-block">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
+                                                            Reset
+                                                        </button>
+                                                    </form>
+                                                    <a href="{{ route('users.edit', $user->id) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
+                                                        Edit
+                                                    </a>
+                                                </div>
+                                            </td> 
+                                        </tr>                            
+                                    @endforeach
+                                    
+                                </tbody>
+                            </table>
+                        </div>
                         {!! $users->links('pagination::bootstrap-4') !!}
                         <!-- End Table with hoverable rows -->
 
