@@ -50,8 +50,8 @@
                                             <td>{{ $result->Firstname }}</td>
                                             <td>{{ $result->Surname }}</td>
                                             <td>{{ $result->Name }}</td>
-                                            <td style="color: {{ $result->last_login_at ? 'blue' : 'red' }};">
-                                                {{ $result->last_login_at ? $result->last_login_at : 'NEVER' }}
+                                            <td style="color: {{ $result->user && $result->user->last_login_at ? 'blue' : 'red' }};">
+                                                {{ $result->user && $result->user->last_login_at ? $result->user->last_login_at : 'NEVER' }}
                                             </td>
                                             <td>{{ $counts[$result->ID] ?? '0' }} Courses</td>
                                             <td><a href="{{route('coordinator.viewOnlyProgrammesWithCaForCoordinator',$result->ID)}}">{{ $withCa[$result->ID] ?? '0' }} Courses</a></td>
