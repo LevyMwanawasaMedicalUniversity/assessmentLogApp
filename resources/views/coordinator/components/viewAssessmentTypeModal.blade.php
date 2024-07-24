@@ -25,7 +25,7 @@
 
                 @endphp
                 <div class="modal-body">
-                    <b class="mb-3"><span class="mb-3">{{$result->CourseDescription}} - {{$result->CourseName}}
+                    <b class="mb-3">
                         <span >{{$result->CourseDescription}} - {{$result->CourseName}} 
                             <b style="color: {{ $result->Delivery == 'Fulltime' ? 'blue' : ($result->Delivery == 'Distance' ? 'green' : 'black') }}">
                                 {{$result->Delivery}}
