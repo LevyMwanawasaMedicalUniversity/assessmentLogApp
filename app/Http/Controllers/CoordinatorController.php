@@ -68,6 +68,8 @@ class CoordinatorController extends Controller
     public function courseCASettings($courseIdValue, $basicInformationId, $delivery){ 
         $courseId = Crypt::decrypt($courseIdValue);
         $delivery = Crypt::decrypt($delivery);
+
+        // return $delivery;
         $allAssesmentTypes = AssessmentTypes::all();
         $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
             ->where('delivery_mode', $delivery)

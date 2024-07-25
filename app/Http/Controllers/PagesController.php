@@ -25,7 +25,7 @@ class PagesController extends Controller
             ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
             ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
             ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
-            ->select('courses.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName','courses.CourseDescription')
+            ->select('courses.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName','courses.CourseDescription','study.Delivery')
             ->where('basic-information.ID', $userBasicInformation)
             ->get();
         return view('coordinator.viewCoordinatorsCourses', compact('results'));
