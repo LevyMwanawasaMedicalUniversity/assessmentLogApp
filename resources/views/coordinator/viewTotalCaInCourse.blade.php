@@ -9,11 +9,12 @@
 
         @php
             $mismatchedCount = $results->filter(function($result) use ($delivery) {
-                return $result->basic_information->StudyType != $delivery;
+                // Check if basic_information is not null and if StudyType is set
+                return isset($result->basic_information) && $result->basic_information->StudyType != $delivery;
             })->count();
-        @endphp
-        @php
+
             $nullBasicInformationCount = $results->filter(function($result) {
+                // Check if basic_information is null
                 return is_null($result->basic_information);
             })->count();
         @endphp
