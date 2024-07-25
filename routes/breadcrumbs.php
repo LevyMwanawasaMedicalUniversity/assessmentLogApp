@@ -226,8 +226,11 @@ Breadcrumbs::for('editCourseAssessmentDescription', function ($trail, $courseAss
         ->first();
     $courseIdValueForBreadCrumb = Crypt::encrypt($getCourses->ID);
     $basicInformationId = encrypt($getCourses->ProgrammesAvailable);
+    $delivery = encrypt($results->delivery_mode);
         
-    $trail->parent('coordinator.viewAllCaInCourse', encrypt($statusId), $courseIdValueForBreadCrumb, $basicInformationId);
+    $trail->parent('coordinator.viewAllCaInCourse', encrypt($statusId), $courseIdValueForBreadCrumb, $basicInformationId, $delivery);
+        
+    
 
     // Generate the route correctly with all required parameters
     $trail->push('View The Marks', route('editCourseAssessmentDescription', ['courseAssessmentId' => $courseAssessmentId, 'statusId' => $statusId]));
