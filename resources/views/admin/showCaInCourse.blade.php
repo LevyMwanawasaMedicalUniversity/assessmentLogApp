@@ -13,7 +13,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="card-title">Number of CAs</h5>
+                            <h5 class="card-title">Number of CAs for {{$courseInfo->Name}} - {{$courseInfo->CourseDescription}}</h5>
                             <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search by date uploaded.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         </div>
                         <!-- Table with hoverable rows -->
@@ -21,6 +21,7 @@
                             <thead>
                                 <tr>
                                     <th>Assessment Type</th>
+                                    <th>Mode Of Study</th>
                                     <th>Count</th>
                                 </tr>
                             </thead>
@@ -28,6 +29,9 @@
                                 @foreach ($assessmentDetails as $assessment)
                                 <tr>
                                     <td><a href="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt($assessment->id),'courseIdValue' => encrypt($courseId),'basicInformationId' => encrypt($assessment->basic_information_id), 'delivery' => encrypt($assessment->delivery_mode)]) }}">{{ $assessment->assesment_type_name }}</a></td>
+                                    <td style="color: {{ $assessment->delivery_mode == 'Fulltime' ? 'blue' : ($assessment->delivery_mode == 'Distance' ? 'green' : 'black') }}">
+                                        {{ $assessment->delivery_mode }}
+                                    </td>
                                     <td>{{ $assessment->total }}</td>
                                 </tr>
                                 @endforeach

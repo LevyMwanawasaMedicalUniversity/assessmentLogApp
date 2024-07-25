@@ -253,6 +253,7 @@ class AdministratorController extends Controller
             ->select('courses.ID','basic-information.Firstname','basic-information.ID as basicInformationId', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName','courses.CourseDescription','study.Delivery')
             ->where('basic-information.ID', $basicInformationId)
             ->get();
+        // return $results;
         
         return view('coordinator.viewCoordinatorsCourses', compact('results'));
 

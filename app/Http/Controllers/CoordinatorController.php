@@ -55,11 +55,13 @@ class CoordinatorController extends Controller
         ->groupBy('assessment_types.id','course_assessments.basic_information_id', 'assessment_types.assesment_type_name','course_assessments.delivery_mode')
         ->get();
 
+        $courseInfo = EduroleCourses::where('ID', $courseId)->first();
+        
         // return $assessmentDetails;
     
 
         // return $assessmentDetails;
-        return view('admin.showCaInCourse', compact('assessmentDetails','courseId'));
+        return view('admin.showCaInCourse', compact('courseInfo','assessmentDetails','courseId'));
 
     }
 

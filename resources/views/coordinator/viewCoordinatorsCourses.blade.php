@@ -29,6 +29,7 @@
                                     <th scope="col">Course Code</th>
                                     <th scope="col">Programme Name</th>
                                     <th scope="col">Delivery Mode</th>
+                                    <th scope="col">Number Of Uploads</th>
                                     <th scope="col" class="text-right">Actions</th>
                                     </tr>
                                 </thead>
@@ -36,6 +37,22 @@
                                     @foreach($results as $result)
                                         @include('coordinator.components.uploadAssessmentTypeModal')
                                         @include('coordinator.components.viewAssessmentTypeModal')
+                                        @php
+                                        $assessmentDetails = \App\Models\CourseAssessment::select(
+                                                'course_assessments.basic_information_id',
+                                                'assessment_types.assesment_type_name',
+                                                'assessment_types.id',
+                                                'course_assessments.delivery_mode',
+                                                DB::raw('count(course_assessments.course_assessments_id) as total')
+                                            )
+                                            ->where('course_assessments.course_id', $result->ID)
+                                            ->where('course_assessments.delivery_mode', $result->Delivery)
+                                            ->join('assessment_types', 'assessment_types.id', '=', 'course_assessments.ca_type')
+                                            ->groupBy('assessment_types.id','course_assessments.basic_information_id', 'assessment_types.assesment_type_name','course_assessments.delivery_mode')
+                                            ->get();
+                                        $totalAssessments = $assessmentDetails->sum('total');
+
+                                        @endphp
                                         <tr>
                                             {{-- <th scope="row">1</th> --}}
                                             <td>{{$loop->iteration}}</td>
@@ -45,6 +62,7 @@
                                             <td style="color: {{ $result->Delivery == 'Fulltime' ? 'blue' : ($result->Delivery == 'Distance' ? 'green' : 'black') }}">
                                                 {{$result->Delivery}}
                                             </td>
+                                            <td><a href="{{route('coordinator.showCaWithin',encrypt($result->ID))}}">{{ $totalAssessments ? $totalAssessments : 0 }} assessments</a></td>
                                             <td class="text-right">
                                                     <div class="btn-group float-end" role="group" aria-label="Button group">
                                                         @if(auth()->user()->hasPermissionTo('Coordinator'))
