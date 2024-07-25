@@ -16,11 +16,13 @@
                 </div>
                 @php
                     $courseAssessmenetTypes = \App\Models\CATypeMarksAllocation::where('course_id', $result->ID)
+                        ->where('delivery_mode', $result->Delivery)
                         ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
                         ->select('assessment_types.id','assessment_types.assesment_type_name')
                         ->get();
 
                     $totalMarks = \App\Models\CATypeMarksAllocation::where('course_id', $result->ID)
+                        ->where('delivery_mode', $result->Delivery)
                         ->sum('total_marks');
                 @endphp
                 <div class="modal-body">

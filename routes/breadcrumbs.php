@@ -198,7 +198,7 @@ Breadcrumbs::for('coordinator.viewSpecificCaInCourse', function ($trail, $status
         ->join('study', 'study.ID', '=', 'study-program-link.StudyID')
         ->first();
     $courseIdValueForBreadCrumb = Crypt::encrypt($getCourses->ID);
-    $basicInformationId = encrypt($getCourses->ProgrammesAvailable);
+    $basicInformationId = encrypt($results->basic_information_id);
         
     $trail->parent('coordinator.viewAllCaInCourse', $statusId, $courseIdValueForBreadCrumb, $basicInformationId, $delivery);
 

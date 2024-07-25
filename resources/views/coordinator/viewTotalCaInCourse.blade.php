@@ -2,9 +2,37 @@
         <main id="main" class="main">
     <div class="pagetitle">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Total CAs for {{$courseDetails->CourseDescription}} - {{$courseDetails->Name}} for {{$results->count()}} students
+            Total CAs for {{$courseDetails->CourseDescription}} - {{$courseDetails->Name}} for {{$results->count()}} <span style="color: {{ $delivery == 'Fulltime' ? 'blue' : ($delivery == 'Distance' ? 'green' : 'black') }}">{{$delivery}}</span> students
         </h2>
         @include('layouts.alerts')
+        
+
+        @php
+            $mismatchedCount = $results->filter(function($result) use ($delivery) {
+                return $result->basic_information->StudyType != $delivery;
+            })->count();
+        @endphp
+        @php
+            $nullBasicInformationCount = $results->filter(function($result) {
+                return is_null($result->basic_information);
+            })->count();
+        @endphp
+        
+
+        @if($mismatchedCount > 0)
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                    <b style="color:red">There are {{$mismatchedCount}} students who do not fall under the {{$delivery}} mode of study in Edurole. </b>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+        @if($nullBasicInformationCount > 0)
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                    <b style="color:red">There are {{$nullBasicInformationCount}} students numbers that do not have Edurole accounts. </b>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
         <nav>
             {{ Breadcrumbs::render() }}
         </nav>
@@ -29,7 +57,8 @@
                                         <th>#</th>
                                         <th class="px-4 py-2">Student Number</th>
                                         <th class="px-4 py-2">FirstName</th>
-                                        <th class="px-4 py-2">LastName</th> 
+                                        <th class="px-4 py-2">LastName</th>
+                                        <th class="px-4 py-2">Mode of Study</th>
                                         <th class="px-4 py-2">Programme</th>
                                         <th class="px-4 py-2">School</th>                               
                                         {{-- <th class="px-4 py-2">Academic Year</th> --}}
@@ -44,10 +73,13 @@
                                             @if($result->basic_information)
                                                 <td class="px-4 py-2">{{ $result->basic_information->FirstName }}</td>
                                                 <td class="px-4 py-2">{{ $result->basic_information->Surname }}</td>
+                                                <td class="px-4 py-2" style="color: {{ $result->basic_information->StudyType != $delivery ? 'red' : 'black' }};">
+                                                    {{ $result->basic_information->StudyType }}
+                                                </td>
                                                 <td class="px-4 py-2">{{ $result->basic_information->Programme }}</td>
                                                 <td class="px-4 py-2">{{ $result->basic_information->School }}</td>
                                             @else
-                                                <td class="px-4 py-2" colspan="4">No basic information available</td>
+                                                <td class="px-4 py-2" style="color:red" colspan="4">No Edurole account found for student id {{$result->student_id}}</td>
                                             @endif
                                             {{-- <td class="px-4 py-2">{{ $result->academic_year ?? 'N/A' }}</td> --}}
                                             <td class="px-4 py-2">{{ $result->total_marks }}</td>
