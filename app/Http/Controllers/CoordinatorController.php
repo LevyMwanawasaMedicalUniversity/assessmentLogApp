@@ -47,12 +47,15 @@ class CoordinatorController extends Controller
             'course_assessments.basic_information_id',
             'assessment_types.assesment_type_name',
             'assessment_types.id',
+            'course_assessments.delivery_mode',
             DB::raw('count(course_assessments.course_assessments_id) as total')
         )
         ->where('course_assessments.course_id', $courseId)
         ->join('assessment_types', 'assessment_types.id', '=', 'course_assessments.ca_type')
-        ->groupBy('assessment_types.id','course_assessments.basic_information_id', 'assessment_types.assesment_type_name')
+        ->groupBy('assessment_types.id','course_assessments.basic_information_id', 'assessment_types.assesment_type_name','course_assessments.delivery_mode')
         ->get();
+
+        // return $assessmentDetails;
     
 
         // return $assessmentDetails;
