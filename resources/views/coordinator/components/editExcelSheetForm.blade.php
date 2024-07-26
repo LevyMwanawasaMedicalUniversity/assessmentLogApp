@@ -31,14 +31,14 @@
 
         <!-- Excel File Input -->
         <div class="form-group mb-4">
-            <label for="excelFile" class="font-weight-bold text-lg text-dark">Choose Excel (xlsx) File</label>
+            <label for="excelFile" class="font-weight-bold text-lg text-dark">Choose "Excel Workbook" (xlsx) File</label>
             <input type="hidden" name="course_id" value="{{ $courseId }}">
             <input type="hidden" name="course_assessment_id" value="{{ $courseAssessmentId }}">
             <input type="hidden" name="course_code" value="{{ $results->CourseName }}">
             <input type="hidden" name="basicInformationId" value="{{ $basicInformationId }}">
             <input type="hidden" name="delivery" value="{{ $delivery }}">
-            <input type="file" name="excelFile" accept=".xlsx" class="form-control-file" id="excelFileInput" required>
-            <small class="form-text text-muted">Accepted formats: .xlsx</small>
+            <input type="file" name="excelFile" accept=".xlsx, .xlsm" class="form-control-file" id="excelFileInput" required>
+            <small class="form-text text-muted">Accepted formats: .xlsx, .xlsm</small>
         </div>
 
         <!-- File Preview -->

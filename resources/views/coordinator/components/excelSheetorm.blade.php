@@ -23,9 +23,9 @@
                 <textarea name="description" rows="2" cols="50" class="form-control" placeholder="Enter short assessment description here..."></textarea>
             </div>
             <div class="form-group mb-4">
-                <label for="excelFile" class="font-weight-bold text-lg text-dark">Choose Excel (xlsx) File</label>
-                <input type="file" name="excelFile" accept=".xlsx" class="form-control-file" id="excelFileInput" required>
-                <small class="form-text text-muted">Accepted formats: .xlsx</small>
+                <label for="excelFile" class="font-weight-bold text-lg text-dark">Choose "Excel Workbook" (xlsx) File</label>
+                <input type="file" name="excelFile" accept=".xlsx, .xlsm" class="form-control-file" id="excelFileInput" required>
+                <small class="form-text text-muted">Accepted formats: .xlsx, .xlsm</small>
             </div>
             <input type="hidden" name="ca_type" value="{{ $caType }}">
             <input type="hidden" name="course_id" value="{{ $courseId }}">
