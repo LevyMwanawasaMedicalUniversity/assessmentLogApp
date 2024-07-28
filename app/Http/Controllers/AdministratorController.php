@@ -200,7 +200,8 @@ class AdministratorController extends Controller
         $withCa = $filteredResults->countBy('basicInformationId');
         $results= $results->unique('basicInformationId', 'Name');
         // return $results;
-        // $totalCoursesCoordinated = ceil($counts->sum() / 3);
+        
+        // $totalCoursesCoordinated = (ceil($counts/ 3));
         $totalCoursesCoordinated = $counts;
         $totalCoursesWithCA = $withCa->sum();
         return view('dean.viewCoordinators', compact('results', 'counts','withCa','totalCoursesCoordinated','totalCoursesWithCA'));
@@ -225,8 +226,8 @@ class AdministratorController extends Controller
         $counts = $results->unique('ID')->count();
         $withCa = $withCa = $filteredResults->countBy('basicInformationId');
         $results= $results->unique('username');
-
-        // $totalCoursesCoordinated = ceil($counts->unique('ID')->sum() / 3);
+        
+        // $totalCoursesCoordinated = (ceil($counts/ 3));
         $totalCoursesCoordinated = ($counts);
         $totalCoursesWithCA = $withCa->sum();
         return view('dean.viewCoordinators', compact('results', 'counts','withCa','totalCoursesCoordinated','totalCoursesWithCA'));
