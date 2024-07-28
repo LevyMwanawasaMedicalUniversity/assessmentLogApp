@@ -170,7 +170,7 @@ class AdministratorController extends Controller
     }
 
     public function viewCoordinators(){
-        $naturalScienceCourses = $this->getNSAttachedCourses();
+        // $naturalScienceCourses = $this->getNSAttachedCourses();
         $results = $this->getCoursesFromEdurole()
             // ->groupBy('basic-information.ID')
             ->orderBy('study.Name')
@@ -186,11 +186,11 @@ class AdministratorController extends Controller
         // $deliveryModes = array_column($getoursesWithCA, 'delivery_mode');
         // return $results;
         // return $coursesWithCA;
-        $counts = $results->countBy('basicInformationId');
+        $counts = $results->unique('ID')->count();
 
         $filteredResults = $results->filter(function ($item) use ($coursesWithCA) {
             foreach ($coursesWithCA as $course) {
-                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode']) {
+                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->ProgrammesAvailable == $course['basic_information_id']) {
                     return true;
                 }
             }
@@ -200,7 +200,8 @@ class AdministratorController extends Controller
         $withCa = $filteredResults->countBy('basicInformationId');
         $results= $results->unique('basicInformationId', 'Name');
         // return $results;
-        $totalCoursesCoordinated = $counts->sum();
+        // $totalCoursesCoordinated = ceil($counts->sum() / 3);
+        $totalCoursesCoordinated = $counts;
         $totalCoursesWithCA = $withCa->sum();
         return view('dean.viewCoordinators', compact('results', 'counts','withCa','totalCoursesCoordinated','totalCoursesWithCA'));
     }
@@ -211,13 +212,23 @@ class AdministratorController extends Controller
         $results = $this->getCoursesFromEdurole()
             ->where('study.ParentID', $schoolId)
             ->get();
-            $coursesWithCA = $this->getCoursesFromLMMAX();
-            $counts = $results->countBy('username');
-            $withCa = $results->whereIn('CourseName', $coursesWithCA)->countBy('username');
-            $results= $results->unique('username');
+        $coursesWithCA = $this->getCoursesFromLMMAX();
+        $filteredResults = $results->filter(function ($item) use ($coursesWithCA) {
+            foreach ($coursesWithCA as $course) {
+                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->ProgrammesAvailable == $course['basic_information_id']) {
+                    return true;
+                }
+            }
+            return false;
+        });
+            
+        $counts = $results->unique('ID')->count();
+        $withCa = $withCa = $filteredResults->countBy('basicInformationId');
+        $results= $results->unique('username');
 
-            $totalCoursesCoordinated = $counts->sum();
-            $totalCoursesWithCA = $withCa->sum();
+        // $totalCoursesCoordinated = ceil($counts->unique('ID')->sum() / 3);
+        $totalCoursesCoordinated = ($counts);
+        $totalCoursesWithCA = $withCa->sum();
         return view('dean.viewCoordinators', compact('results', 'counts','withCa','totalCoursesCoordinated','totalCoursesWithCA'));
     }
 

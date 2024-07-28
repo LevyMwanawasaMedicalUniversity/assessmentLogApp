@@ -10,7 +10,7 @@ abstract class Controller
     //
     public function getCoursesFromLMMAX()
     {
-        return StudentsContinousAssessment::select('course_assessment_scores.course_code', 'course_assessments.delivery_mode')
+        return StudentsContinousAssessment::select('course_assessment_scores.course_code', 'course_assessments.delivery_mode','course_assessments.basic_information_id')
             ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id') 
             ->join('course_assessment_scores', 'course_assessment_scores.course_assessment_id', '=', 'course_assessments.course_assessments_id')
             ->distinct()
@@ -18,7 +18,8 @@ abstract class Controller
             ->map(function ($item) {
                 return [
                     'course_code' => $item->course_code,
-                    'delivery_mode' => $item->delivery_mode
+                    'delivery_mode' => $item->delivery_mode,
+                    'basic_information_id' => $item->basic_information_id
                 ];
             })->toArray();
     }

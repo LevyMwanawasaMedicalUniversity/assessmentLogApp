@@ -85,12 +85,21 @@ class CoordinatorController extends Controller
     
     public function viewOnlyProgrammesWithCa(){
 
-        $coursesFromLMMAX = $this->getCoursesFromLMMAX();
+        $coursesWithCA = $this->getCoursesFromLMMAX();
         // return $coursesFromLMMAX;
-
         $results = $this->getCoursesFromEdurole()
-            ->whereIn('courses.Name', $coursesFromLMMAX)
+            // ->whereIn('courses.Name', $coursesFromLMMAX)
             ->get();
+        $filteredResults = $results->filter(function ($item) use ($coursesWithCA) {
+            foreach ($coursesWithCA as $course) {
+                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->ProgrammesAvailable == $course['basic_information_id']) {
+                    return true;
+                }
+            }
+            return false;
+        });
+    
+        $results = $filteredResults;
 
         // return $results;
         return view('admin.viewCoursesWithCa', compact('results'));
@@ -110,7 +119,7 @@ class CoordinatorController extends Controller
         // return $results;
         $filteredResults = $results->filter(function ($item) use ($coursesWithCA) {
             foreach ($coursesWithCA as $course) {
-                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode']) {
+                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->ProgrammesAvailable == $course['basic_information_id']) {
                     return true;
                 }
             }

@@ -36,7 +36,9 @@
                                         <td class="px-4 py-2">{{$loop->iteration}}</td>
                                         <td class="px-4 py-2"><a href="{{route('coordinator.showCaWithin',encrypt($result->ID))}}">{{$result->CourseName}}</a></td>
                                         <td class="px-4 py-2">{{$result->Firstname}} {{$result->Surname}}</td>
-                                        <td class="px-4 py-2">{{$result->Delivery}}</td>
+                                        <td style="color: {{ $result->Delivery == 'Fulltime' ? 'blue' : ($result->Delivery == 'Distance' ? 'green' : 'black') }}">
+                                            {{$result->Delivery}}
+                                        </td>
                                         <td class="px-4 py-2">{{$result->PrivateEmail}}</td>
                                         <td class="px-4 py-2">{{$result->Name}}</td>  
                                         <td class="px-4 py-2">{{$result->CourseDescription}}</td>

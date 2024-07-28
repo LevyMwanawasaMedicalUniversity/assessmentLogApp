@@ -30,9 +30,19 @@ class PagesController extends Controller
     {
         $coursesFromLMMAX = $this->getCoursesFromLMMAX();
 
-        $coursesWithCA = $this->getCoursesFromEdurole()
-            ->whereIn('courses.Name', $coursesFromLMMAX)
-            ->get();
+        $coursesFromEdurole = $this->getCoursesFromEdurole()->get();
+            
+        // return $coursesWithCA;
+        $filteredResults = $coursesFromEdurole->filter(function ($item) use ($coursesFromLMMAX) {
+            foreach ($coursesFromLMMAX as $course) {
+                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->ProgrammesAvailable == $course['basic_information_id']) {
+                    return true;
+                }
+            }
+            return false;
+        });
+
+        $coursesWithCA = $filteredResults;
         $deansDataGet = EduroleBasicInformation::join('access', 'access.ID', '=', 'basic-information.ID')
             ->join('roles', 'roles.ID', '=', 'access.RoleID')
             ->join('schools', 'schools.Dean', '=', 'basic-information.ID')
@@ -41,9 +51,7 @@ class PagesController extends Controller
             ->get();
         $deansData= $deansDataGet->unique('ID');
         // $results= $deansDataGet->unique('ID');
-        $counts = $deansDataGet->countBy('ID');
-        $coursesFromEdurole = $this->getCoursesFromEdurole()->get();
-        // return $coursesFromEdurole;
+        $counts = $deansDataGet->countBy('ID');;
         // return $coursesWithCA;
         return view('dashboard', compact('counts','coursesWithCA', 'coursesFromEdurole','deansData'));
     }
