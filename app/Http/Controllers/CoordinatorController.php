@@ -98,14 +98,26 @@ class CoordinatorController extends Controller
 
     public function viewOnlyProgrammesWithCaForCoordinator($coordinatorId){
 
-        $coursesFromLMMAX = $this->getCoursesFromLMMAX();
-        // return $coursesFromLMMAX;
+        $coursesWithCA = $this->getCoursesFromLMMAX();
+        
+        
+    
 
         $results = $this->getCoursesFromEdurole()
-            ->whereIn('courses.Name', $coursesFromLMMAX)
+            
             ->where('basic-information.ID', $coordinatorId)
             ->get();
         // return $results;
+        $filteredResults = $results->filter(function ($item) use ($coursesWithCA) {
+            foreach ($coursesWithCA as $course) {
+                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode']) {
+                    return true;
+                }
+            }
+            return false;
+        });
+
+        $results = $filteredResults;
 
         // return $results[0]->ID;
         return view('admin.viewCoursesWithCa', compact('results','coordinatorId'));

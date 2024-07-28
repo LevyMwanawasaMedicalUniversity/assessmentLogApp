@@ -170,32 +170,35 @@ class AdministratorController extends Controller
     }
 
     public function viewCoordinators(){
-        $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
-            ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
-            ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
-            ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
-            ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
-            ->join('schools', 'schools.ID', '=', 'study.ParentID')
-            ->select('basic-information.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName')
+        $naturalScienceCourses = $this->getNSAttachedCourses();
+        $results = $this->getCoursesFromEdurole()
             // ->groupBy('basic-information.ID')
+            ->orderBy('study.Name')
             ->get();
 
         // return $results;
-        $results->each(function ($result) {
-            $user = User::where('basic_information_id', $result->ID)->first();
-            if ($user) {
-                $result->user = $user;
-            }
-        });
+        
 
         // return $results;
         $coursesWithCA = $this->getCoursesFromLMMAX();
-        
+        // return $getoursesWithCA;
+        // $coursesWithCA = array_column($getoursesWithCA, 'course_code');
+        // $deliveryModes = array_column($getoursesWithCA, 'delivery_mode');
+        // return $results;
         // return $coursesWithCA;
-        $counts = $results->countBy('ID');
+        $counts = $results->countBy('basicInformationId');
 
-        $withCa = $results->whereIn('CourseName', $coursesWithCA)->countBy('ID');
-        $results= $results->unique('ID', 'Name');
+        $filteredResults = $results->filter(function ($item) use ($coursesWithCA) {
+            foreach ($coursesWithCA as $course) {
+                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode']) {
+                    return true;
+                }
+            }
+            return false;
+        });
+        
+        $withCa = $filteredResults->countBy('basicInformationId');
+        $results= $results->unique('basicInformationId', 'Name');
         // return $results;
         $totalCoursesCoordinated = $counts->sum();
         $totalCoursesWithCA = $withCa->sum();
@@ -204,18 +207,14 @@ class AdministratorController extends Controller
 
     public function viewCoordinatorsUnderDean($schoolId){
         $schoolId = Crypt::decrypt($schoolId);
-        $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
-            ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
-            ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
-            ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
-            ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
-            ->select('basic-information.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName')
+        // $naturalScienceCourses = $this->getNSAttachedCourses();
+        $results = $this->getCoursesFromEdurole()
             ->where('study.ParentID', $schoolId)
             ->get();
             $coursesWithCA = $this->getCoursesFromLMMAX();
-            $counts = $results->countBy('ID');
-            $withCa = $results->whereIn('CourseName', $coursesWithCA)->countBy('ID');
-            $results= $results->unique('ID');
+            $counts = $results->countBy('username');
+            $withCa = $results->whereIn('CourseName', $coursesWithCA)->countBy('username');
+            $results= $results->unique('username');
 
             $totalCoursesCoordinated = $counts->sum();
             $totalCoursesWithCA = $withCa->sum();
@@ -227,17 +226,12 @@ class AdministratorController extends Controller
             ->join('roles', 'roles.ID', '=', 'access.RoleID')
             ->join('schools', 'schools.Dean', '=', 'basic-information.ID')
             ->join('study', 'study.ParentID', '=', 'schools.ID')
-            ->select('basic-information.FirstName', 'basic-information.Surname', 'basic-information.ID', 'roles.RoleName', 'schools.ID as ParentID', 'study.ID as StudyID', 'schools.Name as SchoolName')
+            ->select('basic-information.FirstName', 'basic-information.Surname', 'basic-information.ID as basicInformationId', 'roles.RoleName', 'schools.ID as ParentID', 'study.ID as StudyID', 'schools.Name as SchoolName')
             // ->groupBy('basic-information.ID')
             ->get();
-        $counts = $results->countBy('ID');
-        $results= $results->unique('ID');
-        $results->each(function ($result) {
-            $user = User::where('basic_information_id', $result->ID)->first();
-            if ($user) {
-                $result->user = $user;
-            }
-        });
+        $counts = $results->countBy('basicInformationId');
+        $results= $results->unique('basicInformationId');
+        
         // return $results;
         return view('registrar.viewDeans', compact('results', 'counts'));
     }
@@ -245,14 +239,12 @@ class AdministratorController extends Controller
     public function viewCoordinatorsCourses($basicInformationId){
 
         $basicInformationId = Crypt::decrypt($basicInformationId);
-        $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
-            ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
-            ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
-            ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
-            ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
-            ->select('courses.ID','basic-information.Firstname','basic-information.ID as basicInformationId', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName','courses.CourseDescription','study.Delivery')
+        $naturalScienceCourses = $this->getNSAttachedCourses();
+        $results = $this->getCoursesFromEdurole()
             ->where('basic-information.ID', $basicInformationId)
             ->get();
+
+            
         // return $results;
         
         return view('coordinator.viewCoordinatorsCourses', compact('results'));

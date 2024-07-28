@@ -39,11 +39,14 @@
                                 <tbody>
                                     @foreach($results as $result)
                                         <tr class="border-top border-bottom hover">
+                                            @php
+                                                $user = \App\Models\User::where('basic_information_id', $result->basicInformationId)->first();
+                                            @endphp
                                             <td>{{ $loop->iteration }}</td>
                                             <td>{{ $result->FirstName }}</td>
                                             <td>{{ $result->Surname }}</td>
-                                            <td style="color: {{ $result->user && $result->user->last_login_at ? 'blue' : 'red' }};">
-                                                {{ $result->user && $result->user->last_login_at ? $result->user->last_login_at : 'NEVER' }}
+                                            <td style="color: {{ $user && $user->last_login_at ? 'blue' : 'red' }};">
+                                                {{ $user && $user->last_login_at ? $user->last_login_at : 'NEVER' }}
                                             </td>
                                             <td>{{ $result->SchoolName }}</td>
                                             <td>

@@ -22,8 +22,8 @@
                                 <tr>
                                     <th>#</th>
                                     <th class="px-4 py-2">Course Code</th>
-                                    <th class="px-4 py-2">Firstname</th>
-                                    <th class="px-4 py-2">Lastname</th>
+                                    <th class="px-4 py-2">Coordinator</th>
+                                    <th class="px-4 py-2">Delivery Mode</th>
                                     <th class="px-4 py-2">Email</th>
                                     <th class="px-4 py-2">Programme Name</th>
                                     <th class="px-4 py-2">Course Name</th>
@@ -35,8 +35,8 @@
                                     <tr class="border-t border-b hover:bg-gray-100">
                                         <td class="px-4 py-2">{{$loop->iteration}}</td>
                                         <td class="px-4 py-2"><a href="{{route('coordinator.showCaWithin',encrypt($result->ID))}}">{{$result->CourseName}}</a></td>
-                                        <td class="px-4 py-2">{{$result->Firstname}}</td>
-                                        <td class="px-4 py-2">{{$result->Surname}}</td>
+                                        <td class="px-4 py-2">{{$result->Firstname}} {{$result->Surname}}</td>
+                                        <td class="px-4 py-2">{{$result->Delivery}}</td>
                                         <td class="px-4 py-2">{{$result->PrivateEmail}}</td>
                                         <td class="px-4 py-2">{{$result->Name}}</td>  
                                         <td class="px-4 py-2">{{$result->CourseDescription}}</td>

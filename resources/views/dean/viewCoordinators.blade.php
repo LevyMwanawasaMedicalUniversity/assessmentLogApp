@@ -45,18 +45,21 @@
                                         @include('coordinator.components.uploadAssessmentTypeModal')
                                         @include('coordinator.components.viewAssessmentTypeModal')
                                         <tr>
+                                            @php
+                                                $user = \App\Models\User::where('basic_information_id', $result->basicInformationId)->first();
+                                            @endphp
                                             {{-- <th scope="row">1</th> --}}
                                             <td>{{$loop->iteration}}</td>
                                             <td>{{ $result->Firstname }}</td>
                                             <td>{{ $result->Surname }}</td>
                                             <td>{{ $result->Name }}</td>
-                                            <td style="color: {{ $result->user && $result->user->last_login_at ? 'blue' : 'red' }};">
-                                                {{ $result->user && $result->user->last_login_at ? $result->user->last_login_at : 'NEVER' }}
+                                            <td style="color: {{ $user && $user->last_login_at ? 'blue' : 'red' }};">
+                                                {{ $user && $user->last_login_at ? $user->last_login_at : 'NEVER' }}
                                             </td>
-                                            <td>{{ $counts[$result->ID] ?? '0' }} Courses</td>
-                                            <td><a href="{{route('coordinator.viewOnlyProgrammesWithCaForCoordinator',$result->ID)}}">{{ $withCa[$result->ID] ?? '0' }} Courses</a></td>
+                                            <td>{{ $counts[$result->basicInformationId] ?? '0' }} Courses</td>
+                                            <td><a href="{{route('coordinator.viewOnlyProgrammesWithCaForCoordinator',$result->basicInformationId)}}">{{ $withCa[$result->basicInformationId] ?? '0' }} Courses</a></td>
                                             <td>
-                                                <form method="GET" action="{{ route('admin.viewCoordinatorsCourses', ['basicInformationId' => encrypt($result->ID)]) }}">
+                                                <form method="GET" action="{{ route('admin.viewCoordinatorsCourses', ['basicInformationId' => encrypt($result->basicInformationId)]) }}">
                                                     <button type="submit" class="btn btn-primary font-weight-bold">
                                                         View
                                                     </button>

@@ -20,12 +20,7 @@ class PagesController extends Controller
         }
         $userBasicInformation = $user->basic_information_id;
 
-        $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
-            ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
-            ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
-            ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
-            ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
-            ->select('courses.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName','courses.CourseDescription','study.Delivery')
+        $results = $this->getCoursesFromEdurole()
             ->where('basic-information.ID', $userBasicInformation)
             ->get();
         return view('coordinator.viewCoordinatorsCourses', compact('results'));
@@ -48,6 +43,7 @@ class PagesController extends Controller
         // $results= $deansDataGet->unique('ID');
         $counts = $deansDataGet->countBy('ID');
         $coursesFromEdurole = $this->getCoursesFromEdurole()->get();
+        // return $coursesFromEdurole;
         // return $coursesWithCA;
         return view('dashboard', compact('counts','coursesWithCA', 'coursesFromEdurole','deansData'));
     }
