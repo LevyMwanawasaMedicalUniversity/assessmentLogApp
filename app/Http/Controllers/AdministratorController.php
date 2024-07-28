@@ -198,12 +198,14 @@ class AdministratorController extends Controller
         });
         
         $withCa = $filteredResults->countBy('basicInformationId');
-        $results= $results->unique('basicInformationId', 'Name');
+        
         // return $results;
         
         // $totalCoursesCoordinated = (ceil($counts/ 3));
         $totalCoursesCoordinated = $counts;
+        $counts = $results->countBy('basicInformationId');
         $totalCoursesWithCA = $withCa->sum();
+        $results= $results->unique('basicInformationId', 'Name');
         return view('dean.viewCoordinators', compact('results', 'counts','withCa','totalCoursesCoordinated','totalCoursesWithCA'));
     }
 
@@ -224,13 +226,15 @@ class AdministratorController extends Controller
         });
             
         $counts = $results->unique('ID')->count();
-        $withCa = $withCa = $filteredResults->countBy('basicInformationId');
-        $results= $results->unique('username');
+        $withCa = $filteredResults->countBy('basicInformationId');
+        
         
         // $totalCoursesCoordinated = (ceil($counts/ 3));
         $totalCoursesCoordinated = ($counts);
+        $counts = $results->countBy('basicInformationId');
+        $results= $results->unique('username');
         $totalCoursesWithCA = $withCa->sum();
-        return view('dean.viewCoordinators', compact('results', 'counts','withCa','totalCoursesCoordinated','totalCoursesWithCA'));
+        return view('dean.viewCoordinators', compact('schoolId','results', 'counts','withCa','totalCoursesCoordinated','totalCoursesWithCA'));
     }
 
     public function viewDeans(){

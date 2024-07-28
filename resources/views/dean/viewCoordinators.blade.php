@@ -14,7 +14,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="card-title">Coordinators</h5>
+                            <h5 class="card-title">Coordinators @isset($schoolId) in {{$results->first()->SchoolName}} @else on Edurole @endif</h5>
                             @if(auth()->user()->hasPermissionTo('Administrator'))
                                 <form method="post" action="{{ route('admin.importCoordinators') }}">
                                     @csrf
@@ -35,7 +35,7 @@
                                         <th scope="col">Lastname</th>
                                         <th scope="col">Programme Coordinated</th>
                                         <th scope="col">Last Login<BR>(Since 24-07-2024)</th>
-                                        <th scope="col">Courses Coordinated <span class="text-primary"> {{ $totalCoursesCoordinated }} </span></th>
+                                        <th scope="col"> Unique Courses <br> in @isset($schoolId) {{$results->first()->SchoolName}} @else Edurole @endif<span class="text-primary"> {{ $totalCoursesCoordinated }} </span></th>
                                         <th scope="col">Courses With CA <span class="text-success"> {{$totalCoursesWithCA}} </span></th>
                                         <th scope="col">Actions</th>
                                     </tr>
