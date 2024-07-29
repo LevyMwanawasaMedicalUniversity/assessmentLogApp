@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CATypeMarksAllocation;
 use App\Models\CourseAssessment;
+use App\Models\CourseAssessmentScores;
 use App\Models\EduroleBasicInformation;
 use App\Models\EduroleStudy;
+use App\Models\StudentsContinousAssessment;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -22,6 +25,61 @@ class AdministratorController extends Controller
     {
         return view('admin.index');
     }
+
+    public function refreshCAs(Request $request)
+    {
+
+        $cooedinatorController = new CoordinatorController();
+        $courseAssessments = CourseAssessment::all();
+        // return $courseAssessments;
+        // q
+
+        foreach ($courseAssessments as $courseAssessment) {
+            $coursesInEdurole = $this->getCoursesFromEdurole()
+                ->where('courses.ID', $courseAssessment->course_id)
+                ->where('study.ProgrammesAvailable', $courseAssessment->basic_information_id)
+                ->first();
+            $academicYear = 2024;
+            if ($coursesInEdurole) { // Check if the course exists in Edurole
+                $courseAssessment->study_id = $coursesInEdurole->StudyID;
+                $courseAssessment->save();            
+
+                $courseAssessmentsScore = CourseAssessmentScores::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
+                foreach ($courseAssessmentsScore as $courseAssessmentScore) {
+                    $courseAssessmentScore->study_id = $coursesInEdurole->StudyID;
+                    $courseAssessmentScore->save();
+                }
+
+                $user = User::where('basic_information_id', $courseAssessment->basic_information_id)->first();
+                if ($user) {
+                    $caTypeAllocation = CATypeMarksAllocation::where('user_id', $user->id)->where('course_id', $courseAssessment->course_id)->get();
+                    foreach ($caTypeAllocation as $caType) {
+                        $caType->study_id = $coursesInEdurole->StudyID;
+                        $caType->save();
+                    }
+                }
+
+                $studentAssessments = StudentsContinousAssessment::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
+                foreach ($studentAssessments as $studentAssessment) {
+                    $studentAssessment->study_id = $coursesInEdurole->StudyID;
+                    $studentAssessment->save();
+                }
+                // $allCaTypes = CATypeMarksAllocation::where('course_id', $courseAssessment->course_id)->get();
+                if ($user) {
+
+
+
+                    $studentInCourseAssessment = CourseAssessmentScores::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
+                    foreach ($studentInCourseAssessment as $student) {
+                        $cooedinatorController->refreshAllStudentsMarks($courseAssessment->course_id, $academicYear, $caTypeAllocation->assessment_type_id, $student->student_id, $courseAssessment->course_assessments_id, $courseAssessment->delivery_mode, $coursesInEdurole->StudyID);
+                    }
+                }
+            }
+        }
+
+        return redirect()->back()->with('success', 'Course Assessments refreshed successfully');
+    }
+
 
     public function importCoordinators(){
         set_time_limit(1200000);

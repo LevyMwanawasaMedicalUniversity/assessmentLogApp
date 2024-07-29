@@ -20,6 +20,7 @@ class StudentsContinousAssessment extends Model implements AuditableContract
         'ca_type',
         'academic_year',
         'course_assessment_id',
-        'delivery_mode'
+        'delivery_mode',
+        'study_id'
     ];
 }

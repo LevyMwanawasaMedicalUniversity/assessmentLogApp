@@ -47,7 +47,7 @@ class PagesController extends Controller
             ->join('roles', 'roles.ID', '=', 'access.RoleID')
             ->join('schools', 'schools.Dean', '=', 'basic-information.ID')
             ->join('study', 'study.ParentID', '=', 'schools.ID')
-            ->select('basic-information.FirstName', 'basic-information.Surname', 'basic-information.ID', 'roles.RoleName', 'schools.ID as ParentID', 'study.ID as StudyID', 'schools.Name as SchoolName')
+            ->select('basic-information.FirstName', 'basic-information.Surname', 'basic-information.ID', 'roles.RoleName', 'schools.ID as ParentID', 'study.ID as StudyID', 'schools.Name as SchoolName','study.Delivery')
             ->get();
         $deansData= $deansDataGet->unique('ID');
         // $results= $deansDataGet->unique('ID');

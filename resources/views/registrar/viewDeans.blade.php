@@ -21,6 +21,13 @@
                                         Import
                                     </button>
                                 </form>
+
+                                <form method="post" action="{{ route('admin.refreshCAs') }}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-secondary font-weight-bold">
+                                        Refresh CAs
+                                    </button>
+                                </form>
                             @endif
                         </div>
                         <!-- Table with hoverable rows -->

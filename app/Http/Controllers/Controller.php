@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EduroleBasicInformation;
 use App\Models\EduroleStudy;
 use App\Models\StudentsContinousAssessment;
 
@@ -47,11 +48,20 @@ abstract class Controller
             ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
             ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
             ->join('schools', 'schools.ID', '=', 'study.ParentID')
-            ->select('study.ShortName as ProgrammeCode', 'basic-information.ID as username','basic-information.ID as basicInformationId', 'courses.ID','courses.ID as CourseID', 'basic-information.Firstname', 'schools.Description AS SchoolName','basic-information.PrivateEmail', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName', 'courses.CourseDescription','study.Delivery','study.ParentID')
+            ->select('study.ShortName as ProgrammeCode', 'basic-information.ID as username','basic-information.ID as basicInformationId', 'courses.ID','courses.ID as CourseID', 'basic-information.Firstname', 'schools.Description AS SchoolName','basic-information.PrivateEmail', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName', 'courses.CourseDescription','study.Delivery','study.ParentID','study.ID as StudyID')
             ->where('study.ProgrammesAvailable', '!=', 1)
             ->where(function($query) use ($naturalScienceCourses) {
                 $query->whereNotIn('courses.Name', ['MAT101', 'PHY101', 'CHM101', 'BIO101'])
                     ->orWhereIn('study.ID', $naturalScienceCourses);
             });
+    }
+
+    public function getStudentInformation($studentId){
+        $resultsFromBasicInformation= EduroleBasicInformation::join('student-study-link', 'student-study-link.StudentID', '=', 'basic-information.ID')
+            ->join('study', 'study.ID', '=', 'student-study-link.StudyID')            
+            ->join('schools', 'schools.ID', '=', 'study.ParentID')
+            ->select('basic-information.ID', 'basic-information.FirstName','basic-information.StudyType', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.Name as Programme', 'schools.Name as School')
+            ->where('basic-information.ID', $studentId);
+        return $resultsFromBasicInformation;
     }
 }

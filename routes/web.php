@@ -57,6 +57,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/index',[AdministratorController::class, 'index'])->name('admin.index');
         Route::post('/admin/importCoordinators',[AdministratorController::class, 'importCoordinators'])->name('admin.importCoordinators');
         Route::post('/admin/importDeans',[AdministratorController::class, 'importDeans'])->name('admin.importDeans');
+        Route::post('/admin/refreshCAs',[AdministratorController::class, 'refreshCAs'])->name('admin.refreshCAs');
         Route::get('/admin/auditTrails',[AdministratorController::class, 'auditTrails'])->name('admin.auditTrails');
         
     });

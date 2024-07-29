@@ -31,6 +31,7 @@
             <input type="hidden" name="course_id" value="{{ $courseId }}">
             <input type="hidden" name="course_code" value="{{ $results->CourseName }}">
             <input type="hidden" name="delivery" value="{{ $delivery }}">
+            <input type="hidden" name="study_id" value="{{ $results->StudyID }}">
 
             @if($basicInformationId)
                 <input type="hidden" name="basicInformationId" value="{{ $basicInformationId }}">
