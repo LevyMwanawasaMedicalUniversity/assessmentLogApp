@@ -201,8 +201,8 @@ class AdministratorController extends Controller
         
         // return $results;
         
-        // $totalCoursesCoordinated = (ceil($counts/ 3));
-        $totalCoursesCoordinated = $counts;
+        $totalCoursesCoordinated = (ceil($counts/ 3));
+        // $totalCoursesCoordinated = $counts;
         $counts = $results->countBy('basicInformationId');
         $totalCoursesWithCA = $withCa->sum();
         $results= $results->unique('basicInformationId', 'Name');
@@ -229,8 +229,8 @@ class AdministratorController extends Controller
         $withCa = $filteredResults->countBy('basicInformationId');
         
         
-        // $totalCoursesCoordinated = (ceil($counts/ 3));
-        $totalCoursesCoordinated = ($counts);
+        $totalCoursesCoordinated = (ceil($counts/ 3));
+        // $totalCoursesCoordinated = ($counts);
         $counts = $results->countBy('basicInformationId');
         $results= $results->unique('username');
         $totalCoursesWithCA = $withCa->sum();
