@@ -189,8 +189,10 @@ Breadcrumbs::for('coordinator.viewSpecificCaInCourse', function ($trail, $status
             ->orderBy('course_assessments.created_at', 'asc')
             ->first();
     $courseCode = $results->course_code;
+    $studyId = $results->study_id;
     $delivery = encrypt($results->delivery_mode);
     $getCourses = EduroleCourses::where('courses.Name', $courseCode)
+        ->where('study.ID', $studyId)
         ->select('courses.ID','study.ProgrammesAvailable')
         ->join('program-course-link', 'program-course-link.CourseID', '=', 'courses.ID')
         ->join('programmes', 'programmes.ID', '=', 'program-course-link.ProgramID')

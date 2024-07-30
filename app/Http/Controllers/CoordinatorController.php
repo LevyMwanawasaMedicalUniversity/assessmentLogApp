@@ -265,13 +265,19 @@ class CoordinatorController extends Controller
         $statusId = Crypt::decrypt($statusId);
         $basicInformationId = Crypt::decrypt($basicInformationId);
         $delivery = Crypt::decrypt($delivery);
-        $studyId = $request->studyId;
+        if($request->studyId ){
+            $studyId = $request->studyId;
+        }else{
+            $result = $this->getCoursesFromEdurole()            
+                ->where('courses.ID', $courseId)
+                ->where('study.Delivery', $delivery)
+                ->where('study.ProgrammesAvailable', $basicInformationId)
+                ->first();
+            $studyId = $result->StudyID;
+        }
+        
 
-        $result = $this->getCoursesFromEdurole()            
-            ->where('courses.ID', $courseId)
-            ->where('study.Delivery', $delivery)
-            ->where('study.ProgrammesAvailable', $basicInformationId)
-            ->first();
+        
         // return $result;
 
         $courseDetails = EduroleCourses::where('ID', $courseId)->first();
