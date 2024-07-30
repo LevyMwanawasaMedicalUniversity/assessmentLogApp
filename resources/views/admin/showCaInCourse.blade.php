@@ -20,19 +20,34 @@
                         <table id="myTable" class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>Assessment Type</th>
+                                    <th>Assessment Type {{$studyId}}</th>
                                     <th>Mode Of Study</th>
                                     <th>Count</th>
+                                    <th class="text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($assessmentDetails as $assessment)
                                 <tr>
-                                    <td><a href="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt($assessment->id),'courseIdValue' => encrypt($courseId),'basicInformationId' => encrypt($assessment->basic_information_id), 'delivery' => encrypt($assessment->delivery_mode)]) }}">{{ $assessment->assesment_type_name }}</a></td>
+                                    <td>{{ $assessment->assesment_type_name }}</td>
                                     <td style="color: {{ $assessment->delivery_mode == 'Fulltime' ? 'blue' : ($assessment->delivery_mode == 'Distance' ? 'green' : 'black') }}">
                                         {{ $assessment->delivery_mode }}
                                     </td>
                                     <td>{{ $assessment->total }}</td>
+                                    <td class="text-end">
+                                        <form action="{{ route('coordinator.viewAllCaInCourse', [
+                                            'statusId' => encrypt($assessment->id),
+                                            'courseIdValue' => encrypt($courseId),
+                                            'basicInformationId' => encrypt($assessment->basic_information_id),
+                                            'delivery' => encrypt($assessment->delivery_mode)
+                                        ]) }}" method="GET">
+                                            <input type="hidden" name="studyId" value="{{ $studyId }}">
+                                            <button type="submit"  class="btn btn-success font-weight-bold py-2">
+                                                Veiw
+                                            </button>
+                                        </form>
+                                    </td>
+                                    
                                 </tr>
                                 @endforeach
                             </tbody>

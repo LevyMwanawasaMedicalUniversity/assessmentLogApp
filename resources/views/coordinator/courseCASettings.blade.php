@@ -25,7 +25,7 @@
                                 
                                 <div class="d-flex justify-content-between align-items-center mb-4">
                                     <h5 class="card-title">{{$course->CourseDescription}}</h5>
-                                    <h5 class="card-title">Marks Available: <span id="remainingMarks" style="font-weight: bold;">{{$total_marks - $marksToDeduct}}</span></h5>
+                                    <h5 class="card-title">Marks Available : <span id="remainingMarks" style="font-weight: bold;">{{$total_marks - $marksToDeduct}}</span></h5>
                                 </div>
                                 
                                 <table id="myTable" class="table table-hover">
@@ -46,6 +46,7 @@
                                                     <input type="hidden" name="courseId" value="{{$course->ID}}">
                                                     <input type="hidden" name="basicInformationId" value="{{$basicInformationId}}">
                                                     <input type="hidden" name="delivery" value="{{$delivery}}">
+                                                    <input type="hidden" name="studyId" value="{{$studyId}}">
                                                     <input type="checkbox" 
                                                         name="assessmentType[{{ $assesmentType->id }}]"
                                                         value="{{ $assesmentType->id }}"

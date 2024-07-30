@@ -24,6 +24,9 @@ class CoordinatorController extends Controller
         $courseId = Crypt::decrypt($courseIdValue);
         $caType = Crypt::decrypt($caType);
         $basicInformationId = Crypt::decrypt($basicInformationId);
+        $studyId = $request->studyId;
+
+        // return $studyId;
 
         // return $courseId;
 
@@ -33,13 +36,14 @@ class CoordinatorController extends Controller
             ->where('study.ProgrammesAvailable', $basicInformationId)
             ->first();
         
-            return view('coordinator.uploadCa', compact('results', 'caType', 'courseId', 'basicInformationId', 'delivery'))
+            return view('coordinator.uploadCa', compact('studyId','results', 'caType', 'courseId', 'basicInformationId', 'delivery'))
                 ->with('info', 'Kindly note that you are uploading under ' . $delivery . ' education');
 
     }
 
-    public function showCaWithin($courseId){
+    public function showCaWithin(Request $request,$courseId){
         $courseId = Crypt::decrypt($courseId);
+        $studyId = $request->studyId;
         $assessmentDetails = CourseAssessment::select(
             'course_assessments.basic_information_id',
             'assessment_types.assesment_type_name',
@@ -48,6 +52,7 @@ class CoordinatorController extends Controller
             DB::raw('count(course_assessments.course_assessments_id) as total')
         )
         ->where('course_assessments.course_id', $courseId)
+        ->where('course_assessments.study_id', $studyId)
         ->join('assessment_types', 'assessment_types.id', '=', 'course_assessments.ca_type')
         ->groupBy('assessment_types.id','course_assessments.basic_information_id', 'assessment_types.assesment_type_name','course_assessments.delivery_mode')
         ->get();
@@ -58,26 +63,29 @@ class CoordinatorController extends Controller
     
 
         // return $assessmentDetails;
-        return view('admin.showCaInCourse', compact('courseInfo','assessmentDetails','courseId'));
+        return view('admin.showCaInCourse', compact('courseInfo','assessmentDetails','courseId','studyId'));
 
     }
 
-    public function courseCASettings($courseIdValue, $basicInformationId, $delivery){ 
+    public function courseCASettings(Request $request,$courseIdValue, $basicInformationId, $delivery){ 
         $courseId = Crypt::decrypt($courseIdValue);
         $delivery = Crypt::decrypt($delivery);
+        $studyId = $request->studyId;        
 
         // return $delivery;
         $allAssesmentTypes = AssessmentTypes::all();
         $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
             ->where('delivery_mode', $delivery)
+            ->where('study_id', $studyId)
             ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
             ->pluck('total_marks', 'assessment_type_id')
             ->toArray();
+        // return $courseAssessmenetTypes;
         $course = EduroleCourses::where('ID', $courseId)->first();
     
         $marksToDeduct = !empty($courseAssessmenetTypes) ? array_sum($courseAssessmenetTypes) : 0;
     
-        return view('coordinator.courseCASettings', compact('delivery','courseAssessmenetTypes', 'allAssesmentTypes', 'course', 'marksToDeduct','basicInformationId'));
+        return view('coordinator.courseCASettings', compact('studyId','delivery','courseAssessmenetTypes', 'allAssesmentTypes', 'course', 'marksToDeduct','basicInformationId'));
     }
     
     public function viewOnlyProgrammesWithCa(){
@@ -136,6 +144,7 @@ class CoordinatorController extends Controller
         $courseId = $request->input('courseId');
         $basicInformationId = $request->input('basicInformationId');
         $delivery = $request->input('delivery');
+        $studyId = $request->input('studyId');
     
         // Get the array of assessment types and marks allocated from the request
         $assessmentTypes = $request->input('assessmentType');
@@ -146,6 +155,7 @@ class CoordinatorController extends Controller
         
         $existingAssessmentTypeIds = CATypeMarksAllocation::where('course_id', $courseId)
             ->where('delivery_mode', $delivery)
+            ->where('study_id', $studyId)
             ->pluck('assessment_type_id')
             ->toArray();
         // return $existingAssessmentTypeIds;
@@ -156,6 +166,7 @@ class CoordinatorController extends Controller
                 if (!array_key_exists($existingAssessmentTypeId, $assessmentTypes)) {
                     CATypeMarksAllocation::where('course_id', $courseId)
                         ->where('delivery_mode', $delivery)
+                        ->where('study_id', $studyId)
                         ->where('assessment_type_id', $existingAssessmentTypeId)
                         ->delete();
                 }
@@ -175,7 +186,8 @@ class CoordinatorController extends Controller
                     [
                         'course_id' => $courseId,
                         'assessment_type_id' => $assessmentTypeId,
-                        'delivery_mode' => $delivery
+                        'delivery_mode' => $delivery,
+                        'study_id' => $studyId
                     ],
                     [
                         'user_id' => auth()->user()->id,
@@ -187,6 +199,7 @@ class CoordinatorController extends Controller
 
         
         $courseAssessmenetTypes= CATypeMarksAllocation::where('course_id', $courseId)
+            ->where('study_id', $studyId)
             ->where('delivery_mode', $delivery)
             ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
             ->get();
@@ -194,6 +207,7 @@ class CoordinatorController extends Controller
         $getCoure = EduroleCourses::where('ID', $courseId)->first();
         $courseCode = $getCoure->Name;
         $studentssWithResults = CourseAssessmentScores::where('course_code', $courseCode)
+            ->where('study_id', $studyId)
             ->where('delivery_mode', $delivery)
             ->get();
 
@@ -207,6 +221,7 @@ class CoordinatorController extends Controller
 
             $studentsInAssessmentType = CourseAssessmentScores::where('course_code', $courseCode)
                 ->where('delivery_mode', $delivery)
+                ->where('study_id', $studyId)
             // ->join('')    
             // ->where('course_assessment_id', $courseAssessmentType->assessment_type_id)
                 ->get();
@@ -233,7 +248,7 @@ class CoordinatorController extends Controller
             ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
             ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
             ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
-            ->select('courses.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName','courses.CourseDescription','basic-information.ID as basicInformationId')
+            ->select('courses.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name','study.ID as StudyID', 'courses.Name as CourseName','courses.CourseDescription','basic-information.ID as basicInformationId')
             ->where('courses.ID', $courseId)
             ->first();
         $courseAssessment = CourseAssessment::where('course_assessments_id', $courseAssessmentId)->first();
@@ -242,17 +257,26 @@ class CoordinatorController extends Controller
         return view('coordinator.editCaInCourse', compact('delivery','results', 'courseId','courseAssessmentId','basicInformationId'));
     }
 
-    public function viewAllCaInCourse($statusId, $courseIdValue, $basicInformationId, $delivery){
+    public function viewAllCaInCourse(Request $request,$statusId, $courseIdValue, $basicInformationId, $delivery){
         $courseId = Crypt::decrypt($courseIdValue);
         $statusId = Crypt::decrypt($statusId);
         $basicInformationId = Crypt::decrypt($basicInformationId);
         $delivery = Crypt::decrypt($delivery);
+        $studyId = $request->studyId;
+
+        $result = $this->getCoursesFromEdurole()            
+            ->where('courses.ID', $courseId)
+            ->where('study.Delivery', $delivery)
+            ->where('study.ProgrammesAvailable', $basicInformationId)
+            ->first();
+        // return $result;
 
         $courseDetails = EduroleCourses::where('ID', $courseId)->first();
 
         $results = CourseAssessment::where('course_id', $courseId)
             ->where('ca_type', $statusId)
             ->where('delivery_mode', $delivery)
+            ->where('study_id', $studyId)
             // ->join('course_assessment_scores', 'course_assessments.id', '=', 'course_assessment_scores.course_assessment_id')
             ->orderBy('course_assessments.course_assessments_id', 'asc')
             ->get();
@@ -312,10 +336,16 @@ class CoordinatorController extends Controller
         $basicInformationId = Crypt::decrypt($basicInformationId);
         $delivery = Crypt::decrypt($delivery);
         $courseDetails = EduroleCourses::where('ID', $courseId)->first();
+        $coursesInEdurole = $this->getCoursesFromEdurole()
+                ->where('courses.ID', $courseId)
+                ->where('study.ProgrammesAvailable', $basicInformationId)
+                ->where('study.Delivery', $delivery)
+                ->first();
         // return $courseDetails;
         // if($caType != 4){            
         $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
             ->where('delivery_mode', $delivery)
+            ->where('study_id', $coursesInEdurole->StudyID)
             // ->whereIn('ca_type', [1,2,3]) 
             ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
             ->groupBy('students_continous_assessments.student_id')
@@ -451,6 +481,7 @@ class CoordinatorController extends Controller
                         'academic_year' => $request->academicYear,
                         'basic_information_id' => $request->basicInformationId,
                         'delivery_mode' => $request->delivery,
+                        'study_id' => $request->study_id,
                     ]);
 
                     foreach ($data as $entry) {
@@ -460,6 +491,7 @@ class CoordinatorController extends Controller
                                 'student_id' => trim($entry['student_number']),
                                 'course_code' => $request->course_code,
                                 'delivery_mode' => $request->delivery,
+                                'study_id' => $request->study_id,
                             ],
                             [
                                 'cas_score' => $entry['mark'],
@@ -496,6 +528,7 @@ class CoordinatorController extends Controller
             'course_code' => 'required',   
             'basicInformationId' => 'required',
             'delivery' => 'required',
+            'study_id' => 'required',
         ]);
 
         // return $request->basicInformationId;
@@ -548,6 +581,8 @@ class CoordinatorController extends Controller
                         'course_assessment_id' => $request->course_assessment_id,
                         'student_id' => trim($entry['student_number']),                        
                         'course_code' => $request->course_code,
+                        'delivery_mode' => $request->delivery,
+                        'study_id' => $studyId,
                     ],[                        
                         'cas_score' => $entry['mark'],                      
                     ]);
@@ -591,7 +626,8 @@ class CoordinatorController extends Controller
     private function getMaxScore($courseId, $caType, $delivery, $studyId){
         $courseAssessmenetTypes = CATypeMarksAllocation::where('c_a_type_marks_allocations.course_id', $courseId)
                     ->where('c_a_type_marks_allocations.assessment_type_id', $caType)
-                    ->where('c_a_type_marks_allocations.delivery_mode', $delivery)                    
+                    ->where('c_a_type_marks_allocations.delivery_mode', $delivery)
+                    ->where('c_a_type_marks_allocations.study_id', $studyId)                    
                     ->select('c_a_type_marks_allocations.total_marks')
                     ->first();
         return $courseAssessmenetTypes->total_marks;

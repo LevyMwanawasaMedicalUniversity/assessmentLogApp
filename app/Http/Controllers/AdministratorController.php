@@ -9,6 +9,7 @@ use App\Models\EduroleBasicInformation;
 use App\Models\EduroleStudy;
 use App\Models\StudentsContinousAssessment;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
@@ -28,52 +29,86 @@ class AdministratorController extends Controller
 
     public function refreshCAs(Request $request)
     {
-
+        set_time_limit(12000000);
         $cooedinatorController = new CoordinatorController();
-        $courseAssessments = CourseAssessment::all();
-        // return $courseAssessments;
-        // q
+        $courseAssessments = CourseAssessment::all();   
+
+        $academicYear = 2024;
+        foreach ($courseAssessments as $courseAssessment) {
+            $coursesInEdurole = $this->getCoursesFromEdurole()
+                ->where('courses.ID', $courseAssessment->course_id)
+                ->where('study.ProgrammesAvailable', $courseAssessment->basic_information_id)
+                ->where('study.Delivery', $courseAssessment->delivery_mode)
+                ->first();            
+            
+            if ($coursesInEdurole) {
+                $user = User::where('basic_information_id', $courseAssessment->basic_information_id)->first();
+                if ($user) {
+                    $courseAssessment->study_id = $coursesInEdurole->StudyID;
+                    $courseAssessment->save();            
+
+                    $courseAssessmentsScore = CourseAssessmentScores::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
+                    foreach ($courseAssessmentsScore as $courseAssessmentScore) {
+                        $courseAssessmentScore->study_id = $coursesInEdurole->StudyID;
+                        $courseAssessmentScore->save();
+                    }
+                    
+                }
+                
+            }
+        }
+
+        foreach ($courseAssessments as $courseAssessment) {
+            $studentAssessments = StudentsContinousAssessment::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
+            foreach ($studentAssessments as $studentAssessment) {
+                $studentAssessment->study_id = $courseAssessment->study_id;
+                $studentAssessment->save();
+            }
+        } 
+
+        $caTypeAllocation = CATypeMarksAllocation::all();
+
+        foreach ($caTypeAllocation as $caType) {
+
+            $user = User::where('id', $caType->user_id)->first();
+            $basicInformationId = $user->basic_information_id;
+            $coursesInEdurole = $this->queryCourseFromEdurole()
+                ->where('study.ProgrammesAvailable', $basicInformationId)
+                ->where('study.Delivery', $caType->delivery_mode)
+                ->where('courses.ID', $caType->course_id)
+                ->first();
+            try{
+                $caType->study_id = $coursesInEdurole->StudyID;
+            }catch (Exception $e) {
+                Log::error('Error refreshing student marks: ' . $e->getMessage());
+                continue;
+            }
+            $caType->save();
+        }
 
         foreach ($courseAssessments as $courseAssessment) {
             $coursesInEdurole = $this->getCoursesFromEdurole()
                 ->where('courses.ID', $courseAssessment->course_id)
                 ->where('study.ProgrammesAvailable', $courseAssessment->basic_information_id)
+                ->where('study.Delivery', $courseAssessment->delivery_mode)
                 ->first();
-            $academicYear = 2024;
-            if ($coursesInEdurole) { // Check if the course exists in Edurole
-                $courseAssessment->study_id = $coursesInEdurole->StudyID;
-                $courseAssessment->save();            
-
-                $courseAssessmentsScore = CourseAssessmentScores::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
-                foreach ($courseAssessmentsScore as $courseAssessmentScore) {
-                    $courseAssessmentScore->study_id = $coursesInEdurole->StudyID;
-                    $courseAssessmentScore->save();
+            $studentAssessments = StudentsContinousAssessment::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
+            $studentInCourseAssessment = $studentAssessments->unique('student_id');
+            try{
+                foreach ($studentInCourseAssessment as $student) {
+                    $cooedinatorController->refreshAllStudentsMarks(
+                        $courseAssessment->course_id, 
+                        $academicYear, 
+                        $courseAssessment->ca_type, 
+                        $student->student_id, 
+                        $courseAssessment->course_assessments_id, 
+                        $courseAssessment->delivery_mode, 
+                        $coursesInEdurole->StudyID
+                    );
                 }
-
-                $user = User::where('basic_information_id', $courseAssessment->basic_information_id)->first();
-                if ($user) {
-                    $caTypeAllocation = CATypeMarksAllocation::where('user_id', $user->id)->where('course_id', $courseAssessment->course_id)->get();
-                    foreach ($caTypeAllocation as $caType) {
-                        $caType->study_id = $coursesInEdurole->StudyID;
-                        $caType->save();
-                    }
-                }
-
-                $studentAssessments = StudentsContinousAssessment::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
-                foreach ($studentAssessments as $studentAssessment) {
-                    $studentAssessment->study_id = $coursesInEdurole->StudyID;
-                    $studentAssessment->save();
-                }
-                // $allCaTypes = CATypeMarksAllocation::where('course_id', $courseAssessment->course_id)->get();
-                if ($user) {
-
-
-
-                    $studentInCourseAssessment = CourseAssessmentScores::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
-                    foreach ($studentInCourseAssessment as $student) {
-                        $cooedinatorController->refreshAllStudentsMarks($courseAssessment->course_id, $academicYear, $caTypeAllocation->assessment_type_id, $student->student_id, $courseAssessment->course_assessments_id, $courseAssessment->delivery_mode, $coursesInEdurole->StudyID);
-                    }
-                }
+            }catch (Exception $e) {
+                Log::error('Error refreshing student marks: ' . $e->getMessage());
+                continue;
             }
         }
 

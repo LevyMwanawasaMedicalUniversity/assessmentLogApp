@@ -24,25 +24,37 @@
                                     <th class="px-4 py-2">Course Code</th>
                                     <th class="px-4 py-2">Coordinator</th>
                                     <th class="px-4 py-2">Delivery Mode</th>
-                                    <th class="px-4 py-2">Email</th>
+                                    {{-- <th class="px-4 py-2">Email</th> --}}
                                     <th class="px-4 py-2">Programme Name</th>
                                     <th class="px-4 py-2">Course Name</th>
                                     <th class="px-4 py-2">School</th>
+                                    <th class="px-4 py-2 text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($results as $result)
                                     <tr class="border-t border-b hover:bg-gray-100">
                                         <td class="px-4 py-2">{{$loop->iteration}}</td>
-                                        <td class="px-4 py-2"><a href="{{route('coordinator.showCaWithin',encrypt($result->ID))}}">{{$result->CourseName}}</a></td>
+                                        <td class="px-4 py-2">
+                                            {{ $result->CourseName }}                                                
+                                        </td>
                                         <td class="px-4 py-2">{{$result->Firstname}} {{$result->Surname}}</td>
                                         <td style="color: {{ $result->Delivery == 'Fulltime' ? 'blue' : ($result->Delivery == 'Distance' ? 'green' : 'black') }}">
                                             {{$result->Delivery}}
                                         </td>
-                                        <td class="px-4 py-2">{{$result->PrivateEmail}}</td>
+                                        {{-- <td class="px-4 py-2">{{$result->PrivateEmail}}</td> --}}
                                         <td class="px-4 py-2">{{$result->Name}}</td>  
                                         <td class="px-4 py-2">{{$result->CourseDescription}}</td>
-                                        <td class="px-4 py-2">{{$result->SchoolName}}</td>                                                                                                          
+                                        <td class="px-4 py-2">{{$result->SchoolName}}</td> 
+                                        <td class="px-4 py-2 text-end">
+                                            <form action="{{ route('coordinator.showCaWithin', encrypt($result->ID)) }}" method="GET">
+                                                <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
+                                                {{-- <button type="submit" style="background:none;border:none;color:blue;text-decoration:underline;cursor:pointer;"> --}}
+                                                <button type="submit" class="btn btn-success font-weight-bold py-2">
+                                                    View
+                                                </button>
+                                            </form>
+                                        </td>                                                                                                         
                                     </tr>
                                 @endforeach
                             </tbody>

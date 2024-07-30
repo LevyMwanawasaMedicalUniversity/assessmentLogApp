@@ -38,10 +38,7 @@ abstract class Controller
         return $naturalScienceCourses;
     }
 
-    public function getCoursesFromEdurole()
-    {
-        
-        $naturalScienceCourses = $this->getNSAttachedCourses();
+    public function queryCourseFromEdurole(){
         return EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
             ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
             ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
@@ -49,7 +46,13 @@ abstract class Controller
             ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
             ->join('schools', 'schools.ID', '=', 'study.ParentID')
             ->select('study.ShortName as ProgrammeCode', 'basic-information.ID as username','basic-information.ID as basicInformationId', 'courses.ID','courses.ID as CourseID', 'basic-information.Firstname', 'schools.Description AS SchoolName','basic-information.PrivateEmail', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName', 'courses.CourseDescription','study.Delivery','study.ParentID','study.ID as StudyID')
-            ->where('study.ProgrammesAvailable', '!=', 1)
+            ->where('study.ProgrammesAvailable', '!=', 1);
+    } 
+
+    public function getCoursesFromEdurole()
+    {        
+        $naturalScienceCourses = $this->getNSAttachedCourses();
+        return $this->queryCourseFromEdurole()
             ->where(function($query) use ($naturalScienceCourses) {
                 $query->whereNotIn('courses.Name', ['MAT101', 'PHY101', 'CHM101', 'BIO101'])
                     ->orWhereIn('study.ID', $naturalScienceCourses);

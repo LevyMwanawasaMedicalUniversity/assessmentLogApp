@@ -1,5 +1,5 @@
 <div class="container">
-    <div class="modal fade" id="viewCourseModal{{ $result->ID }}{{ $result->Delivery }}" tabindex="-1" role="dialog" aria-labelledby="viewCourseModalLabel" aria-hidden="true">
+    <div class="modal fade" id="viewCourseModal{{ $result->ID }}{{ $result->Delivery }}{{$result->StudyID}}" tabindex="-1" role="dialog" aria-labelledby="viewCourseModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -16,12 +16,14 @@
                 </div>
                 @php
                 $courseAssessmenetTypes = \App\Models\CATypeMarksAllocation::where('course_id', $result->ID)
+                    ->where('study_id', $result->StudyID)
                     ->where('delivery_mode', $result->Delivery)
                     ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
                     ->select('assessment_types.id','assessment_types.assesment_type_name')
                     ->get();
 
                 $totalMarks = \App\Models\CATypeMarksAllocation::where('course_id', $result->ID)
+                    ->where('study_id', $result->StudyID)
                     ->where('delivery_mode', $result->Delivery)
                     ->sum('total_marks');
 
@@ -43,6 +45,7 @@
                                     @foreach ($courseAssessmenetTypes as $courseAssessmenetType )
                                         <form method="GET" action="{{ route('coordinator.viewAllCaInCourse', ['statusId' => encrypt($courseAssessmenetType->id), 'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery'=>encrypt($result->Delivery)]) }}">
                                             <input type="hidden" name="delivery" value="{{ $result->Delivery }}">
+                                            <input type="hidden" name="studyId" value="{{$result->StudyID}}">
                                             <button type="submit" class="btn btn-light shadow-sm text-center mb-3" style="border: 2px solid green;">
                                                 <div class="p-3 text-dark">
                                                     {{ $courseAssessmenetType->assesment_type_name }}
@@ -58,18 +61,32 @@
                                         </button>
                                     </form>
                                 @else
-                                    <a href="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery' =>encrypt($result->Delivery)]) }}" >
-                                        <div class="alert alert-warning" role="alert">
-                                            The distribution of the total marks is incomplete. Please click here to allocate the remaining 40 marks.   
-                                        </div>
-                                    </a>
+                                    <form action="{{ route('coordinator.courseCASettings', [
+                                        'courseIdValue' => encrypt($result->ID),
+                                        'basicInformationId' => encrypt($result->basicInformationId),
+                                        'delivery' => encrypt($result->Delivery)
+                                    ]) }}" method="GET">
+                                        <input type="hidden" name="studyId" value="{{ ($result->StudyID) }}">
+                                        <button type="submit" style="background:none;border:none;padding:0;">
+                                            <div class="alert alert-warning" role="alert">
+                                                The distribution of the total marks is incomplete. Please click here to allocate the remaining 40 marks.
+                                            </div>
+                                        </button>
+                                    </form>
                                 @endif
                             @else
-                                <a href="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery' =>encrypt($result->Delivery)]) }}" >
-                                    <div class="alert alert-danger" role="alert">
-                                        No Assessment Type Found , click here to set up Assessment Types.
-                                    </div>
-                                </a>
+                                <form action="{{ route('coordinator.courseCASettings', [
+                                    'courseIdValue' => encrypt($result->ID),
+                                    'basicInformationId' => encrypt($result->basicInformationId),
+                                    'delivery' => encrypt($result->Delivery)
+                                ]) }}" method="GET">
+                                    <input type="hidden" name="studyId" value="{{ ($result->StudyID) }}">
+                                    <button type="submit" style="background:none;border:none;padding:0;">
+                                        <div class="alert alert-danger" role="alert">
+                                            No Assessment Type Found, click here to set up Assessment Types.
+                                        </div>
+                                    </button>
+                                </form>
                             @endif
                                 
                         </div>

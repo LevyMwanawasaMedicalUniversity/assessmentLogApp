@@ -57,7 +57,13 @@
                                                 {{ $user && $user->last_login_at ? $user->last_login_at : 'NEVER' }}
                                             </td>
                                             <td>{{ $counts[$result->basicInformationId] ?? '0' }} Courses</td>
-                                            <td><a href="{{route('coordinator.viewOnlyProgrammesWithCaForCoordinator',$result->basicInformationId)}}">{{ $withCa[$result->basicInformationId] ?? '0' }} Courses</a></td>
+                                            <td>
+                                                <form action="{{ route('coordinator.viewOnlyProgrammesWithCaForCoordinator', $result->basicInformationId) }}" method="GET">
+                                                    <button type="submit" style="background:none;border:none;color:blue;text-decoration:underline;cursor:pointer;">
+                                                        {{ $withCa[$result->basicInformationId] ?? '0' }} Courses
+                                                    </button>
+                                                </form>
+                                            </td>
                                             <td>
                                                 <form method="GET" action="{{ route('admin.viewCoordinatorsCourses', ['basicInformationId' => encrypt($result->basicInformationId)]) }}">
                                                     <button type="submit" class="btn btn-primary font-weight-bold">

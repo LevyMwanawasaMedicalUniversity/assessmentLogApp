@@ -47,6 +47,7 @@
                                             )
                                             ->where('course_assessments.course_id', $result->ID)
                                             ->where('course_assessments.delivery_mode', $result->Delivery)
+                                            ->where('course_assessments.study_id', $result->StudyID)
                                             ->join('assessment_types', 'assessment_types.id', '=', 'course_assessments.ca_type')
                                             ->groupBy('assessment_types.id','course_assessments.basic_information_id', 'assessment_types.assesment_type_name','course_assessments.delivery_mode')
                                             ->get();
@@ -62,20 +63,32 @@
                                             <td style="color: {{ $result->Delivery == 'Fulltime' ? 'blue' : ($result->Delivery == 'Distance' ? 'green' : 'black') }}">
                                                 {{$result->Delivery}}
                                             </td>
-                                            <td><a href="{{route('coordinator.showCaWithin',encrypt($result->ID))}}">{{ $totalAssessments ? $totalAssessments : 0 }} assessments</a></td>
+                                            <td>
+                                                <form action="{{ route('coordinator.showCaWithin', encrypt($result->ID)) }}" method="GET">
+                                                    <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
+                                                    <button type="submit" style="background:none;border:none;color:blue;text-decoration:underline;cursor:pointer;">
+                                                        {{ $totalAssessments ? $totalAssessments : 0 }} assessments
+                                                    </button>
+                                                </form>
+                                            </td>
                                             <td class="text-right">
                                                     <div class="btn-group float-end" role="group" aria-label="Button group">
                                                         @if(auth()->user()->hasPermissionTo('Coordinator'))
-                                                            <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#uploadCourseModal{{ $result->ID }}{{ $result->Delivery }}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
+                                                            <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#uploadCourseModal{{ $result->ID }}{{ $result->Delivery }}{{$result->StudyID}}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
                                                                 Upload
                                                             </button>
                                                         @endif
-                                                            <button type="button" class="btn btn-success font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#viewCourseModal{{ $result->ID }}{{ $result->Delivery }}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
+                                                            <button type="button" class="btn btn-success font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#viewCourseModal{{ $result->ID }}{{ $result->Delivery }}{{$result->StudyID}}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
                                                                 View
                                                             </button>
-                                                        <a href="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId), 'delivery' =>encrypt($result->Delivery)]) }}" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
-                                                            Settings
-                                                        </a>
+                                                        
+                                                        
+                                                        <form action="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID), 'basicInformationId' => encrypt($result->basicInformationId), 'delivery' => encrypt($result->Delivery)]) }}" method="GET" class="d-inline">
+                                                            <input type="hidden" name="studyId" value="{{ ($result->StudyID) }}">
+                                                            <button type="submit" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
+                                                                Settings
+                                                            </button>
+                                                        </form>
                                                     </div>
                                                 </td>
                                         </tr>                            
