@@ -20,7 +20,7 @@
                         <table id="myTable" class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>Assessment Type {{$studyId}}</th>
+                                    <th>Assessment Type</th>
                                     <th>Mode Of Study</th>
                                     <th>Count</th>
                                     <th class="text-end">Actions</th>

@@ -3,7 +3,7 @@
     <main id="main" class="main">
         <div class="pagetitle">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ $results->CourseDescription }} - {{$results->CourseName}} <span style="color: {{ $delivery == 'Fulltime' ? 'blue' : ($delivery == 'Distance' ? 'green' : 'black') }}">{{$delivery}}</span>
+                {{ $results->CourseDescription }} - {{$results->CourseName}} <span style="color: {{ $delivery == 'Fulltime' ? 'blue' : ($delivery == 'Distance' ? 'green' : 'black') }}">{{$delivery}} {{$assessmentType}}</span>
             </h2>
             @include('layouts.alerts')
             <nav>
@@ -15,7 +15,7 @@
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-header bg-primary text-white">
-                            <h5>Upload CA</h5>
+                            <h5>Upload {{$assessmentType}}</h5>
                         </div>
                         <div class="card-body">
                             <!-- Vertical Form -->

@@ -23,9 +23,12 @@ class CoordinatorController extends Controller
         $delivery = $request->delivery; 
         $courseId = Crypt::decrypt($courseIdValue);
         $caType = Crypt::decrypt($caType);
+        
         $basicInformationId = Crypt::decrypt($basicInformationId);
         $studyId = $request->studyId;
-
+        $getAssessmentType = AssessmentTypes::where('id', $caType)->first();
+        $assessmentType = $getAssessmentType->assesment_type_name;
+        // return $assessmentType;
         // return $studyId;
 
         // return $courseId;
@@ -36,7 +39,7 @@ class CoordinatorController extends Controller
             ->where('study.ProgrammesAvailable', $basicInformationId)
             ->first();
         
-            return view('coordinator.uploadCa', compact('studyId','results', 'caType', 'courseId', 'basicInformationId', 'delivery'))
+            return view('coordinator.uploadCa', compact('assessmentType','studyId','results', 'caType', 'courseId', 'basicInformationId', 'delivery'))
                 ->with('info', 'Kindly note that you are uploading under ' . $delivery . ' education');
 
     }
