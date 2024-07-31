@@ -35,7 +35,7 @@ class PagesController extends Controller
         // return $coursesWithCA;
         $filteredResults = $coursesFromEdurole->filter(function ($item) use ($coursesFromLMMAX) {
             foreach ($coursesFromLMMAX as $course) {
-                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->ProgrammesAvailable == $course['basic_information_id']) {
+                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->StudyID == $course['study_id']) {
                     return true;
                 }
             }
