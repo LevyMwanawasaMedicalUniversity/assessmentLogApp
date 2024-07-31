@@ -152,9 +152,17 @@ class CoordinatorController extends Controller
         // Get the array of assessment types and marks allocated from the request
         $assessmentTypes = $request->input('assessmentType');
         $marksAllocated = $request->input('marks_allocated');
-        
-        // Loop through the assessment types
-        
+        $user = auth()->user();
+        $userBasicInformationId = $user->basic_information_id;
+        $programmeInfo = $this->getCoursesFromEdurole()
+            ->where('study.Delivery', $delivery)
+            ->where('study.ProgrammesAvailable', $userBasicInformationId)
+            ->where('study.ID', $studyId)
+            ->first();
+        // if (!$programmeInfo || !$user->hasRole('Administrator')) {
+        //     return redirect()->back()->with('error', 'You are not allowed to update this course CA settings');
+        // }      
+        // Loop through the assessment types and marks allocated        
         
         $existingAssessmentTypeIds = CATypeMarksAllocation::where('course_id', $courseId)
             ->where('delivery_mode', $delivery)

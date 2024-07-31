@@ -81,7 +81,7 @@
                                 <i class="bi bi-receipt"></i>
                             </div>
                             <div class="ps-3">
-                                <h6>{{ $coursesWithCA->unique('ID')->count() }}</h6>
+                                <h6>{{ $coursesWithCA->count() }}</h6>
                                 <span class="text-success small pt-1 fw-bold">With Continuous Assessments</span>
                             </div>
                         </div>
