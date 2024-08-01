@@ -5,6 +5,11 @@
     <div class="pagetitle">
         <h1>My Courses</h1>
         @include('layouts.alerts')
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle me-1"></i>
+                Please ensure that you make your upload under the correct mode of study (<span style="color:blue"><b>Fulltime</b></span> or <span style="color:green"><b>Distance</b></span>) for each course.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
         <nav>
             {{ Breadcrumbs::render() }}
         </nav>
@@ -61,7 +66,7 @@
                                             <td>{{$result->CourseName}}</td>
                                             <td>{{$result->Name}}</td>
                                             <td style="color: {{ $result->Delivery == 'Fulltime' ? 'blue' : ($result->Delivery == 'Distance' ? 'green' : 'black') }}">
-                                                {{$result->Delivery}}
+                                                <b>{{$result->Delivery}}</b>
                                             </td>
                                             <td>
                                                 <form action="{{ route('coordinator.showCaWithin', encrypt($result->ID)) }}" method="GET">

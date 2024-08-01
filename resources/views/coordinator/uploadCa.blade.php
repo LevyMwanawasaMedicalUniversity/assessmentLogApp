@@ -6,6 +6,11 @@
                 {{ $results->CourseDescription }} - {{$results->CourseName}} <span style="color: {{ $delivery == 'Fulltime' ? 'blue' : ($delivery == 'Distance' ? 'green' : 'black') }}">{{$delivery}} {{$assessmentType}}</span>
             </h2>
             @include('layouts.alerts')
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle me-1"></i>
+                    Please ensure that you make your upload under the correct mode of study (<span style="color:blue"><b>Fulltime</b></span> or <span style="color:green"><b>Distance</b></span>) for each course.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
             <nav>
                 {{ Breadcrumbs::render() }}
             </nav>

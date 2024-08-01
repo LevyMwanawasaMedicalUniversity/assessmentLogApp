@@ -351,6 +351,7 @@ class AdministratorController extends Controller
         $naturalScienceCourses = $this->getNSAttachedCourses();
         $results = $this->getCoursesFromEdurole()
             ->where('basic-information.ID', $basicInformationId)
+            ->orderBy('courses.Name')
             ->get();
 
             
