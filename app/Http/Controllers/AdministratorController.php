@@ -352,6 +352,7 @@ class AdministratorController extends Controller
         $results = $this->getCoursesFromEdurole()
             ->where('basic-information.ID', $basicInformationId)
             ->orderBy('courses.Name')
+            ->orderBy('study.Delivery')
             ->get();
 
             

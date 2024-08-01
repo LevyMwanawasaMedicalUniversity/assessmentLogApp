@@ -23,6 +23,7 @@ class PagesController extends Controller
         $results = $this->getCoursesFromEdurole()
             ->where('basic-information.ID', $userBasicInformation)
             ->orderBy('courses.Name')
+            ->orderBy('study.Delivery')
             ->get();
         return view('coordinator.viewCoordinatorsCourses', compact('results'));
     }
