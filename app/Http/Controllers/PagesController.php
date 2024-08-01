@@ -29,9 +29,8 @@ class PagesController extends Controller
     public function dashboard()
     {
         $coursesFromLMMAX = $this->getCoursesFromLMMAX();
-
-        $coursesFromEdurole = $this->getCoursesFromEdurole()->get();
-            
+        // return $coursesFromLMMAX;
+        $coursesFromEdurole = $this->getCoursesFromEdurole()->get();            
         // return $coursesWithCA;
         $filteredResults = $coursesFromEdurole->filter(function ($item) use ($coursesFromLMMAX) {
             foreach ($coursesFromLMMAX as $course) {

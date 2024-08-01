@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CourseAssessment;
 use App\Models\EduroleBasicInformation;
 use App\Models\EduroleStudy;
 use App\Models\StudentsContinousAssessment;
@@ -11,8 +12,8 @@ abstract class Controller
     //
     public function getCoursesFromLMMAX()
     {
-        return StudentsContinousAssessment::select('course_assessment_scores.course_code','course_assessments.study_id','course_assessments.course_id','course_assessment_scores.study_id','course_assessments.delivery_mode','course_assessments.basic_information_id')
-            ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id') 
+        return CourseAssessment::select('course_assessment_scores.course_code','course_assessments.study_id','course_assessments.course_id','course_assessment_scores.study_id','course_assessments.delivery_mode','course_assessments.basic_information_id')
+            // ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id') 
             ->join('course_assessment_scores', 'course_assessment_scores.course_assessment_id', '=', 'course_assessments.course_assessments_id')
             ->distinct()
             ->get()
