@@ -8,7 +8,7 @@
             @include('layouts.alerts')
             <div class="alert alert-info alert-dismissible fade show" role="alert">
                 <i class="bi bi-info-circle me-1"></i>
-                    Please ensure that you make your upload under the correct mode of study (<span style="color:blue"><b>Fulltime</b></span> or <span style="color:green"><b>Distance</b></span>) for each course.
+                    Please ensure that you make your upload under the correct mode of study (<span style="color:blue"><b>Fulltime</b></span> or <span style="color:green"><b>Distance</b></span>) for each course. Also ensure that your Excel Sheet is correctly formatted and there are no error on the results.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             <nav>
