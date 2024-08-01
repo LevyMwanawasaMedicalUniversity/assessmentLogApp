@@ -7,7 +7,7 @@
         @include('layouts.alerts')
         <div class="alert alert-info alert-dismissible fade show" role="alert">
                 <i class="bi bi-info-circle me-1"></i>
-                Please ensure that you make your upload under the correct mode of study (<span style="color:blue"><b>Fulltime</b></span> or <span style="color:green"><b>Distance</b></span>) for each course.
+                Please ensure that you make your upload under the correct delivery mode (<span style="color:blue"><b>Fulltime</b></span> or <span style="color:green"><b>Distance</b></span>) for each course.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         <nav>
@@ -34,7 +34,7 @@
                                     <th scope="col">Course Code</th>
                                     <th scope="col">Programme Name</th>
                                     <th scope="col">Delivery Mode</th>
-                                    <th scope="col">Your Of Study</th>
+                                    <th scope="col">Year Of Study</th>
                                     <th scope="col">Number Of Uploads</th>
                                     <th scope="col" class="text-right">Actions</th>
                                     </tr>
