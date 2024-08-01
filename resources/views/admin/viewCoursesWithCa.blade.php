@@ -28,11 +28,29 @@
                                     <th class="px-4 py-2">Programme Name</th>
                                     <th class="px-4 py-2">Course Name</th>
                                     <th class="px-4 py-2">School</th>
+                                    <th class="px-4 py-2">Count</th>
                                     <th class="px-4 py-2 text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($results as $result)
+                                @php
+                                        $assessmentDetails = \App\Models\CourseAssessment::select(
+                                                'course_assessments.basic_information_id',
+                                                'assessment_types.assesment_type_name',
+                                                'assessment_types.id',
+                                                'course_assessments.delivery_mode',
+                                                DB::raw('count(course_assessments.course_assessments_id) as total')
+                                            )
+                                            ->where('course_assessments.course_id', $result->ID)
+                                            ->where('course_assessments.delivery_mode', $result->Delivery)
+                                            ->where('course_assessments.study_id', $result->StudyID)
+                                            ->join('assessment_types', 'assessment_types.id', '=', 'course_assessments.ca_type')
+                                            ->groupBy('assessment_types.id','course_assessments.basic_information_id', 'assessment_types.assesment_type_name','course_assessments.delivery_mode')
+                                            ->get();
+                                        $totalAssessments = $assessmentDetails->sum('total');
+
+                                        @endphp
                                     <tr class="border-t border-b hover:bg-gray-100">
                                         <td class="px-4 py-2">{{$loop->iteration}}</td>
                                         <td class="px-4 py-2">
@@ -46,6 +64,7 @@
                                         <td class="px-4 py-2">{{$result->Name}}</td>  
                                         <td class="px-4 py-2">{{$result->CourseDescription}}</td>
                                         <td class="px-4 py-2">{{$result->SchoolName}}</td> 
+                                        <td class="px-4 py-2">{{$totalAssessments}}</td>
                                         <td class="px-4 py-2 text-end">
                                             <form action="{{ route('coordinator.showCaWithin', encrypt($result->ID)) }}" method="GET">
                                                 <input type="hidden" name="studyId" value="{{ $result->StudyID }}">

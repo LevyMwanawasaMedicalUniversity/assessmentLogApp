@@ -115,10 +115,7 @@ class CoordinatorController extends Controller
 
     public function viewOnlyProgrammesWithCaForCoordinator($coordinatorId){
 
-        $coursesWithCA = $this->getCoursesFromLMMAX();
-        
-        
-    
+        $coursesWithCA = $this->getCoursesFromLMMAX();   
 
         $results = $this->getCoursesFromEdurole()
             
