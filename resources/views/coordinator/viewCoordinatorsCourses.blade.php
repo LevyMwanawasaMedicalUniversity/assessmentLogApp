@@ -34,6 +34,7 @@
                                     <th scope="col">Course Code</th>
                                     <th scope="col">Programme Name</th>
                                     <th scope="col">Delivery Mode</th>
+                                    <th scope="col">Your Of Study</th>
                                     <th scope="col">Number Of Uploads</th>
                                     <th scope="col" class="text-right">Actions</th>
                                     </tr>
@@ -68,6 +69,7 @@
                                             <td style="color: {{ $result->Delivery == 'Fulltime' ? 'blue' : ($result->Delivery == 'Distance' ? 'green' : 'black') }}">
                                                 <b>{{$result->Delivery}}</b>
                                             </td>
+                                            <td>Year {{$result->YearOfStudy}}</td>
                                             <td>
                                                 <form action="{{ route('coordinator.showCaWithin', encrypt($result->ID)) }}" method="GET">
                                                     <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
