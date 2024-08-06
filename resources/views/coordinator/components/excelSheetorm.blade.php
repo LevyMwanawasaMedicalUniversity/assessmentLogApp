@@ -13,7 +13,9 @@
 
             <!-- Form Header -->
             <div class="mb-4">
-                <h3 class="font-weight-bold text-primary">Import {{$delivery}} {{$assessmentType}} Results</h3>
+                <h3 class="font-weight-bold {{ $delivery == 'Fulltime' ? 'text-primary' : ($delivery == 'Distance' ? 'text-success' : '') }}">
+                    Import {{$delivery}} {{$assessmentType}} Results
+                </h3>
                 <p class="text-muted">Please upload the Excel file to import the course assessment information.</p>
             </div>
 
