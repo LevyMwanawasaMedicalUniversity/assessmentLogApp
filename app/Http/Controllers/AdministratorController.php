@@ -34,57 +34,57 @@ class AdministratorController extends Controller
         $courseAssessments = CourseAssessment::all();   
 
         $academicYear = 2024;
-        foreach ($courseAssessments as $courseAssessment) {
-            $coursesInEdurole = $this->getCoursesFromEdurole()
-                ->where('courses.ID', $courseAssessment->course_id)
-                ->where('study.ProgrammesAvailable', $courseAssessment->basic_information_id)
-                ->where('study.Delivery', $courseAssessment->delivery_mode)
-                ->first();            
+        // foreach ($courseAssessments as $courseAssessment) {
+        //     $coursesInEdurole = $this->getCoursesFromEdurole()
+        //         ->where('courses.ID', $courseAssessment->course_id)
+        //         ->where('study.ProgrammesAvailable', $courseAssessment->basic_information_id)
+        //         ->where('study.Delivery', $courseAssessment->delivery_mode)
+        //         ->first();            
             
-            if ($coursesInEdurole) {
-                $user = User::where('basic_information_id', $courseAssessment->basic_information_id)->first();
-                if ($user) {
-                    $courseAssessment->study_id = $coursesInEdurole->StudyID;
-                    $courseAssessment->save();            
+        //     if ($coursesInEdurole) {
+        //         $user = User::where('basic_information_id', $courseAssessment->basic_information_id)->first();
+        //         if ($user) {
+        //             $courseAssessment->study_id = $coursesInEdurole->StudyID;
+        //             $courseAssessment->save();            
 
-                    $courseAssessmentsScore = CourseAssessmentScores::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
-                    foreach ($courseAssessmentsScore as $courseAssessmentScore) {
-                        $courseAssessmentScore->study_id = $coursesInEdurole->StudyID;
-                        $courseAssessmentScore->save();
-                    }
+        //             $courseAssessmentsScore = CourseAssessmentScores::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
+        //             foreach ($courseAssessmentsScore as $courseAssessmentScore) {
+        //                 $courseAssessmentScore->study_id = $coursesInEdurole->StudyID;
+        //                 $courseAssessmentScore->save();
+        //             }
                     
-                }
+        //         }
                 
-            }
-        }
+        //     }
+        // }
 
-        foreach ($courseAssessments as $courseAssessment) {
-            $studentAssessments = StudentsContinousAssessment::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
-            foreach ($studentAssessments as $studentAssessment) {
-                $studentAssessment->study_id = $courseAssessment->study_id;
-                $studentAssessment->save();
-            }
-        } 
+        // foreach ($courseAssessments as $courseAssessment) {
+        //     $studentAssessments = StudentsContinousAssessment::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
+        //     foreach ($studentAssessments as $studentAssessment) {
+        //         $studentAssessment->study_id = $courseAssessment->study_id;
+        //         $studentAssessment->save();
+        //     }
+        // } 
 
         $caTypeAllocation = CATypeMarksAllocation::all();
 
-        foreach ($caTypeAllocation as $caType) {
+        // foreach ($caTypeAllocation as $caType) {
 
-            $user = User::where('id', $caType->user_id)->first();
-            $basicInformationId = $user->basic_information_id;
-            $coursesInEdurole = $this->queryCourseFromEdurole()
-                ->where('study.ProgrammesAvailable', $basicInformationId)
-                ->where('study.Delivery', $caType->delivery_mode)
-                ->where('courses.ID', $caType->course_id)
-                ->first();
-            try{
-                $caType->study_id = $coursesInEdurole->StudyID;
-            }catch (Exception $e) {
-                Log::error('Error refreshing student marks: ' . $e->getMessage());
-                continue;
-            }
-            $caType->save();
-        }
+        //     $user = User::where('id', $caType->user_id)->first();
+        //     $basicInformationId = $user->basic_information_id;
+        //     $coursesInEdurole = $this->queryCourseFromEdurole()
+        //         ->where('study.ProgrammesAvailable', $basicInformationId)
+        //         ->where('study.Delivery', $caType->delivery_mode)
+        //         ->where('courses.ID', $caType->course_id)
+        //         ->first();
+        //     try{
+        //         $caType->study_id = $coursesInEdurole->StudyID;
+        //     }catch (Exception $e) {
+        //         Log::error('Error refreshing student marks: ' . $e->getMessage());
+        //         continue;
+        //     }
+        //     $caType->save();
+        // }
 
         foreach ($courseAssessments as $courseAssessment) {
             $coursesInEdurole = $this->getCoursesFromEdurole()

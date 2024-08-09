@@ -358,9 +358,10 @@ class CoordinatorController extends Controller
         // return $courseDetails;
         // if($caType != 4){            
         $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
-            ->where('delivery_mode', $delivery)
-            ->where('study_id', $coursesInEdurole->StudyID)
+            ->where('students_continous_assessments.delivery_mode', $delivery)
+            ->where('students_continous_assessments.study_id', $coursesInEdurole->StudyID)
             // ->whereIn('ca_type', [1,2,3]) 
+            ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id')
             ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
             ->groupBy('students_continous_assessments.student_id')
             ->get();
@@ -615,11 +616,28 @@ class CoordinatorController extends Controller
     private function calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery, $studyId, $excludeCurrent = false){
         $caScores = $this->getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery, $studyId, $excludeCurrent);
         $total = $caScores->sum('mark');
-        $count = $caScores->count();
+        $count = $this->getNumberOfAssessmnets($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery,$studyId, $excludeCurrent);       
+        // $count = 2;
+        Log::info('totalscore' . $total .' '.  $count);
         $maxScore = $this->getMaxScore($courseId, $caType,$delivery,$studyId);
         $average = $count > 0 ? $total / $count : 0;
         $adjustedAverage = ($average / 100) * $maxScore;
         $this->saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage,$delivery, $studyId);
+    }
+
+    private function getNumberOfAssessmnets($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery,$studyId, $excludeCurrent){
+        return CourseAssessmentScores::where('course_assessments.course_id', $courseId)
+            ->where('course_assessments.academic_year', $academicYear)
+            ->where('course_assessments.ca_type', $caType)
+            ->where('course_assessments.delivery_mode', $delivery)
+            // ->where('course_assessment_scores.student_id', $studentNumber)
+            ->where('course_assessment_scores.study_id', $studyId)
+            ->when($excludeCurrent, function ($query) use ($courseAssessmentId) {
+                return $query->where('course_assessment_scores.course_assessment_id', '!=', $courseAssessmentId);
+            })
+            ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'course_assessment_scores.course_assessment_id')
+            ->distinct('course_assessment_scores.course_assessment_id')
+            ->count('course_assessment_scores.course_assessment_id');
     }
     
     private function getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery,$studyId, $excludeCurrent){
@@ -639,11 +657,11 @@ class CoordinatorController extends Controller
     
     private function getMaxScore($courseId, $caType, $delivery, $studyId){
         $courseAssessmenetTypes = CATypeMarksAllocation::where('c_a_type_marks_allocations.course_id', $courseId)
-                    ->where('c_a_type_marks_allocations.assessment_type_id', $caType)
-                    ->where('c_a_type_marks_allocations.delivery_mode', $delivery)
-                    ->where('c_a_type_marks_allocations.study_id', $studyId)                    
-                    ->select('c_a_type_marks_allocations.total_marks')
-                    ->first();
+            ->where('c_a_type_marks_allocations.assessment_type_id', $caType)
+            ->where('c_a_type_marks_allocations.delivery_mode', $delivery)
+            ->where('c_a_type_marks_allocations.study_id', $studyId)                    
+            ->select('c_a_type_marks_allocations.total_marks')
+            ->first();
         return $courseAssessmenetTypes->total_marks;
     }
     
