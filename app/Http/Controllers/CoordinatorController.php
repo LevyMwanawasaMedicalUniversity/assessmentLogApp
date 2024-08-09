@@ -139,113 +139,111 @@ class CoordinatorController extends Controller
     }
     
 
-    public function updateCourseCASetings(Request $request){
-        // Get the course ID from the request
-        $courseId = $request->input('courseId');
-        $basicInformationId = $request->input('basicInformationId');
-        $delivery = $request->input('delivery');
-        $studyId = $request->input('studyId');
-    
-        // Get the array of assessment types and marks allocated from the request
-        $assessmentTypes = $request->input('assessmentType');
-        $marksAllocated = $request->input('marks_allocated');
-        $user = auth()->user();
-        $userBasicInformationId = $user->basic_information_id;
-        $programmeInfo = $this->getCoursesFromEdurole()
-            ->where('study.Delivery', $delivery)
-            ->where('study.ProgrammesAvailable', $userBasicInformationId)
-            ->where('study.ID', $studyId)
-            ->first();
-        // if (!$programmeInfo || !$user->hasRole('Administrator')) {
-        //     return redirect()->back()->with('error', 'You are not allowed to update this course CA settings');
-        // }      
-        // Loop through the assessment types and marks allocated        
-        
-        $existingAssessmentTypeIds = CATypeMarksAllocation::where('course_id', $courseId)
-            ->where('delivery_mode', $delivery)
-            ->where('study_id', $studyId)
-            ->pluck('assessment_type_id')
-            ->toArray();
-        // return $existingAssessmentTypeIds;
-        $assessmentTypes = $assessmentTypes ?? [];
-        foreach ($existingAssessmentTypeIds as $existingAssessmentTypeId) {
-            // If the assessment type id is not in the request, delete it
-            try{
-                if (!array_key_exists($existingAssessmentTypeId, $assessmentTypes)) {
+    public function updateCourseCASetings(Request $request)
+    {
+        DB::beginTransaction();
+
+        try {
+            // Get the course ID and other required parameters from the request
+            $courseId = $request->input('courseId');
+            $basicInformationId = $request->input('basicInformationId');
+            $delivery = $request->input('delivery');
+            $studyId = $request->input('studyId');
+
+            // Get the array of assessment types and marks allocated from the request
+            $assessmentTypes = $request->input('assessmentType');
+            $marksAllocated = $request->input('marks_allocated');
+            $user = auth()->user();
+            $userBasicInformationId = $user->basic_information_id;
+
+            // Get the program information for validation
+            $programmeInfo = $this->getCoursesFromEdurole()
+                ->where('study.Delivery', $delivery)
+                ->where('study.ProgrammesAvailable', $userBasicInformationId)
+                ->where('study.ID', $studyId)
+                ->first();
+
+            // Retrieve existing assessment type IDs for the course
+            $existingAssessmentTypeIds = CATypeMarksAllocation::where('course_id', $courseId)
+                ->where('delivery_mode', $delivery)
+                ->where('study_id', $studyId)
+                ->pluck('assessment_type_id')
+                ->toArray();
+
+            // Remove assessment types that are no longer checked
+            foreach ($existingAssessmentTypeIds as $existingAssessmentTypeId) {
+                if (!array_key_exists($existingAssessmentTypeId, $assessmentTypes ?? [])) {
                     CATypeMarksAllocation::where('course_id', $courseId)
                         ->where('delivery_mode', $delivery)
                         ->where('study_id', $studyId)
                         ->where('assessment_type_id', $existingAssessmentTypeId)
                         ->delete();
                 }
-            }catch(Exception $e){
-                return redirect()->back()->with('error', 'An error occurred while updating the course CA settings. Please try again.');
             }
-        }
 
-        foreach ($assessmentTypes as $assessmentTypeId => $isChecked) {
-            // If the checkbox for this assessment type was checked
-            if ($isChecked) {
-                // Get the marks allocated for this assessment type
-                $marks = $marksAllocated[$assessmentTypeId];
-
-                // Update or create a new record in the CATypeMarksAllocation model
-                CATypeMarksAllocation::updateOrCreate(
-                    [
-                        'course_id' => $courseId,
-                        'assessment_type_id' => $assessmentTypeId,
-                        'delivery_mode' => $delivery,
-                        'study_id' => $studyId
-                    ],
-                    [
-                        'user_id' => auth()->user()->id,
-                        'total_marks' => $marks
-                    ]
-                );
+            // Update or create the assessment type allocations
+            foreach ($assessmentTypes as $assessmentTypeId => $isChecked) {
+                if ($isChecked) {
+                    $marks = $marksAllocated[$assessmentTypeId];
+                    CATypeMarksAllocation::updateOrCreate(
+                        [
+                            'course_id' => $courseId,
+                            'assessment_type_id' => $assessmentTypeId,
+                            'delivery_mode' => $delivery,
+                            'study_id' => $studyId
+                        ],
+                        [
+                            'user_id' => auth()->user()->id,
+                            'total_marks' => $marks
+                        ]
+                    );
+                }
             }
-        }
 
-        
-        $courseAssessmenetTypes= CATypeMarksAllocation::where('course_id', $courseId)
-            ->where('study_id', $studyId)
-            ->where('delivery_mode', $delivery)
-            ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
-            ->get();
-        $academicYear = 2024;
-        $getCoure = EduroleCourses::where('ID', $courseId)->first();
-        $courseCode = $getCoure->Name;
-        $studentssWithResults = CourseAssessmentScores::where('course_code', $courseCode)
-            ->where('study_id', $studyId)
-            ->where('delivery_mode', $delivery)
-            ->get();
-
-        // return $courseAssessmenetTypes;
-        
-        
-
-        // return $courseCode;
-
-        foreach ($courseAssessmenetTypes as $courseAssessmentType){
-
-            $studentsInAssessmentType = CourseAssessmentScores::where('course_code', $courseCode)
-                ->where('delivery_mode', $delivery)
+            // Update related CA marks for students
+            $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
                 ->where('study_id', $studyId)
-            // ->join('')    
-            // ->where('course_assessment_id', $courseAssessmentType->assessment_type_id)
+                ->where('delivery_mode', $delivery)
+                ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
                 ->get();
-            // Log::info($studentsInAssessmentType);
-            foreach ($studentsInAssessmentType as $studentNumber){
-                $this->refreshCAMark($courseId, $academicYear, $courseAssessmentType->assessment_type_id , $studentNumber->student_id, $studentNumber->course_assessment_id,$delivery,$studentNumber->study_id);
-            }
-        }     
 
-        //TO DO: ADD calculateAndSubmitCA TO THIS FUNCTION
-        if(auth()->user()->hasRole('Coordinator')){
-            return redirect()->route('pages.upload')->with('success', $courseCode.' CA settings updated successfully');
-        }else{
-            return redirect()->route('admin.viewCoordinatorsCourses',$basicInformationId)->with('success', $courseCode.' CA settings updated successfully');
+            $academicYear = 2024;
+            $getCoure = EduroleCourses::where('ID', $courseId)->first();
+            $courseCode = $getCoure->Name;
+
+            foreach ($courseAssessmenetTypes as $courseAssessmentType) {
+                $studentsInAssessmentType = CourseAssessmentScores::where('course_code', $courseCode)
+                    ->where('delivery_mode', $delivery)
+                    ->where('study_id', $studyId)
+                    ->get();
+
+                foreach ($studentsInAssessmentType as $studentNumber) {
+                    $this->refreshCAMark(
+                        $courseId,
+                        $academicYear,
+                        $courseAssessmentType->assessment_type_id,
+                        $studentNumber->student_id,
+                        $studentNumber->course_assessment_id,
+                        $delivery,
+                        $studentNumber->study_id
+                    );
+                }
+            }
+
+            DB::commit();
+
+            // Redirect based on user role
+            if ($user->hasRole('Coordinator')) {
+                return redirect()->route('pages.upload')->with('success', $courseCode . ' CA settings updated successfully');
+            } else {
+                return redirect()->route('admin.viewCoordinatorsCourses', $basicInformationId)->with('success', $courseCode . ' CA settings updated successfully');
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'An error occurred while updating the course CA settings. Please try again. Error: ' . $e->getMessage());
         }
     }
+
 
     public function editCaInCourse($courseAssessmenId,$courseId, $basicInformationId){
         $courseAssessmentId = Crypt::decrypt($courseAssessmenId);
@@ -413,10 +411,10 @@ class CoordinatorController extends Controller
 
     public function importCAFromExcelSheet(Request $request)
     {
-        // return "Hello";
         set_time_limit(0);
         ini_set('memory_limit', '512M'); // Adjust as needed
         
+        // Validate the form data
         $request->validate([
             'excelFile' => 'required|mimes:xls,xlsx,csv',
             'academicYear' => 'required',
@@ -443,7 +441,6 @@ class CoordinatorController extends Controller
 
                 // Check if the workbook has only one sheet
                 $sheetCount = iterator_count($reader->getSheetIterator());
-                // return $sheetCount;
                 if ($sheetCount > 1) {
                     $reader->close();
                     return back()->with('error', 'The uploaded Excel workbook must contain exactly one sheet.');
@@ -452,7 +449,6 @@ class CoordinatorController extends Controller
                 $reader->close();
                 $reader->open($filePath); // Re-open to reset the iterator
 
-                
                 $data = [];
                 foreach ($reader->getSheetIterator() as $sheet) {
                     foreach ($sheet->getRowIterator() as $row) {
@@ -489,6 +485,7 @@ class CoordinatorController extends Controller
 
                 DB::beginTransaction();
                 try {
+                    // Create a new course assessment
                     $newAssessment = CourseAssessment::create([
                         'course_id' => $request->course_id,
                         'ca_type' => $request->ca_type,
@@ -512,10 +509,10 @@ class CoordinatorController extends Controller
                                 'cas_score' => $entry['mark'],
                             ]
                         );
-                        $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $request->ca_type, trim($entry['student_number']), $newAssessment->course_assessments_id,$request->delivery, $request->study_id);
+                        $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $request->ca_type, trim($entry['student_number']), $newAssessment->course_assessments_id, $request->delivery, $request->study_id);
                     }
                     DB::commit();
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     DB::rollBack();
                     return back()->with('error', 'An error occurred while importing the data. Please try again. Error: ' . $e->getMessage());
                 }
@@ -527,103 +524,122 @@ class CoordinatorController extends Controller
             $delivery = encrypt($request->delivery);
 
             return redirect()->route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusIdToRoute, 'courseIdValue' => $courseIdToRoute, 'assessmentNumber' => $assessmentNumber])->with('success', 'Data imported successfully');
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return back()->with('error', 'An error occurred during the upload process. Please try again. Error: ' . $e->getMessage());
         }
     }
 
-    public function updateCAFromExcelSheet(Request $request){
+
+    public function updateCAFromExcelSheet(Request $request)
+    {
         set_time_limit(1200000);
+
         // Validate the form data
         $request->validate([
             'excelFile' => 'required|mimes:xls,xlsx,csv',
             'academicYear' => 'required',
-            'course_assessment_id' => 'required',            
+            'course_assessment_id' => 'required',
             'course_id' => 'required',
-            'course_code' => 'required',   
+            'course_code' => 'required',
             'basicInformationId' => 'required',
             'delivery' => 'required',
             'study_id' => 'required',
         ]);
 
-        // return $request->basicInformationId;
+        DB::beginTransaction();
 
-        $newAssessment = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)
-            ->update([
-                'academic_year' => $request->academicYear,
-                'basic_information_id' => $request->basicInformationId,
-            ]);
-        $getCaType = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)->first();
-        // return $getCaType;
-        $caType = $getCaType->ca_type;
-        $studyId = $getCaType->study_id;
+        try {
+            $newAssessment = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)
+                ->update([
+                    'academic_year' => $request->academicYear,
+                    'basic_information_id' => $request->basicInformationId,
+                ]);
 
-        // return $caType;
+            $getCaType = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)->first();
+            $caType = $getCaType->ca_type;
+            $studyId = $getCaType->study_id;
 
-        if ($request->hasFile('excelFile')) {
-            $file = $request->file('excelFile');
+            if ($request->hasFile('excelFile')) {
+                $file = $request->file('excelFile');
 
-            // Initialize the Box/Spout reader
-            $reader = ReaderEntityFactory::createXLSXReader();
-            $reader->open($file->getPathname());
+                // Initialize the Box/Spout reader
+                $reader = ReaderEntityFactory::createXLSXReader();
+                $reader->open($file->getPathname());
 
-        
-            $data = [];
-            foreach ($reader->getSheetIterator() as $sheet) {
-                foreach ($sheet->getRowIterator() as $row) {
-                    // Skip the header row
-                    
-                    try{
-                        $studentNumber = $row->getCellAtIndex(0)->getValue();                    
-                        $mark = $row->getCellAtIndex(1)->getValue();
-                        // $courseCode = $row->getCellAtIndex(2)->getValue();
-                    } catch (\Exception $e) {
-                        return back()->with('error', 'Please format excel sheet correctly.');
+                $data = [];
+                foreach ($reader->getSheetIterator() as $sheet) {
+                    foreach ($sheet->getRowIterator() as $row) {
+                        try {
+                            $studentNumber = $row->getCellAtIndex(0)->getValue();
+                            $mark = $row->getCellAtIndex(1)->getValue();
+                        } catch (\Exception $e) {
+                            DB::rollBack();
+                            return back()->with('error', 'Please format the excel sheet correctly.');
+                        }
+
+                        $data[] = [
+                            'student_number' => $studentNumber,
+                            'mark' => $mark,
+                        ];
                     }
-
-                    $data[] = [
-                        'student_number' => $studentNumber,
-                        'mark' => $mark,
-                    ];
                 }
-                
-            }
-            $reader->close();
+                $reader->close();
 
-            // try{
-                foreach ($data as $entry){
+                foreach ($data as $entry) {
                     CourseAssessmentScores::updateOrCreate([
                         'course_assessment_id' => $request->course_assessment_id,
-                        'student_id' => trim($entry['student_number']),                        
+                        'student_id' => trim($entry['student_number']),
                         'course_code' => $request->course_code,
                         'delivery_mode' => $request->delivery,
                         'study_id' => $studyId,
-                    ],[                        
-                        'cas_score' => $entry['mark'],                      
+                    ],[
+                        'cas_score' => $entry['mark'],
                     ]);
-                    $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $caType, trim($entry['student_number']),$request->course_assessment_id, $request->delivery, $studyId);
+                    $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $caType, trim($entry['student_number']), $request->course_assessment_id, $request->delivery, $studyId);
                 }
-            // }catch(\Exception $e){
-            //     return back()->with('error', 'An error occurred while importing the data. Please try again.');
-            // }
+            }
 
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Data imported successfully');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to import data: ' . $e->getMessage());
+            return back()->with('error', 'An error occurred while importing the data. Please try again.');
         }
+    }
 
-        return redirect()->back()->with('success', 'Data imported successfully');
-        // return redirect()->route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusIdToRoute, 'courseIdValue' => $courseIdToRoute, 'assessmentNumber' => $assessmentNumber])->with('success', 'Data imported successfully');
-    }
     
-    private function calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery, $studyId, $excludeCurrent = false){
-        $caScores = $this->getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery, $studyId, $excludeCurrent);
-        $total = $caScores->sum('mark');
-        $count = $this->getNumberOfAssessmnets($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery,$studyId, $excludeCurrent);       
-        // $count = 2;
-        Log::info('totalscore' . $total .' '.  $count);
-        $maxScore = $this->getMaxScore($courseId, $caType,$delivery,$studyId);
-        $average = $count > 0 ? $total / $count : 0;
-        $adjustedAverage = ($average / 100) * $maxScore;
-        $this->saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage,$delivery, $studyId);
+    private function calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $excludeCurrent = false)
+    {
+        DB::beginTransaction();
+
+        try {
+            // Fetch CA scores
+            $caScores = $this->getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $excludeCurrent);
+            $total = $caScores->sum('mark');            
+            // Fetch the count of assessments
+            $count = $this->getNumberOfAssessmnets($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $excludeCurrent);
+            Log::info('Total score: ' . $total . ' Count: ' . $count);
+            // Fetch max score
+            $maxScore = $this->getMaxScore($courseId, $caType, $delivery, $studyId);
+            // Calculate average and adjusted average
+            $average = $count > 0 ? $total / $count : 0;
+            $adjustedAverage = ($average / 100) * $maxScore;
+            // Save or update the student's CA
+            $this->saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId);
+            // Commit the transaction if everything is successful
+            DB::commit();
+        } catch (\Exception $e) {
+            // Rollback the transaction if any exception occurs
+            DB::rollBack();
+            // Log the error message
+            Log::error('Failed to calculate scores: ' . $e->getMessage());
+            // Optionally, you can throw the exception to handle it in the calling method
+            throw $e;
+        }
     }
+
 
     private function getNumberOfAssessmnets($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery,$studyId, $excludeCurrent){
         return CourseAssessmentScores::where('course_assessments.course_id', $courseId)
