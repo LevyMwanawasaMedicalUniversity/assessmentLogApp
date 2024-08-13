@@ -86,6 +86,21 @@ class AdministratorController extends Controller
         //     $caType->save();
         // }
 
+        $assessmentsToDelete = StudentsContinousAssessment::leftJoin('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
+            ->whereNull('course_assessments.course_assessments_id')
+            ->select('students_continous_assessments.students_continous_assessment_id')
+            ->get();
+
+            return $assessmentsToDelete;
+
+        // Loop through the assessments and delete them
+        foreach ($assessmentsToDelete as $assessment) {
+            $assessmentInstance = StudentsContinousAssessment::find($assessment->students_continous_assessment_id);
+            if ($assessmentInstance) {
+                $assessmentInstance->delete();
+            }
+        }
+
         foreach ($courseAssessments as $courseAssessment) {
             $coursesInEdurole = $this->getCoursesFromEdurole()
                 ->where('courses.ID', $courseAssessment->course_id)

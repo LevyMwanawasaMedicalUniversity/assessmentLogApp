@@ -388,25 +388,50 @@ class CoordinatorController extends Controller
         return view('coordinator.viewTotalCaInCourse', compact('delivery','results', 'statusId', 'courseId','courseDetails')); 
     }
 
-    public function deleteCaInCourse(Request $request, $courseAssessmenId, $courseId){
+    public function deleteCaInCourse(Request $request, $courseAssessmenId, $courseId)
+    {
         $courseAssessmentId = Crypt::decrypt($courseAssessmenId);
         $courseId = Crypt::decrypt($courseId);
-        $courseAssessment = CourseAssessment::where('course_assessments_id', $courseAssessmentId)->first();
-        $courseAssessmentsScores = CourseAssessmentScores::where('course_assessment_id', $courseAssessmentId)->pluck('student_id')->toArray();
-        $delivery = $request->delivery;
-        // return $courseId;
-        // return $courseAssessments;
-        // return $request->academicYear;
-        // return $request->ca_type;
-        CourseAssessment::where('course_assessments_id', $courseAssessmentId)->delete();
-        foreach ($courseAssessmentsScores as $entry){
-            
-            $this->renewCABeforeDelete($courseId, $request->academicYear, $request->ca_type, trim($entry),$courseAssessmentId,$delivery, $courseAssessment->study_id);
-        }
-        // CourseAssessment::where('course_assessments_id', $courseAssessmentId)->delete();
         
-        // CourseAssessmentScores::where('course_assessment_id', $courseAssessmentId)->delete();
-        return redirect()->back()->with('success', 'Data deleted successfully');
+        DB::beginTransaction();
+        
+        try {
+            // Fetch the course assessment record
+            $courseAssessment = CourseAssessment::where('course_assessments_id', $courseAssessmentId)->first();
+            $courseAssessmentsScores = CourseAssessmentScores::where('course_assessment_id', $courseAssessmentId)->pluck('student_id')->toArray();
+            $delivery = $request->delivery;
+            
+            // Delete the course assessment
+            CourseAssessment::where('course_assessments_id', $courseAssessmentId)->delete();
+            
+            // Update and renew the continuous assessments before deletion
+            foreach ($courseAssessmentsScores as $entry) {
+                $this->renewCABeforeDelete($courseId, $request->academicYear, $request->ca_type, trim($entry), $courseAssessmentId, $delivery, $courseAssessment->study_id);
+            }
+            
+            // Find and delete orphaned continuous assessments
+            $assessmentsToDelete = StudentsContinousAssessment::leftJoin('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
+                ->whereNull('course_assessments.course_assessments_id')
+                ->select('students_continous_assessments.students_continous_assessment_id')
+                ->get();
+            
+            foreach ($assessmentsToDelete as $assessment) {
+                $assessmentInstance = StudentsContinousAssessment::find($assessment->students_continous_assessment_id);
+                if ($assessmentInstance) {
+                    $assessmentInstance->delete();
+                }
+            }
+            
+            // Commit the transaction if everything is successful
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Data deleted successfully');
+        } catch (\Exception $e) {
+            // Rollback the transaction if there is an error
+            DB::rollBack();
+
+            return redirect()->back()->with('error', 'Data deletion failed: ' . $e->getMessage());
+        }
     }
 
     public function importCAFromExcelSheet(Request $request)
