@@ -478,22 +478,22 @@ class CoordinatorController extends Controller
                 foreach ($reader->getSheetIterator() as $sheet) {
                     foreach ($sheet->getRowIterator() as $row) {
                         $actualColumnCount = count($row->getCells());
-                        if ($actualColumnCount != $expectedColumnCount) {
-                            $reader->close();
-                            return back()->with('error', "The uploaded Excel sheet must contain exactly $expectedColumnCount columns.");
-                        }
+                        // if ($actualColumnCount != $expectedColumnCount) {
+                        //     $reader->close();
+                        //     return back()->with('error', "The uploaded Excel sheet must contain exactly $expectedColumnCount columns.");
+                        // }
                         try {
                             // Clean and trim the student number
                             $studentNumber = trim($row->getCellAtIndex(0)->getValue());
-                            if (!is_numeric($studentNumber) || strlen($studentNumber) < 7 || strlen($studentNumber) > 10) {
-                                throw new \Exception("Student number contains special characters or is not within the valid length range.");
-                            }
+                            // if (!is_numeric($studentNumber) || strlen($studentNumber) < 7 || strlen($studentNumber) > 10) {
+                            //     throw new \Exception("Student number contains special characters or is not within the valid length range.");
+                            // }
 
                             // Clean and trim the mark, then convert it to a float
                             $mark = trim($row->getCellAtIndex(1)->getValue());
-                            if (!is_numeric($mark)) {
-                                throw new \Exception("Mark is not a valid number.");
-                            }
+                            // if (!is_numeric($mark)) {
+                            //     throw new \Exception("Mark is not a valid number.");
+                            // }
                             $mark = (float)$mark;
                         } catch (\Exception $e) {
                             $reader->close();
