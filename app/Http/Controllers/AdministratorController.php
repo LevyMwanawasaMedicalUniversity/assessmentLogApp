@@ -31,8 +31,7 @@ class AdministratorController extends Controller
     {
         set_time_limit(12000000);
         $cooedinatorController = new CoordinatorController();
-        $courseAssessments = CourseAssessment::all();   
-
+        
         $academicYear = 2024;
         // foreach ($courseAssessments as $courseAssessment) {
         //     $coursesInEdurole = $this->getCoursesFromEdurole()
@@ -86,12 +85,23 @@ class AdministratorController extends Controller
         //     $caType->save();
         // }
 
+        $courseAssessments = CourseAssessment::leftJoin('students_continous_assessments as ca', 'ca.course_assessment_id', '=', 'course_assessments.course_assessments_id')
+            ->whereNull('ca.course_assessment_id')
+            ->select('course_assessments.*')
+            ->get();
+
+        foreach ($courseAssessments as $courseAssessment) {
+            $courseAssessment->delete();
+        }
+
+        $courseAssessments = CourseAssessment::all(); 
+
         $assessmentsToDelete = StudentsContinousAssessment::leftJoin('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
             ->whereNull('course_assessments.course_assessments_id')
             ->select('students_continous_assessments.students_continous_assessment_id')
             ->get();
 
-            return $assessmentsToDelete;
+            // return $assessmentsToDelete;
 
         // Loop through the assessments and delete them
         foreach ($assessmentsToDelete as $assessment) {
@@ -107,7 +117,7 @@ class AdministratorController extends Controller
                 ->where('study.ProgrammesAvailable', $courseAssessment->basic_information_id)
                 ->where('study.Delivery', $courseAssessment->delivery_mode)
                 ->first();
-            $studentAssessments = StudentsContinousAssessment::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
+            $studentAssessments = CourseAssessmentScores::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
             $studentInCourseAssessment = $studentAssessments->unique('student_id');
             try{
                 foreach ($studentInCourseAssessment as $student) {
