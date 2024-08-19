@@ -33,7 +33,8 @@ class UserController extends Controller
         $user = User::find($userId);
         
         $user->update([                    
-            'password' => Hash::make('12345678')
+            'password' => Hash::make('Changeme@123'),
+            'password_changed_at' => null
         ]);
             
         return redirect()->back()->with('success', 'Password reset successfully.');
