@@ -28,6 +28,9 @@ class PasswordController extends Controller
             ],
         ]);
 
+        $user = $request->user();
+        $user->password_changed_at = now();
+
         $request->user()->update([
             'password' => Hash::make($validated['password']),
         ]);
