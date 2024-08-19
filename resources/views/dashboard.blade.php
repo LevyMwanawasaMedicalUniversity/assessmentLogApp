@@ -55,8 +55,8 @@
                         <i class="bi bi-calendar2-week-fill"></i>
                         </div>
                         <div class="ps-3">
-                        <h6>{{ ceil($coursesFromEdurole->unique('ID')->count() / 3) }}</h6>
-                        {{-- <h6>{{ ($coursesFromEdurole->unique('ID')->count() ) }}</h6> --}}
+                        {{-- <h6>{{ ceil($coursesFromEdurole->unique('ID')->count() / 3) }}</h6> --}}
+                        <h6>{{ ($coursesFromEdurole->unique('ID')->count() ) }}</h6>
                         <span class="text-primary small pt-1 fw-bold">With Coordinators Assigned</span>
 
                         </div>
