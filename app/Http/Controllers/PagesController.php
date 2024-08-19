@@ -29,6 +29,11 @@ class PagesController extends Controller
         return view('coordinator.viewCoordinatorsCourses', compact('results'));
     }
 
+    public function showChangeForm()
+    {
+        return view('auth.passwords.change');
+    }
+
     public function dashboard()
     {
         $coursesFromLMMAX = $this->getCoursesFromLMMAX();

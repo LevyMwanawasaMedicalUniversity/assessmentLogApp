@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('students_continous_assessments', function (Blueprint $table) {
-            $table->dropForeign(['course_assessment_id']);
+        Schema::table('users', function (Blueprint $table) {
+            $table->timestamp('password_changed_at')->nullable();
         });
     }
 
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('students_continous_assessments', function (Blueprint $table) {
+        Schema::table('users', function (Blueprint $table) {
             //
         });
     }

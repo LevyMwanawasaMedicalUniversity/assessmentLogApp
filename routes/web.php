@@ -31,12 +31,16 @@ Route::post('2fa', [TwoFactorController::class, 'verify2fa'])->name('2fa.verify'
 //     return view('dashboard');
 // })->middleware(['auth', 'verified'])->name('dashboard');
 Auth::routes(['register' => false]);
-    // Route::middleware(['auth','2fa'])->group(function () {
 Route::middleware(['auth'])->group(function () {
+    Route::get('/password/change', [PagesController::class, 'showChangeForm'])->name('password.change');
+});
+    // Route::middleware(['auth','2fa'])->group(function () {
+Route::middleware(['auth','force.password.change'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     // Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/dashboard', [PagesController::class, 'dashboard'])->name('dashboard');
+    
 
     
     Route::middleware('can:Administrator')->group(function () {
