@@ -29,12 +29,17 @@ class PasswordController extends Controller
         ]);
 
         $user = $request->user();
+        $firstLogin = $user->password_changed_at;
         $user->password_changed_at = now();
 
         $request->user()->update([
             'password' => Hash::make($validated['password']),
         ]);
 
-        return back()->with('success', 'password-updated');
+        if($firstLogin === null) {
+            return redirect()->route('dashboard')->with('success', 'Password reset successfully. Please update your profile.');
+        }else{
+            return redirect()->back()->with('success', 'Password reset successfully.');
+        }       
     }
 }

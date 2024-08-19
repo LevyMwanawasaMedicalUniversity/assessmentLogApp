@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Http\Requests\StoreUserRequest;
 use Spatie\Permission\Models\Role;
 use App\Http\Requests\UpdateUserRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
@@ -28,6 +29,18 @@ class UserController extends Controller
         return view('admin.users.index', compact('users'));
     }
 
+    // public function forcePasswordUpdate($userId)
+    // {
+    //     $user = User::find($userId);
+        
+    //     $user->update([                    
+    //         'password' => Hash::make('Changeme@123'),
+    //         'password_changed_at' => null
+    //     ]);
+        
+    //     return redirect()->route('dashboard')->with('success', 'Password reset successfully.');
+    // }
+
     public function resetUserPassword($userId)
     {
         $user = User::find($userId);
@@ -36,7 +49,7 @@ class UserController extends Controller
             'password' => Hash::make('Changeme@123'),
             'password_changed_at' => null
         ]);
-            
+        
         return redirect()->back()->with('success', 'Password reset successfully.');
     }
 

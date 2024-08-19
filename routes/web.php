@@ -33,6 +33,7 @@ Route::post('2fa', [TwoFactorController::class, 'verify2fa'])->name('2fa.verify'
 Auth::routes(['register' => false]);
 Route::middleware(['auth'])->group(function () {
     Route::get('/password/change', [PagesController::class, 'showChangeForm'])->name('password.change');
+    // Route::post('/password/change/', [PagesController::class, 'forcePasswordUpdate'])->name('password.forceUpdate');
 });
     // Route::middleware(['auth','2fa'])->group(function () {
 Route::middleware(['auth','force.password.change'])->group(function () {

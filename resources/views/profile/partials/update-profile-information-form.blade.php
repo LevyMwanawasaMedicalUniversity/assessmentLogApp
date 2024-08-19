@@ -25,7 +25,7 @@
             @enderror
         </div>
 
-        <div class="mb-3">
+        {{-- <div class="mb-3">
             <label for="email" class="form-label">{{ __('Email') }}</label>
             <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $user->email) }}" required autocomplete="username">
             @error('email')
@@ -47,7 +47,7 @@
                     @endif
                 </div>
             @endif
-        </div>
+        </div> --}}
 
         <div class="d-flex align-items-center gap-3">
             <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
