@@ -26,7 +26,8 @@ class User extends Authenticatable implements AuditableContract
         'basic_information_id',
         'phone_number',
         'two_factor_token',
-        'last_login_at'
+        'last_login_at',
+        'password_changed_at'
     ];
 
     protected $dates = [
