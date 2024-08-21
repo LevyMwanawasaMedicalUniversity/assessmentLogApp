@@ -84,6 +84,23 @@ Breadcrumbs::for('caAssessmentTypes.create', function ($trail) {
 
 ///////////////////
 
+Breadcrumbs::for('courseComponents.index', function ($trail) {
+    $trail->parent('dashboard');
+    $trail->push('Components', route('courseComponents.index'));
+});
+
+Breadcrumbs::for('courseComponents.edit', function ($trail, $permission) {
+    $trail->parent('courseComponents.index');
+    $trail->push('Edit Component', route('courseComponents.edit', $permission));
+});
+
+Breadcrumbs::for('courseComponents.create', function ($trail) {
+    $trail->parent('courseComponents.index');
+    $trail->push('Create Course Component', route('courseComponents.create'));
+});
+
+///////////////////
+
 Breadcrumbs::for('admin.viewDeans', function ($trail) {
     $trail->parent('dashboard');
     $trail->push('Deans', route('admin.viewDeans'));

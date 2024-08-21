@@ -83,7 +83,7 @@ class CaAssementTypesController extends Controller
         // $assessmentTypes->update($request->only('assessmentName'));
 
         return redirect()->route('caAssessmentTypes.index')
-            ->withSuccess(__('Permission updated successfully.'));
+            ->withSuccess(__('CA Type updated successfully.'));
     }
 
 

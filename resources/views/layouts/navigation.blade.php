@@ -306,6 +306,12 @@
                         <span>CA Type Management</span>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ url('courseComponents') }}">
+                        <i class="bi bi-circle"></i>
+                        <span>Course Components</span>
+                    </a>
+                </li>
             </ul>
         </li><!-- End Components Nav -->
         @endif

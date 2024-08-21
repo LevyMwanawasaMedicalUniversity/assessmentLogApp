@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdministratorController;
 use App\Http\Controllers\CaAssementTypesController;
 use App\Http\Controllers\CoordinatorController;
+use App\Http\Controllers\CourseComponentsController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\PermissionsController;
 use App\Http\Controllers\PhoneNumberController;
@@ -49,6 +50,7 @@ Route::middleware(['auth','force.password.change'])->group(function () {
         Route::resource('roles', RolesController::class);
         Route::resource('permissions', PermissionsController::class);
         Route::resource('caAssessmentTypes', CaAssementTypesController::class);
+        Route::resource('courseComponents', CourseComponentsController::class);
         Route::get('user', [UserController::class, 'index'])->name('users.index');
         Route::get('/user/searchForUser', 'UserController@searchForUser')->name('users.searchForUser');
         Route::get('/create', [UserController::class, 'create'])->name('users.create');
@@ -79,7 +81,11 @@ Route::middleware(['auth','force.password.change'])->group(function () {
     Route::middleware('can:ViewTheContionousAssessment')->group(function () { //deans, & registrar permissions included
         Route::get('/coordinator/viewSpecificCaInCourse/{statusId}/{courseIdValue}/{assessmentNumber}',[CoordinatorController::class, 'viewSpecificCaInCourse'])->name('coordinator.viewSpecificCaInCourse');
         Route::get('/coordinator/courseCASetings/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'courseCASettings'])->name('coordinator.courseCASettings');
+        Route::get('/coordinator/viewCourseWithComponents/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'viewCourseWithComponents'])->name('coordinator.viewCourseWithComponents');
+        
+        Route::post('/coordinator/updateCourseWithComponents/{courseIdValue}',[CoordinatorController::class, 'updateCourseWithComponents'])->name('coordinator.updateCourseWithComponents');
         Route::POST('/coordinator/updateCourseCASetings/{courseIdValue}',[CoordinatorController::class, 'updateCourseCASetings'])->name('coordinator.updateCourseCASetings');
+        
         Route::get('viewOnlyProgrammesWithCa',[CoordinatorController::class, 'viewOnlyProgrammesWithCa'])->name('coordinator.viewOnlyProgrammesWithCa');
         Route::get('viewOnlyProgrammesWithCaForCoordinator/{coordinator}',[CoordinatorController::class, 'viewOnlyProgrammesWithCaForCoordinator'])->name('coordinator.viewOnlyProgrammesWithCaForCoordinator');
         Route::get('showCaWithin/{courseId}',[CoordinatorController::class, 'showCaWithin'])->name('coordinator.showCaWithin');

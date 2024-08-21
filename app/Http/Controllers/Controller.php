@@ -41,6 +41,19 @@ abstract class Controller
         return $naturalScienceCourses;
     }
 
+    public function getBasicSciencesCourses(){
+        $naturalScienceCourses = EduroleStudy::join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
+            ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
+            ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
+            ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
+            ->where('study.Name', '=', 'Basic Sciences')
+            ->whereIn('courses.Name', ['BAB201', 'CAG201', 'CVS301', 'GIT301','GRA201','IHD201','MCT201','NER301','PEB201','REN301','RES301'])
+            ->select('study.ID')
+            ->pluck('study.ID')
+            ->toArray();
+        return $naturalScienceCourses;
+    }
+
     public function queryCourseFromEdurole(){
         $coursesFromCourseElectives = EduroleCourseElective::select('CourseID')
             ->where('Year', 2024)
@@ -65,10 +78,15 @@ abstract class Controller
     public function getCoursesFromEdurole()
     {        
         $naturalScienceCourses = $this->getNSAttachedCourses();
+        $getBasicSciencesCourses = $this->getBasicSciencesCourses();
         return $this->queryCourseFromEdurole()
             ->where(function($query) use ($naturalScienceCourses) {
                 $query->whereNotIn('courses.Name', ['MAT101', 'PHY101', 'CHM101', 'BIO101'])
                     ->orWhereIn('study.ID', $naturalScienceCourses);
+            })
+            ->where(function($query) use ($getBasicSciencesCourses) {
+                $query->whereNotIn('courses.Name', ['BAB201', 'CAG201', 'CVS301', 'GIT301','GRA201','IHD201','MCT201','NER301','PEB201','REN301','RES301'])
+                    ->orWhereIn('study.ID', $getBasicSciencesCourses);
             });
     }
 

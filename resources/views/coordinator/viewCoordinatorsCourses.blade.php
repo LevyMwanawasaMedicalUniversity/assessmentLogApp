@@ -34,7 +34,9 @@
                                     <th scope="col">Course Code</th>
                                     <th scope="col">Programme Name</th>
                                     <th scope="col">Delivery Mode</th>
-                                    <th scope="col">Year Of Study</th>
+                                    @if(!$results[0]->StudyID == 165)
+                                        <th scope="col">Year Of Study</th>
+                                    @endif
                                     <th scope="col">Number Of Uploads</th>
                                     <th scope="col" class="text-right">Actions</th>
                                     </tr>
@@ -69,7 +71,9 @@
                                             <td style="color: {{ $result->Delivery == 'Fulltime' ? 'blue' : ($result->Delivery == 'Distance' ? 'green' : 'black') }}">
                                                 <b>{{$result->Delivery}}</b>
                                             </td>
-                                            <td>Year {{$result->YearOfStudy}}</td>
+                                            @if(!$result->StudyID == 165)
+                                                <td>Year {{$result->YearOfStudy}}</td>
+                                            @endif
                                             <td>
                                                 <form action="{{ route('coordinator.showCaWithin', encrypt($result->ID)) }}" method="GET">
                                                     <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
@@ -79,6 +83,22 @@
                                                 </form>
                                             </td>
                                             <td class="text-right">
+                                                @if( $result->StudyID == 165)
+                                                    <div class="btn-group float-end" role="group" aria-label="Button group">
+                                                        <form action="{{ route('coordinator.viewCourseWithComponents', ['courseIdValue' => encrypt($result->ID), 'basicInformationId' => encrypt($result->basicInformationId), 'delivery' => encrypt($result->Delivery)]) }}" method="GET" class="d-inline">
+                                                            <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
+                                                            <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
+                                                                View
+                                                            </button>
+                                                        </form>                                            
+                                                        <form action="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID), 'basicInformationId' => encrypt($result->basicInformationId), 'delivery' => encrypt($result->Delivery)]) }}" method="GET" class="d-inline">
+                                                            <input type="hidden" name="studyId" value="{{ ($result->StudyID) }}">
+                                                            <button type="submit" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
+                                                                Settings
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                @else
                                                     <div class="btn-group float-end" role="group" aria-label="Button group">
                                                         @if(auth()->user()->hasPermissionTo('Coordinator'))
                                                             <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#uploadCourseModal{{ $result->ID }}{{ $result->Delivery }}{{$result->StudyID}}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
@@ -97,6 +117,7 @@
                                                             </button>
                                                         </form>
                                                     </div>
+                                                @endif
                                                 </td>
                                         </tr>                            
                                     @endforeach

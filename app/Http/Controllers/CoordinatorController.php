@@ -6,6 +6,8 @@ use App\Models\AssessmentTypes;
 use App\Models\CATypeMarksAllocation;
 use App\Models\CourseAssessment;
 use App\Models\CourseAssessmentScores;
+use App\Models\CourseComponent;
+use App\Models\CourseComponentAllocation;
 use App\Models\EduroleBasicInformation;
 use App\Models\EduroleCourses;
 use App\Models\EduroleStudy;
@@ -68,6 +70,36 @@ class CoordinatorController extends Controller
         // return $assessmentDetails;
         return view('admin.showCaInCourse', compact('courseInfo','assessmentDetails','courseId','studyId'));
 
+    }
+
+    public function viewCourseWithComponents(Request $request,$courseIdValue, $basicInformationId, $delivery){
+        $courseId = Crypt::decrypt($courseIdValue);
+        $basicInformationId = Crypt::decrypt($basicInformationId);
+        $delivery = Crypt::decrypt($delivery);
+        $studyId = $request->studyId;
+        $academicYear = 2024;
+        $courseDetails = EduroleCourses::where('ID', $courseId)->first();
+
+        $courseComponentAllocated = CourseComponentAllocation::where('course_id', $courseId)
+            ->where('delivery_mode', $delivery)
+            ->where('study_id', $studyId)
+            ->where('academic_year', $academicYear)
+            ->get();
+
+        if ($courseComponentAllocated->isEmpty()) {
+
+            $courseComponents = CourseComponent::all();
+            $courseComponentAllocated = CourseComponentAllocation::where('course_id', $courseId)
+            ->where('delivery_mode', $delivery)
+            ->where('study_id', $studyId)
+            ->where('academic_year', $academicYear)
+            ->pluck('course_component_id')
+            ->toArray();
+            
+            return view('coordinator.caComponents.setCourseComponents', compact('academicYear','courseComponentAllocated','courseDetails','courseId', 'basicInformationId', 'delivery', 'studyId', 'courseComponents'));
+        }else{
+            return view('coordinator.caComponents.viewCourseWithComponents', compact('courseComponents', 'courseId', 'basicInformationId', 'delivery', 'studyId'));
+        }       
     }
 
     public function courseCASettings(Request $request,$courseIdValue, $basicInformationId, $delivery){ 
@@ -186,6 +218,112 @@ class CoordinatorController extends Controller
                 if ($isChecked) {
                     $marks = $marksAllocated[$assessmentTypeId];
                     CATypeMarksAllocation::updateOrCreate(
+                        [
+                            'course_id' => $courseId,
+                            'assessment_type_id' => $assessmentTypeId,
+                            'delivery_mode' => $delivery,
+                            'study_id' => $studyId
+                        ],
+                        [
+                            'user_id' => auth()->user()->id,
+                            'total_marks' => $marks
+                        ]
+                    );
+                }
+            }
+
+            // Update related CA marks for students
+            $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
+                ->where('study_id', $studyId)
+                ->where('delivery_mode', $delivery)
+                ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
+                ->get();
+
+            $academicYear = 2024;
+            $getCoure = EduroleCourses::where('ID', $courseId)->first();
+            $courseCode = $getCoure->Name;
+
+            foreach ($courseAssessmenetTypes as $courseAssessmentType) {
+                $studentsInAssessmentType = CourseAssessmentScores::where('course_code', $courseCode)
+                    ->where('delivery_mode', $delivery)
+                    ->where('study_id', $studyId)
+                    ->get();
+
+                foreach ($studentsInAssessmentType as $studentNumber) {
+                    $this->refreshCAMark(
+                        $courseId,
+                        $academicYear,
+                        $courseAssessmentType->assessment_type_id,
+                        $studentNumber->student_id,
+                        $studentNumber->course_assessment_id,
+                        $delivery,
+                        $studentNumber->study_id
+                    );
+                }
+            }
+
+            DB::commit();
+
+            // Redirect based on user role
+            if ($user->hasRole('Coordinator')) {
+                return redirect()->route('pages.upload')->with('success', $courseCode . ' CA settings updated successfully');
+            } else {
+                return redirect()->route('admin.viewCoordinatorsCourses', $basicInformationId)->with('success', $courseCode . ' CA settings updated successfully');
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'An error occurred while updating the course CA settings. Please try again. Error: ' . $e->getMessage());
+        }
+    }
+
+    public function updateCourseWithComponents(Request $request)
+    {
+        DB::beginTransaction();
+
+        try {
+            // Get the course ID and other required parameters from the request
+            $courseId = $request->input('courseId');
+            $basicInformationId = $request->input('basicInformationId');
+            $delivery = $request->input('delivery');
+            $studyId = $request->input('studyId');
+            $academicYear = $request->input('academicYear');
+
+            // Get the array of assessment types and marks allocated from the request
+            $courseComponents = $request->input('courseComponent');
+            // $marksAllocated = $request->input('marks_allocated');
+            $user = auth()->user();
+            $userBasicInformationId = $user->basic_information_id;
+
+            // Retrieve existing assessment type IDs for the course
+            $existingAssessmentTypeIds = CATypeMarksAllocation::where('course_id', $courseId)
+                ->where('delivery_mode', $delivery)
+                ->where('study_id', $studyId)
+                ->pluck('assessment_type_id')
+                ->toArray();
+            $existingCourseComponentAllocatedIds = CourseComponentAllocation::where('course_id', $courseId)
+                ->where('delivery_mode', $delivery)
+                ->where('study_id', $studyId)
+                ->where('academic_year', $academicYear)
+                ->pluck('course_component_id')
+                ->toArray();
+
+            // Remove assessment types that are no longer checked
+            foreach ($existingCourseComponentAllocatedIds as $existingCourseComponentAllocatedId) {
+                if (!array_key_exists($existingCourseComponentAllocatedId, $courseComponents ?? [])) {
+                    CourseComponentAllocation::where('course_id', $courseId)
+                        ->where('delivery_mode', $delivery)
+                        ->where('study_id', $studyId)
+                        ->where('academic_year', $academicYear)
+                        ->where('course_component_id', $existingCourseComponentAllocatedId)
+                        ->delete();
+                }
+            }
+
+            // Update or create the assessment type allocations
+            foreach ($courseComponents as $courseComponentId => $isChecked) {
+                if ($isChecked) {
+                    // $marks = $marksAllocated[$courseComponentId];
+                        CourseComponentAllocation::updateOrCreate(
                         [
                             'course_id' => $courseId,
                             'assessment_type_id' => $assessmentTypeId,
