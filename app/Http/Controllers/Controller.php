@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CourseAssessment;
+use App\Models\CourseComponentAllocation;
 use App\Models\EduroleBasicInformation;
 use App\Models\EduroleCourseElective;
 use App\Models\EduroleStudy;
@@ -39,6 +40,18 @@ abstract class Controller
             ->pluck('study.ID')
             ->toArray();
         return $naturalScienceCourses;
+    }
+
+    public function getAllocatedCourses($courseId,$basicInformationId,$delivery,$studyId, $academicYear){
+        $results = CourseComponentAllocation::join('course_components', 'course_components.course_components_id', '=', 'course_component_allocations.course_component_id')
+            ->where('course_component_allocations.course_id', $courseId)
+            // ->where('course_component_allocations.user_id', $basicInformationId)
+            ->where('course_component_allocations.delivery_mode', $delivery)
+            ->where('course_component_allocations.study_id', $studyId)
+            ->where('course_component_allocations.academic_year', $academicYear)
+            ->orderBy('course_components.component_name')          
+            ->get();
+        return $results;
     }
 
     public function getBasicSciencesCourses(){

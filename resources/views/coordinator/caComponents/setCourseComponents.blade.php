@@ -36,23 +36,21 @@
                                 <tbody>
                                     @foreach ($courseComponents as $courseComponent)
                                         <tr>
-                                            <td>{{$loop->iteration}}</td>
-                                            <td>                                            
-                                                <input type="hidden" name="courseId" value="{{$courseId}}">
-                                                <input type="hidden" name="basicInformationId" value="{{$basicInformationId}}">
-                                                <input type="hidden" name="delivery" value="{{$delivery}}">
-                                                <input type="hidden" name="studyId" value="{{$studyId}}">
-                                                <input type="hidden" name="academicYear" value="{{$academicYear}}">
-                                                <input type="checkbox" 
-                                                    name="courseComponent[{{ $courseComponent->id }}]"
-                                                    value="{{ $courseComponent->id }}"
+                                            <td>{{ $loop->iteration }}</td>
+                                            <td>
+                                                <input type="hidden" name="courseId" value="{{ $courseId }}">
+                                                <input type="hidden" name="basicInformationId" value="{{ $basicInformationId }}">
+                                                <input type="hidden" name="delivery" value="{{ $delivery }}">
+                                                <input type="hidden" name="studyId" value="{{ $studyId }}">
+                                                <input type="hidden" name="academicYear" value="{{ $academicYear }}">
+                                                <input type="checkbox"
+                                                    name="courseComponent[{{ $courseComponent->course_components_id }}]"
+                                                    value="{{ $courseComponent->course_components_id }}"
                                                     class='courseComponent'
-                                                    {{ array_key_exists($courseComponent->id, $courseComponentAllocated) 
-                                                        ? 'checked'
-                                                        : '' }}
-                                                    onclick="toggleInput(this, {{ $courseComponentAllocated[$courseComponent->id] ?? 0 }})">
+                                                    {{ in_array($courseComponent->course_components_id, $courseComponentAllocated) ? 'checked' : '' }}
+                                                    onclick="toggleInput(this, {{ in_array($courseComponent->course_components_id, $courseComponentAllocated) ? 1 : 0 }})">
                                             </td>
-                                            <td class="text-end">{{ $courseComponent->component_name}}</td>                                            
+                                            <td class="text-end">{{ $courseComponent->component_name }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

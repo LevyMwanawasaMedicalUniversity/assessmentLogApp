@@ -37,6 +37,7 @@
             <input type="hidden" name="course_code" value="{{ $results->CourseName }}">
             <input type="hidden" name="basicInformationId" value="{{ $basicInformationId }}">
             <input type="hidden" name="study_id" value="{{ $results->StudyID }}">
+            <input type="hidden" name="component_id" value="{{ $componentId }}">
             <input type="hidden" name="delivery" value="{{ $delivery }}">
             <input type="file" name="excelFile" accept=".xlsx, .xlsm" class="form-control-file" id="excelFileInput" required>
             <small class="form-text text-muted">Accepted formats: .xlsx, .xlsm</small>

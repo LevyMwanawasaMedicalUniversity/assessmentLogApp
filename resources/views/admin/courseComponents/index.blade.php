@@ -43,7 +43,7 @@
                                             <td>{{$courseComponent->created_at}}</td>
                                             <td class="text-right">
                                                 <div class="btn-group float-end" role="group" aria-label="Button group">
-                                                    <a href="{{ route('courseComponents.edit', $courseComponent->id) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
+                                                    <a href="{{ route('courseComponents.edit', $courseComponent->course_components_id) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
                                                         Edit
                                                     </a>
                                                     {{-- <form method="POST" action="{{ route('caAssessmentTypes.destroy', $assessmentType->id) }}" style="display: inline">

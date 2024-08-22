@@ -72,6 +72,7 @@ Route::middleware(['auth','force.password.change'])->group(function () {
     
     Route::middleware('can:Coordinator')->group(function () {
         Route::get('/upload', [PagesController::class, 'upload'])->name('pages.upload');
+        Route::get('/uploadCourseWithComponents/{courseId}/{basicInformationId}/{delivery}/{studyId}', [PagesController::class, 'uploadCourseWithComponents'])->name('pages.uploadCourseWithComponents');
         Route::get('/coordinator/uploadCa/{statusId}/{courseIdValue}/{basicInformationId}',[CoordinatorController::class, 'uploadCa'])->name('coordinator.uploadCa');
         
                     
@@ -112,6 +113,7 @@ Route::middleware(['auth','force.password.change'])->group(function () {
         
 
         Route::get('/admin/viewCoordinatorsCourses/{basicInformationId}',[AdministratorController::class, 'viewCoordinatorsCourses'])->name('admin.viewCoordinatorsCourses');
+        Route::get('/admin/viewCoordinatorsCoursesWithComponents/{courseId}/{basicInformationId}/{delivery}/{studyId}',[AdministratorController::class, 'viewCoordinatorsCoursesWithComponents'])->name('admin.viewCoordinatorsCoursesWithComponents');
     });  
 });
 

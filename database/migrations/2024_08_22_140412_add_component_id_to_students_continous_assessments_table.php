@@ -11,10 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('course_components', function (Blueprint $table) {
-            $table->id('course_components_id');
-            $table->string('component_name');
-            $table->timestamps();
+        Schema::table('students_continous_assessments', function (Blueprint $table) {
+            $table->unsignedBigInteger('component_id')->nullable();
         });
     }
 
@@ -23,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('course_components');
+        Schema::table('students_continous_assessments', function (Blueprint $table) {
+            //
+        });
     }
 };

@@ -13,6 +13,7 @@ class CourseComponentsController extends Controller
     public function index()
     {
         $courseComponents = CourseComponent::all();
+        
         return view('admin.courseComponents.index', compact('courseComponents'));
     }
 

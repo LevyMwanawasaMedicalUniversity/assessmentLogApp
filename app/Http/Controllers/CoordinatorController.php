@@ -25,13 +25,17 @@ class CoordinatorController extends Controller
         $delivery = $request->delivery; 
         $courseId = Crypt::decrypt($courseIdValue);
         $caType = Crypt::decrypt($caType);
-        
         $basicInformationId = Crypt::decrypt($basicInformationId);
+        $hasComponents = $request->hasComponents;
+        // return $hasComponents;
+        $componentId = $request->input('componentId');
+        
         $studyId = $request->studyId;
         $getAssessmentType = AssessmentTypes::where('id', $caType)->first();
         $assessmentType = $getAssessmentType->assesment_type_name;
         // return $assessmentType;
         // return $studyId;
+        // return $courseId . '  ' . $basicInformationId . '  ' . $delivery . '  ' . $caType;
 
         // return $courseId;
 
@@ -40,8 +44,9 @@ class CoordinatorController extends Controller
             ->where('study.Delivery', $delivery)
             ->where('study.ProgrammesAvailable', $basicInformationId)
             ->first();
+        // return $results;
         
-            return view('coordinator.uploadCa', compact('assessmentType','studyId','results', 'caType', 'courseId', 'basicInformationId', 'delivery'))
+            return view('coordinator.uploadCa', compact('assessmentType','studyId','results', 'caType', 'courseId', 'basicInformationId', 'delivery','hasComponents','componentId'))
                 ->with('info', 'Kindly note that you are uploading under ' . $delivery . ' education');
 
     }
@@ -72,46 +77,90 @@ class CoordinatorController extends Controller
 
     }
 
-    public function viewCourseWithComponents(Request $request,$courseIdValue, $basicInformationId, $delivery){
+    public function viewCourseWithComponents(Request $request, $courseIdValue, $basicInformationId, $delivery) {
         $courseId = Crypt::decrypt($courseIdValue);
         $basicInformationId = Crypt::decrypt($basicInformationId);
+        // return $basicInformationId;
         $delivery = Crypt::decrypt($delivery);
         $studyId = $request->studyId;
+        $isSettings = $request->isSettings;
         $academicYear = 2024;
         $courseDetails = EduroleCourses::where('ID', $courseId)->first();
-
+        $user = auth()->user();
+    
         $courseComponentAllocated = CourseComponentAllocation::where('course_id', $courseId)
-            ->where('delivery_mode', $delivery)
-            ->where('study_id', $studyId)
-            ->where('academic_year', $academicYear)
-            ->get();
-
-        if ($courseComponentAllocated->isEmpty()) {
-
-            $courseComponents = CourseComponent::all();
-            $courseComponentAllocated = CourseComponentAllocation::where('course_id', $courseId)
             ->where('delivery_mode', $delivery)
             ->where('study_id', $studyId)
             ->where('academic_year', $academicYear)
             ->pluck('course_component_id')
             ->toArray();
-            
+
+        // return $courseComponentAllocated;
+    
+        $courseComponents = CourseComponent::all();
+        $getCoure = EduroleCourses::where('ID', $courseId)->first();
+        $courseCode = $getCoure->Name;
+
+        if(!$courseComponentAllocated || $isSettings == 1){
             return view('coordinator.caComponents.setCourseComponents', compact('academicYear','courseComponentAllocated','courseDetails','courseId', 'basicInformationId', 'delivery', 'studyId', 'courseComponents'));
         }else{
-            return view('coordinator.caComponents.viewCourseWithComponents', compact('courseComponents', 'courseId', 'basicInformationId', 'delivery', 'studyId'));
-        }       
+            if ($user->hasRole('Coordinator')) {
+                return redirect()->route('pages.uploadCourseWithComponents', ['courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId), 'delivery' => encrypt($delivery), 'studyId' => encrypt($studyId)])
+                    ->with('success', $courseCode . 'Select Component In which you want to upload CA');
+            } else {
+                return redirect()->route('admin.viewCoordinatorsCoursesWithComponents', ['courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId), 'delivery' => encrypt($delivery), 'studyId' => encrypt($studyId)] )
+                    ->with('success', $courseCode . 'Select Component In which you want to upload CA');
+            }
+        }
+        
     }
+    
+
+    // public function viewCourseWithComponents(Request $request,$courseIdValue, $basicInformationId, $delivery){
+    //     $courseId = Crypt::decrypt($courseIdValue);
+    //     $basicInformationId = Crypt::decrypt($basicInformationId);
+    //     $delivery = Crypt::decrypt($delivery);
+    //     $studyId = $request->studyId;
+    //     $academicYear = 2024;
+    //     $courseDetails = EduroleCourses::where('ID', $courseId)->first();
+
+    //     $courseComponentAllocated = CourseComponentAllocation::where('course_id', $courseId)
+    //         ->where('delivery_mode', $delivery)
+    //         ->where('study_id', $studyId)
+    //         ->where('academic_year', $academicYear)
+    //         ->get();
+
+    //     if ($courseComponentAllocated->isEmpty()) {
+
+    //         $courseComponents = CourseComponent::all();
+    //         $courseComponentAllocated = CourseComponentAllocation::where('course_id', $courseId)
+    //         ->where('delivery_mode', $delivery)
+    //         ->where('study_id', $studyId)
+    //         ->where('academic_year', $academicYear)
+    //         ->pluck('course_component_id')
+    //         ->toArray();
+            
+    //         return view('coordinator.caComponents.setCourseComponents', compact('academicYear','courseComponentAllocated','courseDetails','courseId', 'basicInformationId', 'delivery', 'studyId', 'courseComponents'));
+    //     }else{
+    //         $courseComponents = CourseComponent::all();
+    //         return view('coordinator.caComponents.setCourseComponents', compact('academicYear','courseComponentAllocated','courseDetails','courseId', 'basicInformationId', 'delivery', 'studyId', 'courseComponents'));
+    //     }       
+    // }
 
     public function courseCASettings(Request $request,$courseIdValue, $basicInformationId, $delivery){ 
         $courseId = Crypt::decrypt($courseIdValue);
         $delivery = Crypt::decrypt($delivery);
-        $studyId = $request->studyId;        
-
-        // return $delivery;
+        $studyId = $request->studyId;   
+        $hasComponents = $request->hasComponents;
+        $componentId = $request->input('componentId');
+        // return $componentId;
+        // return $componentId . ' ' . $hasComponents . ' ' . $courseId . ' ' . $delivery . ' ' . $studyId;
+        // return $hasComponents;
         $allAssesmentTypes = AssessmentTypes::all();
         $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
             ->where('delivery_mode', $delivery)
             ->where('study_id', $studyId)
+            ->where('component_id', $componentId)
             ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
             ->pluck('total_marks', 'assessment_type_id')
             ->toArray();
@@ -120,7 +169,7 @@ class CoordinatorController extends Controller
     
         $marksToDeduct = !empty($courseAssessmenetTypes) ? array_sum($courseAssessmenetTypes) : 0;
     
-        return view('coordinator.courseCASettings', compact('studyId','delivery','courseAssessmenetTypes', 'allAssesmentTypes', 'course', 'marksToDeduct','basicInformationId'));
+        return view('coordinator.courseCASettings', compact('componentId','courseId','delivery','studyId','delivery','courseAssessmenetTypes', 'allAssesmentTypes', 'course', 'marksToDeduct','basicInformationId','hasComponents'));
     }
     
     public function viewOnlyProgrammesWithCa(){
@@ -181,10 +230,13 @@ class CoordinatorController extends Controller
             $basicInformationId = $request->input('basicInformationId');
             $delivery = $request->input('delivery');
             $studyId = $request->input('studyId');
+            $componentId = $request->input('componentId');
 
             // Get the array of assessment types and marks allocated from the request
             $assessmentTypes = $request->input('assessmentType');
             $marksAllocated = $request->input('marks_allocated');
+            // return $assessmentTypes;
+            // return $marksAllocated;
             $user = auth()->user();
             $userBasicInformationId = $user->basic_information_id;
 
@@ -208,6 +260,7 @@ class CoordinatorController extends Controller
                     CATypeMarksAllocation::where('course_id', $courseId)
                         ->where('delivery_mode', $delivery)
                         ->where('study_id', $studyId)
+                        ->where('component_id', $componentId)    
                         ->where('assessment_type_id', $existingAssessmentTypeId)
                         ->delete();
                 }
@@ -222,7 +275,8 @@ class CoordinatorController extends Controller
                             'course_id' => $courseId,
                             'assessment_type_id' => $assessmentTypeId,
                             'delivery_mode' => $delivery,
-                            'study_id' => $studyId
+                            'study_id' => $studyId,
+                            'component_id' => $componentId
                         ],
                         [
                             'user_id' => auth()->user()->id,
@@ -236,6 +290,7 @@ class CoordinatorController extends Controller
             $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
                 ->where('study_id', $studyId)
                 ->where('delivery_mode', $delivery)
+                ->where('component_id', $componentId)
                 ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
                 ->get();
 
@@ -247,6 +302,7 @@ class CoordinatorController extends Controller
                 $studentsInAssessmentType = CourseAssessmentScores::where('course_code', $courseCode)
                     ->where('delivery_mode', $delivery)
                     ->where('study_id', $studyId)
+                    ->where('component_id', $componentId)
                     ->get();
 
                 foreach ($studentsInAssessmentType as $studentNumber) {
@@ -257,7 +313,8 @@ class CoordinatorController extends Controller
                         $studentNumber->student_id,
                         $studentNumber->course_assessment_id,
                         $delivery,
-                        $studentNumber->study_id
+                        $studentNumber->study_id,
+                        $componentId
                     );
                 }
             }
@@ -266,9 +323,19 @@ class CoordinatorController extends Controller
 
             // Redirect based on user role
             if ($user->hasRole('Coordinator')) {
-                return redirect()->route('pages.upload')->with('success', $courseCode . ' CA settings updated successfully');
+                if($componentId){
+                    return redirect()->route('pages.uploadCourseWithComponents', ['courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId), 'delivery' => encrypt($delivery), 'studyId' => encrypt($studyId)])
+                        ->with('success', $courseCode . ' CA settings updated successfully');
+                }else{
+                    return redirect()->route('pages.upload')->with('success', $courseCode . ' CA settings updated successfully');
+                }
             } else {
-                return redirect()->route('admin.viewCoordinatorsCourses', $basicInformationId)->with('success', $courseCode . ' CA settings updated successfully');
+                if($componentId){
+                    return redirect()->route('admin.viewCoordinatorsCoursesWithComponents', ['courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId), 'delivery' => encrypt($delivery), 'studyId' => encrypt($studyId)])
+                        ->with('success', $courseCode . ' CA settings updated successfully');
+                }else{
+                    return redirect()->route('admin.viewCoordinatorsCourses', $basicInformationId)->with('success', $courseCode . ' CA settings updated successfully');
+                }
             }
         } catch (\Exception $e) {
             DB::rollBack();
@@ -290,16 +357,17 @@ class CoordinatorController extends Controller
 
             // Get the array of assessment types and marks allocated from the request
             $courseComponents = $request->input('courseComponent');
+            // return $courseComponents;
             // $marksAllocated = $request->input('marks_allocated');
             $user = auth()->user();
             $userBasicInformationId = $user->basic_information_id;
 
             // Retrieve existing assessment type IDs for the course
-            $existingAssessmentTypeIds = CATypeMarksAllocation::where('course_id', $courseId)
-                ->where('delivery_mode', $delivery)
-                ->where('study_id', $studyId)
-                ->pluck('assessment_type_id')
-                ->toArray();
+            // $existingAssessmentTypeIds = CATypeMarksAllocation::where('course_id', $courseId)
+            //     ->where('delivery_mode', $delivery)
+            //     ->where('study_id', $studyId)
+            //     ->pluck('assessment_type_id')
+            //     ->toArray();
             $existingCourseComponentAllocatedIds = CourseComponentAllocation::where('course_id', $courseId)
                 ->where('delivery_mode', $delivery)
                 ->where('study_id', $studyId)
@@ -326,55 +394,57 @@ class CoordinatorController extends Controller
                         CourseComponentAllocation::updateOrCreate(
                         [
                             'course_id' => $courseId,
-                            'assessment_type_id' => $assessmentTypeId,
+                            'course_component_id' => $courseComponentId,
                             'delivery_mode' => $delivery,
-                            'study_id' => $studyId
+                            'study_id' => $studyId,
+                            'academic_year' => $academicYear
                         ],
                         [
                             'user_id' => auth()->user()->id,
-                            'total_marks' => $marks
                         ]
                     );
                 }
             }
 
             // Update related CA marks for students
-            $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
-                ->where('study_id', $studyId)
-                ->where('delivery_mode', $delivery)
-                ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
-                ->get();
+            // $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
+            //     ->where('study_id', $studyId)
+            //     ->where('delivery_mode', $delivery)
+            //     ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
+            //     ->get();
 
-            $academicYear = 2024;
+            // $academicYear = 2024;
+            // $getCoure = EduroleCourses::where('ID', $courseId)->first();
+            // $courseCode = $getCoure->Name;
+
+            // foreach ($courseAssessmenetTypes as $courseAssessmentType) {
+            //     $studentsInAssessmentType = CourseAssessmentScores::where('course_code', $courseCode)
+            //         ->where('delivery_mode', $delivery)
+            //         ->where('study_id', $studyId)
+            //         ->get();
+
+            //     foreach ($studentsInAssessmentType as $studentNumber) {
+            //         $this->refreshCAMark(
+            //             $courseId,
+            //             $academicYear,
+            //             $courseAssessmentType->assessment_type_id,
+            //             $studentNumber->student_id,
+            //             $studentNumber->course_assessment_id,
+            //             $delivery,
+            //             $studentNumber->study_id
+            //         );
+            //     }
+            // }
             $getCoure = EduroleCourses::where('ID', $courseId)->first();
             $courseCode = $getCoure->Name;
-
-            foreach ($courseAssessmenetTypes as $courseAssessmentType) {
-                $studentsInAssessmentType = CourseAssessmentScores::where('course_code', $courseCode)
-                    ->where('delivery_mode', $delivery)
-                    ->where('study_id', $studyId)
-                    ->get();
-
-                foreach ($studentsInAssessmentType as $studentNumber) {
-                    $this->refreshCAMark(
-                        $courseId,
-                        $academicYear,
-                        $courseAssessmentType->assessment_type_id,
-                        $studentNumber->student_id,
-                        $studentNumber->course_assessment_id,
-                        $delivery,
-                        $studentNumber->study_id
-                    );
-                }
-            }
 
             DB::commit();
 
             // Redirect based on user role
             if ($user->hasRole('Coordinator')) {
-                return redirect()->route('pages.upload')->with('success', $courseCode . ' CA settings updated successfully');
+                return redirect()->route('pages.upload')->with('success', $courseCode . ' Component settings updated successfully');
             } else {
-                return redirect()->route('admin.viewCoordinatorsCourses', $basicInformationId)->with('success', $courseCode . ' CA settings updated successfully');
+                return redirect()->route('admin.viewCoordinatorsCourses', encrypt($basicInformationId))->with('success', $courseCode . ' Component settings updated successfully');
             }
         } catch (\Exception $e) {
             DB::rollBack();
@@ -480,11 +550,12 @@ class CoordinatorController extends Controller
         return view('coordinator.viewSpecificCaInCourse', compact('delivery','results', 'courseId','assessmentType','courseDetails','statusId'));
     }
 
-    public function viewTotalCaInCourse($statusId, $courseIdValue, $basicInformationId,$delivery){
+    public function viewTotalCaInCourse(Request $request ,$statusId, $courseIdValue, $basicInformationId,$delivery){
         $courseId = Crypt::decrypt($courseIdValue);
         $caType = Crypt::decrypt($statusId);
         $basicInformationId = Crypt::decrypt($basicInformationId);
         $delivery = Crypt::decrypt($delivery);
+        $componentId = $request->componentId;
         $courseDetails = EduroleCourses::where('ID', $courseId)->first();
         $coursesInEdurole = $this->getCoursesFromEdurole()
                 ->where('courses.ID', $courseId)
@@ -496,6 +567,7 @@ class CoordinatorController extends Controller
         $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
             ->where('students_continous_assessments.delivery_mode', $delivery)
             ->where('students_continous_assessments.study_id', $coursesInEdurole->StudyID)
+            ->where('students_continous_assessments.component_id', $componentId)
             // ->whereIn('ca_type', [1,2,3]) 
             ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id')
             ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
@@ -544,7 +616,7 @@ class CoordinatorController extends Controller
             
             // Update and renew the continuous assessments before deletion
             foreach ($courseAssessmentsScores as $entry) {
-                $this->renewCABeforeDelete($courseId, $request->academicYear, $request->ca_type, trim($entry), $courseAssessmentId, $delivery, $courseAssessment->study_id);
+                $this->renewCABeforeDelete($courseId, $request->academicYear, $request->ca_type, trim($entry), $courseAssessmentId, $delivery, $courseAssessment->study_id,$courseAssessment->component_id);
             }
             
             // Find and delete orphaned continuous assessments
@@ -587,6 +659,7 @@ class CoordinatorController extends Controller
             'basicInformationId' => 'required',
             'delivery' => 'required',
             'study_id' => 'required',
+            'component_id' => 'required',
         ]);
         $expectedColumnCount = 2;
 
@@ -657,6 +730,7 @@ class CoordinatorController extends Controller
                         'basic_information_id' => $request->basicInformationId,
                         'delivery_mode' => $request->delivery,
                         'study_id' => $request->study_id,
+                        'component_id' => $request->component_id,
                     ]);
 
                     foreach ($data as $entry) {
@@ -667,12 +741,13 @@ class CoordinatorController extends Controller
                                 'course_code' => $request->course_code,
                                 'delivery_mode' => $request->delivery,
                                 'study_id' => $request->study_id,
+                                'component_id' => $request->component_id,
                             ],
                             [
                                 'cas_score' => $entry['mark'],
                             ]
                         );
-                        $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $request->ca_type, trim($entry['student_number']), $newAssessment->course_assessments_id, $request->delivery, $request->study_id);
+                        $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $request->ca_type, trim($entry['student_number']), $newAssessment->course_assessments_id, $request->delivery, $request->study_id,$request->component_id);
                     }
                     DB::commit();
                 } catch (\Exception $e) {
@@ -707,6 +782,7 @@ class CoordinatorController extends Controller
             'basicInformationId' => 'required',
             'delivery' => 'required',
             'study_id' => 'required',
+            'component_id' => 'required',
         ]);
 
         DB::beginTransaction();
@@ -721,6 +797,7 @@ class CoordinatorController extends Controller
             $getCaType = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)->first();
             $caType = $getCaType->ca_type;
             $studyId = $getCaType->study_id;
+            $componentId = $request->component_id;
 
             if ($request->hasFile('excelFile')) {
                 $file = $request->file('excelFile');
@@ -758,7 +835,7 @@ class CoordinatorController extends Controller
                     ],[
                         'cas_score' => $entry['mark'],
                     ]);
-                    $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $caType, trim($entry['student_number']), $request->course_assessment_id, $request->delivery, $studyId);
+                    $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $caType, trim($entry['student_number']), $request->course_assessment_id, $request->delivery, $studyId,$componentId);
                 }
             }
 
@@ -773,24 +850,24 @@ class CoordinatorController extends Controller
     }
 
     
-    private function calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $excludeCurrent = false)
+    private function calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId,$componentId, $excludeCurrent = false)
     {
         DB::beginTransaction();
 
         try {
             // Fetch CA scores
-            $caScores = $this->getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $excludeCurrent);
+            $caScores = $this->getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId,$componentId, $excludeCurrent);
             $total = $caScores->sum('mark');            
             // Fetch the count of assessments
-            $count = $this->getNumberOfAssessmnets($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $excludeCurrent);
+            $count = $this->getNumberOfAssessmnets($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId,$componentId, $excludeCurrent);
             Log::info('Total score: ' . $total . ' Count: ' . $count);
             // Fetch max score
-            $maxScore = $this->getMaxScore($courseId, $caType, $delivery, $studyId);
+            $maxScore = $this->getMaxScore($courseId, $caType, $delivery, $studyId,$componentId);
             // Calculate average and adjusted average
             $average = $count > 0 ? $total / $count : 0;
             $adjustedAverage = ($average / 100) * $maxScore;
             // Save or update the student's CA
-            $this->saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId);
+            $this->saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId,$componentId);
             // Commit the transaction if everything is successful
             DB::commit();
         } catch (\Exception $e) {
@@ -804,11 +881,12 @@ class CoordinatorController extends Controller
     }
 
 
-    private function getNumberOfAssessmnets($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery,$studyId, $excludeCurrent){
+    private function getNumberOfAssessmnets($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery,$studyId,$componentId, $excludeCurrent){
         return CourseAssessmentScores::where('course_assessments.course_id', $courseId)
             ->where('course_assessments.academic_year', $academicYear)
             ->where('course_assessments.ca_type', $caType)
             ->where('course_assessments.delivery_mode', $delivery)
+            ->where('course_assessments.component_id', $componentId)
             // ->where('course_assessment_scores.student_id', $studentNumber)
             ->where('course_assessment_scores.study_id', $studyId)
             ->when($excludeCurrent, function ($query) use ($courseAssessmentId) {
@@ -819,13 +897,14 @@ class CoordinatorController extends Controller
             ->count('course_assessment_scores.course_assessment_id');
     }
     
-    private function getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery,$studyId, $excludeCurrent){
+    private function getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery,$studyId,$componentId , $excludeCurrent){
         return CourseAssessmentScores::where('course_assessments.course_id', $courseId)
             ->where('course_assessments.academic_year', $academicYear)
             ->where('course_assessments.ca_type', $caType)
             ->where('course_assessments.delivery_mode', $delivery)
             ->where('course_assessment_scores.student_id', $studentNumber)
             ->where('course_assessment_scores.study_id', $studyId)
+            ->where('course_assessment_scores.component_id', $componentId)
             ->when($excludeCurrent, function ($query) use ($courseAssessmentId) {
                 return $query->where('course_assessment_scores.course_assessment_id', '!=', $courseAssessmentId);
             })
@@ -834,36 +913,44 @@ class CoordinatorController extends Controller
             ->get();
     }
     
-    private function getMaxScore($courseId, $caType, $delivery, $studyId){
+    private function getMaxScore($courseId, $caType, $delivery, $studyId,$componentId){
         $courseAssessmenetTypes = CATypeMarksAllocation::where('c_a_type_marks_allocations.course_id', $courseId)
             ->where('c_a_type_marks_allocations.assessment_type_id', $caType)
             ->where('c_a_type_marks_allocations.delivery_mode', $delivery)
-            ->where('c_a_type_marks_allocations.study_id', $studyId)                    
+            ->where('c_a_type_marks_allocations.study_id', $studyId)
+            ->where('c_a_type_marks_allocations.component_id', $componentId)                    
             ->select('c_a_type_marks_allocations.total_marks')
             ->first();
         return $courseAssessmenetTypes->total_marks;
     }
     
-    private function saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId){
-        $studentCA = StudentsContinousAssessment::firstOrNew(['student_id' => $studentNumber, 'course_id' => $courseId, 'academic_year' => $academicYear, 'ca_type' => $caType, 'delivery_mode' => $delivery, 'study_id' => $studyId]);
+    private function saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId, $componentId){
+        $studentCA = StudentsContinousAssessment::firstOrNew(['student_id' => $studentNumber,
+                        'course_id' => $courseId,
+                        'academic_year' => $academicYear, 
+                        'ca_type' => $caType, 
+                        'delivery_mode' => $delivery, 
+                        'study_id' => $studyId,
+                        'component_id' => $componentId
+                    ]);
         $studentCA->course_assessment_id = $courseAssessmentId;
         $studentCA->sca_score = $adjustedAverage;
         $studentCA->save();
     }
 
-    public function refreshAllStudentsMarks($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId){
-        $this->refreshCAMark($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId);
+    public function refreshAllStudentsMarks($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId){
+        $this->refreshCAMark($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);
     }
     
-    private function calculateAndSubmitCA($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId){
-        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, false);
+    private function calculateAndSubmitCA($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId){
+        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId,$componentId, false);
     }
     
-    private function renewCABeforeDelete($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery,$studyId){
-        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, true);
+    private function renewCABeforeDelete($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery,$studyId, $componentId){
+        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId,$componentId, true);
     }
     
-    private function refreshCAMark($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId){        
-        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, false);        
+    private function refreshCAMark($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId){        
+        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId,false);        
     }
 }

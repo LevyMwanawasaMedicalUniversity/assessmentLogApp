@@ -9,6 +9,8 @@ class CourseComponentAllocation extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'course_component_allocations_id';
+
     protected $fillable = [
         'user_id',
         'course_id',

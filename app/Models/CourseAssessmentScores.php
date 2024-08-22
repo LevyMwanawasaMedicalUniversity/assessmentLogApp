@@ -21,6 +21,7 @@ class CourseAssessmentScores extends Model implements AuditableContract
         'created_by',
         'updated_by',
         'delivery_mode',
-        'study_id'
+        'study_id',
+        'component_id'
     ];
 }

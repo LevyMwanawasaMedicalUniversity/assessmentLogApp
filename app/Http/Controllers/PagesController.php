@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CourseComponentAllocation;
 use App\Models\EduroleBasicInformation;
+use App\Models\EduroleCourses;
 use App\Models\EduroleStudy;
 use App\Models\StudentsContinousAssessment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
 class PagesController extends Controller
@@ -27,6 +30,31 @@ class PagesController extends Controller
             ->orderBy('study.Delivery')            
             ->get();
         return view('coordinator.viewCoordinatorsCourses', compact('results'));
+    }
+
+    public function uploadCourseWithComponents($courseId,$basicInformationId,$delivery,$studyId)
+    {
+        $user = auth()->user();
+        try {
+            $role = $user->roles->first()->name;
+        } catch (\Exception $e) {
+            return redirect()->route('dashboard');
+        }
+        $userBasicInformation = $user->basic_information_id;
+        $courseId = Crypt::decrypt($courseId);
+        $basicInformationId = Crypt::decrypt($basicInformationId);
+        $delivery = Crypt::decrypt($delivery);
+        $studyId = Crypt::decrypt($studyId);
+        $academicYear = 2024;
+
+        $results = $this->getAllocatedCourses($courseId,$basicInformationId,$delivery,$studyId, $academicYear);
+        $getCoure = EduroleCourses::where('ID', $courseId)->first();
+        $courseCode = $getCoure->Name;
+        $getStudy = EduroleStudy::where('ID', $studyId)->first();
+        $studyName = $getStudy->Name;
+        $deliveryMode = $getStudy->Delivery;
+
+        return view('coordinator.caComponents.viewCoordinatorsCourses', compact('results','courseCode','studyName','deliveryMode','basicInformationId'));
     }
 
     public function showChangeForm()

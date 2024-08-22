@@ -21,6 +21,7 @@
                         ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
                         ->select('assessment_types.id','assessment_types.assesment_type_name')
                         ->get();
+                    $componentId = null;
 
                     $totalMarks = \App\Models\CATypeMarksAllocation::where('course_id', $result->ID)
                         ->where('study_id', $result->StudyID)
@@ -45,6 +46,7 @@
                                         <form method="GET" action="{{ route('coordinator.uploadCa', ['statusId' => encrypt($courseAssessmenetType->id), 'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId)]) }}">
                                             <input type="hidden" name="delivery" value="{{ $result->Delivery }}">
                                             <input type="hidden" name="studyId" value="{{$result->StudyID}}">
+                                            <input type="hidden" name="componentId" value="{{$componentId}}">
                                             <button type="submit" class="btn btn-light shadow-sm text-center mb-3" style="border: 2px solid green;">
                                                 <div class="p-3 text-dark">
                                                     {{ $courseAssessmenetType->assesment_type_name }}
@@ -59,6 +61,7 @@
                                         'delivery' => encrypt($result->Delivery)
                                     ]) }}" method="GET">
                                         <input type="hidden" name="studyId" value="{{ ($result->StudyID) }}">
+                                        <input type="hidden" name="componentId" value="{{$componentId}}">
                                         <button type="submit" style="background:none;border:none;padding:0;">
                                             <div class="alert alert-warning" role="alert">
                                                 The distribution of the total marks is incomplete. Please click here to allocate the remaining 40 marks.
@@ -73,6 +76,7 @@
                                     'delivery' => encrypt($result->Delivery)
                                 ]) }}" method="GET">
                                     <input type="hidden" name="studyId" value="{{ ($result->StudyID) }}">
+                                    <input type="hidden" name="componentId" value="{{$componentId}}">
                                     <button type="submit" style="background:none;border:none;padding:0;">
                                         <div class="alert alert-danger" role="alert">
                                             No Assessment Type Found, click here to set up Assessment Types.

@@ -3,7 +3,8 @@
         <div class="pagetitle">
             <h1>{{$course->Name}} Course Settings 
                 <span style="color: {{ $delivery == 'Distance' ? 'green' : ($delivery == 'Fulltime' ? 'blue' : 'black') }}">
-                    {{ $delivery }}
+                    {{ $delivery }} {{$hasComponents}}
+                    
                 </span>
             </h1>
             @include('layouts.alerts')
@@ -24,7 +25,7 @@
                                 @endphp
                                 
                                 <div class="d-flex justify-content-between align-items-center mb-4">
-                                    <h5 class="card-title">{{$course->CourseDescription}}</h5>
+                                    <h5 class="card-title">{{$course->CourseDescription}} {{$hasComponents}}</h5>
                                     <h5 class="card-title">Marks Available : <span id="remainingMarks" style="font-weight: bold;">{{$total_marks - $marksToDeduct}}</span></h5>
                                 </div>
                                 
@@ -47,6 +48,7 @@
                                                     <input type="hidden" name="basicInformationId" value="{{$basicInformationId}}">
                                                     <input type="hidden" name="delivery" value="{{$delivery}}">
                                                     <input type="hidden" name="studyId" value="{{$studyId}}">
+                                                    <input type="hidden" name="componentId" value="{{$componentId}}">
                                                     <input type="checkbox" 
                                                         name="assessmentType[{{ $assesmentType->id }}]"
                                                         value="{{ $assesmentType->id }}"

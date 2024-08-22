@@ -9,6 +9,8 @@ class CourseComponent extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'course_components_id';
+
     protected $fillable = [
         'component_name'
     ];

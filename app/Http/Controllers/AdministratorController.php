@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\CATypeMarksAllocation;
 use App\Models\CourseAssessment;
 use App\Models\CourseAssessmentScores;
+use App\Models\CourseComponentAllocation;
 use App\Models\EduroleBasicInformation;
+use App\Models\EduroleCourses;
 use App\Models\EduroleStudy;
 use App\Models\StudentsContinousAssessment;
 use App\Models\User;
@@ -111,31 +113,93 @@ class AdministratorController extends Controller
             }
         }
 
-        foreach ($courseAssessments as $courseAssessment) {
-            $coursesInEdurole = $this->getCoursesFromEdurole()
-                ->where('courses.ID', $courseAssessment->course_id)
-                ->where('study.ProgrammesAvailable', $courseAssessment->basic_information_id)
-                ->where('study.Delivery', $courseAssessment->delivery_mode)
-                ->first();
-            $studentAssessments = CourseAssessmentScores::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
-            $studentInCourseAssessment = $studentAssessments->unique('student_id');
-            try{
-                foreach ($studentInCourseAssessment as $student) {
-                    $cooedinatorController->refreshAllStudentsMarks(
-                        $courseAssessment->course_id, 
-                        $academicYear, 
-                        $courseAssessment->ca_type, 
-                        $student->student_id, 
-                        $courseAssessment->course_assessments_id, 
-                        $courseAssessment->delivery_mode, 
-                        $coursesInEdurole->StudyID
-                    );
-                }
-            }catch (Exception $e) {
-                Log::error('Error refreshing student marks: ' . $e->getMessage());
-                continue;
+        $assessmentsToDelete = CourseAssessment::leftJoin('students_continous_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id')
+            ->whereNull('students_continous_assessments.course_assessment_id')
+            ->select('course_assessments.course_assessments_id')
+            ->get();
+
+        // Loop through the assessments and delete them
+        foreach ($assessmentsToDelete as $assessment) {
+            $assessmentInstance = CourseAssessment::find($assessment->course_assessments_id);
+            if ($assessmentInstance) {
+                $assessmentInstance->delete();
             }
         }
+
+        $courseAssessments = CourseAssessment::all(); 
+        $courseAssessmenetTypes = CATypeMarksAllocation::all();
+        // return $courseAssessmenetTypes;
+
+        foreach($courseAssessments as $courseAssessment){
+            $courseId = $courseAssessment->course_id;
+            $basicInformationId = $courseAssessment->basic_information_id;
+            $delivery = $courseAssessment->delivery_mode;
+            $studyId = $courseAssessment->study_id;
+            $componentId = $courseAssessment->component_id;
+            $assessmentTypes = $courseAssessment->ca_type;
+            $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
+                ->where('study_id', $studyId)
+                ->where('delivery_mode', $delivery)
+                ->where('component_id', $componentId)
+                ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
+                ->get();
+
+            $academicYear = 2024;
+            $getCoure = EduroleCourses::where('ID', $courseId)->first();
+            $courseCode = $getCoure->Name;
+
+            foreach ($courseAssessmenetTypes as $courseAssessmentType) {
+                $studentsInAssessmentType = CourseAssessmentScores::where('course_code', $courseCode)
+                    ->where('delivery_mode', $delivery)
+                    ->where('study_id', $studyId)
+                    ->where('component_id', $componentId)
+                    ->get();
+
+                foreach ($studentsInAssessmentType as $studentNumber) {
+                    $cooedinatorController->refreshAllStudentsMarks(
+                        $courseId,
+                        $academicYear,
+                        $courseAssessmentType->assessment_type_id,
+                        $studentNumber->student_id,
+                        $studentNumber->course_assessment_id,
+                        $delivery,
+                        $studentNumber->study_id,
+                        $componentId
+                    );
+                }
+            }
+        }
+
+        
+
+        // foreach ($courseAssessmenetTypes as $courseAssessmentType) {
+        //     // $coursesInEdurole = $this->getCoursesFromEdurole()
+        //     //     ->where('courses.ID', $courseAssessment->course_id)
+        //     //     ->where('study.ProgrammesAvailable', $courseAssessment->basic_information_id)
+        //     //     ->where('study.Delivery', $courseAssessment->delivery_mode)
+        //     //     ->first();
+        //     $getCoure = EduroleCourses::where('ID', $courseAssessmentType->course_id)->first();
+        //     $courseCode = $getCoure->Name;
+        //     $studentsInAssessmentType = CourseAssessmentScores::where('course_code', $courseCode)->get();
+        //     // $studentInCourseAssessment = $studentAssessments->unique('student_id');
+        //     try{
+        //         foreach ($studentsInAssessmentType as $student) {
+        //             $cooedinatorController->refreshAllStudentsMarks(
+        //                 $courseAssessmentType->course_id, 
+        //                 $academicYear, 
+        //                 $courseAssessmentType->assessment_type_id, 
+        //                 $student->student_id, 
+        //                 $student->course_assessment_id, 
+        //                 $courseAssessmentType->delivery_mode, 
+        //                 $student->study_id,
+        //                 $courseAssessment->component_id
+        //             );
+        //         }
+        //     }catch (Exception $e) {
+        //         Log::error('Error refreshing student marks: ' . $e->getMessage());
+        //         continue;
+        //     }
+        // }
 
         return redirect()->back()->with('success', 'Course Assessments refreshed successfully');
     }
@@ -381,11 +445,29 @@ class AdministratorController extends Controller
             ->orderBy('study.Delivery')
             
             ->get();
-
-            
-        // return $results;
         
         return view('coordinator.viewCoordinatorsCourses', compact('results'));
+
+    }
+
+    public function viewCoordinatorsCoursesWithComponents($courseId,$basicInformationId,$delivery,$studyId){
+
+        $courseId = Crypt::decrypt($courseId);
+        $basicInformationId = Crypt::decrypt($basicInformationId);
+        $delivery = Crypt::decrypt($delivery);
+        $studyId = Crypt::decrypt($studyId);
+        $academicYear = 2024;
+        // return $courseId . ' ' . $basicInformationId . ' ' . $delivery . ' ' . $studyId;
+        $naturalScienceCourses = $this->getNSAttachedCourses();
+        $results = $this->getAllocatedCourses($courseId,$basicInformationId,$delivery,$studyId, $academicYear);
+        $getCoure = EduroleCourses::where('ID', $courseId)->first();
+        $courseCode = $getCoure->Name;
+        $getStudy = EduroleStudy::where('ID', $studyId)->first();
+        $studyName = $getStudy->Name;
+        $deliveryMode = $getStudy->Delivery;
+
+        
+        return view('coordinator.caComponents.viewCoordinatorsCourses', compact('results','courseCode','studyName','deliveryMode','basicInformationId'));
 
     }
 

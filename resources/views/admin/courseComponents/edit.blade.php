@@ -20,7 +20,7 @@
                         <h5 class="card-title">Edit Assessment Type</h5>
 
                         <!-- Vertical Form -->
-                        <form method="POST" action="{{ route('courseComponents.update', $courseComponents->id) }}" class="row g-3">
+                        <form method="POST" action="{{ route('courseComponents.update', $courseComponents->course_components_id) }}" class="row g-3">
                             @method('patch')
                             @csrf
                             <div class="col-12 mb-3">
