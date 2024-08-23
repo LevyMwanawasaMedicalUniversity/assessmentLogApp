@@ -78,6 +78,7 @@ class PagesController extends Controller
         });
 
         $coursesWithCA = $filteredResults;
+        // return $coursesWithCA->count();
         $deansDataGet = EduroleBasicInformation::join('access', 'access.ID', '=', 'basic-information.ID')
             ->join('roles', 'roles.ID', '=', 'access.RoleID')
             ->join('schools', 'schools.Dean', '=', 'basic-information.ID')

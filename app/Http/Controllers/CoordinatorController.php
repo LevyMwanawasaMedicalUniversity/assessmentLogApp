@@ -25,9 +25,11 @@ class CoordinatorController extends Controller
         $delivery = $request->delivery; 
         $courseId = Crypt::decrypt($courseIdValue);
         $caType = Crypt::decrypt($caType);
+        // return  $basicInformationId;
         $basicInformationId = Crypt::decrypt($basicInformationId);
+        // return  $basicInformationId;
         $hasComponents = $request->hasComponents;
-        // return $hasComponents;
+        
         $componentId = $request->input('componentId');
         
         $studyId = $request->studyId;
@@ -79,9 +81,11 @@ class CoordinatorController extends Controller
 
     public function viewCourseWithComponents(Request $request, $courseIdValue, $basicInformationId, $delivery) {
         $courseId = Crypt::decrypt($courseIdValue);
-        $basicInformationId = Crypt::decrypt($basicInformationId);
-        // return $basicInformationId;
+        $basicInformationId = Crypt::decrypt($basicInformationId);        
         $delivery = Crypt::decrypt($delivery);
+
+         // return $basicInformationId;
+
         $studyId = $request->studyId;
         $isSettings = $request->isSettings;
         $academicYear = 2024;
@@ -101,14 +105,19 @@ class CoordinatorController extends Controller
         $getCoure = EduroleCourses::where('ID', $courseId)->first();
         $courseCode = $getCoure->Name;
 
+        $courseIdEncrypt = encrypt($courseId);
+        $basicInformationIdEncrypt = encrypt($basicInformationId);
+        $deliveryEncrypt = encrypt($delivery);
+        $studyIdEncrypt = encrypt($studyId);
+
         if(!$courseComponentAllocated || $isSettings == 1){
             return view('coordinator.caComponents.setCourseComponents', compact('academicYear','courseComponentAllocated','courseDetails','courseId', 'basicInformationId', 'delivery', 'studyId', 'courseComponents'));
         }else{
             if ($user->hasRole('Coordinator')) {
-                return redirect()->route('pages.uploadCourseWithComponents', ['courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId), 'delivery' => encrypt($delivery), 'studyId' => encrypt($studyId)])
+                return redirect()->route('pages.uploadCourseWithComponents', ['courseId' => $courseIdEncrypt, 'basicInformationId' => $basicInformationIdEncrypt, 'delivery' => $deliveryEncrypt, 'studyId' => $studyIdEncrypt])
                     ->with('success', $courseCode . 'Select Component In which you want to upload CA');
             } else {
-                return redirect()->route('admin.viewCoordinatorsCoursesWithComponents', ['courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId), 'delivery' => encrypt($delivery), 'studyId' => encrypt($studyId)] )
+                return redirect()->route('admin.viewCoordinatorsCoursesWithComponents', ['courseId' => $courseIdEncrypt, 'basicInformationId' => $basicInformationIdEncrypt, 'delivery' => $deliveryEncrypt, 'studyId' => $studyIdEncrypt] )
                     ->with('success', $courseCode . 'Select Component In which you want to upload CA');
             }
         }
@@ -321,17 +330,22 @@ class CoordinatorController extends Controller
 
             DB::commit();
 
+            $courseIdEncrypt = encrypt($courseId);
+            $basicInformationEncrypt = encrypt($basicInformationId);
+            $deliveryEncrypt = encrypt($delivery);
+            $studyIdEncrypt = encrypt($studyId);
+
             // Redirect based on user role
             if ($user->hasRole('Coordinator')) {
                 if($componentId){
-                    return redirect()->route('pages.uploadCourseWithComponents', ['courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId), 'delivery' => encrypt($delivery), 'studyId' => encrypt($studyId)])
+                    return redirect()->route('pages.uploadCourseWithComponents', ['courseId' => $courseIdEncrypt, 'basicInformationId' => $basicInformationEncrypt, 'delivery' => $deliveryEncrypt, 'studyId' => $studyIdEncrypt])
                         ->with('success', $courseCode . ' CA settings updated successfully');
                 }else{
                     return redirect()->route('pages.upload')->with('success', $courseCode . ' CA settings updated successfully');
                 }
             } else {
                 if($componentId){
-                    return redirect()->route('admin.viewCoordinatorsCoursesWithComponents', ['courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId), 'delivery' => encrypt($delivery), 'studyId' => encrypt($studyId)])
+                    return redirect()->route('admin.viewCoordinatorsCoursesWithComponents', ['courseId' => $courseIdEncrypt, 'basicInformationId' => $basicInformationEncrypt, 'delivery' => $deliveryEncrypt, 'studyId' => $studyIdEncrypt])
                         ->with('success', $courseCode . ' CA settings updated successfully');
                 }else{
                     return redirect()->route('admin.viewCoordinatorsCourses', $basicInformationId)->with('success', $courseCode . ' CA settings updated successfully');
@@ -439,12 +453,13 @@ class CoordinatorController extends Controller
             $courseCode = $getCoure->Name;
 
             DB::commit();
+            $basicInformationEncrypt = encrypt($basicInformationId);
 
             // Redirect based on user role
             if ($user->hasRole('Coordinator')) {
                 return redirect()->route('pages.upload')->with('success', $courseCode . ' Component settings updated successfully');
             } else {
-                return redirect()->route('admin.viewCoordinatorsCourses', encrypt($basicInformationId))->with('success', $courseCode . ' Component settings updated successfully');
+                return redirect()->route('admin.viewCoordinatorsCourses', $basicInformationEncrypt)->with('success', $courseCode . ' Component settings updated successfully');
             }
         } catch (\Exception $e) {
             DB::rollBack();
@@ -552,7 +567,7 @@ class CoordinatorController extends Controller
 
     public function viewTotalCaInCourse(Request $request ,$statusId, $courseIdValue, $basicInformationId,$delivery){
         $courseId = Crypt::decrypt($courseIdValue);
-        $caType = Crypt::decrypt($statusId);
+        // $caType = Crypt::decrypt($statusId);
         $basicInformationId = Crypt::decrypt($basicInformationId);
         $delivery = Crypt::decrypt($delivery);
         $componentId = $request->componentId;

@@ -82,7 +82,7 @@ abstract class Controller
             ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
             ->join('schools', 'schools.ID', '=', 'study.ParentID')
             // ->join('course-electives', 'course-electives.CourseID', '=', 'courses.ID')
-            ->select('programmes.Year as YearOfStudy','study.ShortName as ProgrammeCode', 'basic-information.ID as username','basic-information.ID as basicInformationId', 'courses.ID','courses.ID as CourseID', 'basic-information.Firstname', 'schools.Description AS SchoolName','basic-information.PrivateEmail', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName', 'courses.CourseDescription','study.Delivery','study.ParentID','study.ID as StudyID')
+            ->select('programmes.Year as YearOfStudy','study.ShortName as ProgrammeCode', 'basic-information.ID as username','basic-information.ID as basicInformationId', 'courses.ID','courses.ID as CourseID', 'basic-information.Firstname', 'schools.Description AS SchoolName','basic-information.PrivateEmail', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName', 'courses.CourseDescription','study.Delivery','study.ParentID','study.ID as StudyID','schools.Name as School')
             ->where('study.ProgrammesAvailable', '!=', 1)
             ->whereIn('courses.ID', $coursesFromCourseElectives);
             // ->where('course-electives.Year', 2024);

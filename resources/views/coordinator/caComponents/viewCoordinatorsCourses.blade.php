@@ -53,9 +53,10 @@
                                                 'course_assessments.delivery_mode',
                                                 DB::raw('count(course_assessments.course_assessments_id) as total')
                                             )
-                                            ->where('course_assessments.course_id', $result->ID)
-                                            ->where('course_assessments.delivery_mode', $result->Delivery)
-                                            ->where('course_assessments.study_id', $result->StudyID)
+                                            ->where('course_assessments.course_id', $result->course_id)
+                                            ->where('course_assessments.delivery_mode', $result->delivery_mode)
+                                            ->where('course_assessments.study_id', $result->study_id)
+                                            ->where('course_assessments.component_id', $result->course_components_id)
                                             ->join('assessment_types', 'assessment_types.id', '=', 'course_assessments.ca_type')
                                             ->groupBy('assessment_types.id','course_assessments.basic_information_id', 'assessment_types.assesment_type_name','course_assessments.delivery_mode')
                                             ->get();
@@ -75,8 +76,8 @@
                                                 <td>Year {{$result->YearOfStudy}}</td>
                                             @endif
                                             <td>
-                                                <form action="{{ route('coordinator.showCaWithin', encrypt($result->ID)) }}" method="GET">
-                                                    <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
+                                                <form action="{{ route('coordinator.showCaWithin', encrypt($result->course_id)) }}" method="GET">
+                                                    <input type="hidden" name="studyId" value="{{ $result->study_id }}">
                                                     <button type="submit" style="background:none;border:none;color:blue;text-decoration:underline;cursor:pointer;">
                                                         {{ $totalAssessments ? $totalAssessments : 0 }} assessments
                                                     </button>

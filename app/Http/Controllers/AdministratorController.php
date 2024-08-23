@@ -353,41 +353,65 @@ class AdministratorController extends Controller
 
     public function viewCoordinators(){
         // $naturalScienceCourses = $this->getNSAttachedCourses();
-        $results = $this->getCoursesFromEdurole()
-            // ->groupBy('basic-information.ID')
+        // $coursesWithCA = $this->getCoursesFromLMMAX();
+        // $results = $this->getCoursesFromEdurole()
+        //     // ->groupBy('basic-information.ID')
+        //     ->orderBy('schools.Name')
+        //     ->orderBy('study.Name')
+        //     ->get();
+        //     $filteredResults = $results->filter(function ($item) use ($coursesWithCA) {
+        //         foreach ($coursesWithCA as $course) {
+        //             if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->ProgrammesAvailable == $course['basic_information_id']) {
+        //                 return true;
+        //             }
+        //         }
+        //         return false;
+        //     });
+        $coursesFromLMMAX = $this->getCoursesFromLMMAX();
+        // return $coursesFromLMMAX;
+        $coursesFromEdurole = $this->getCoursesFromEdurole()
+            ->orderBy('schools.Name')
             ->orderBy('study.Name')
-            ->get();
-
-        // return $results;
-        
-
-        // return $results;
-        $coursesWithCA = $this->getCoursesFromLMMAX();
-        // return $getoursesWithCA;
-        // $coursesWithCA = array_column($getoursesWithCA, 'course_code');
-        // $deliveryModes = array_column($getoursesWithCA, 'delivery_mode');
-        // return $results;
+            ->orderBy('basic-information.FirstName')
+            ->get();            
         // return $coursesWithCA;
-        $counts = $results->unique('ID')->count();
-
-        $filteredResults = $results->filter(function ($item) use ($coursesWithCA) {
-            foreach ($coursesWithCA as $course) {
-                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->ProgrammesAvailable == $course['basic_information_id']) {
+        $filteredResults = $coursesFromEdurole->filter(function ($item) use ($coursesFromLMMAX) {
+            foreach ($coursesFromLMMAX as $course) {
+                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->StudyID == $course['study_id']) {
                     return true;
                 }
             }
             return false;
         });
+
+        // return $results;
         
-        $withCa = $filteredResults->countBy('basicInformationId');
+
+        // return $results;
+        
+        // return $coursesWithCA;
+        // return $getoursesWithCA;
+        // $coursesWithCA = array_column($getoursesWithCA, 'course_code');
+        // $deliveryModes = array_column($getoursesWithCA, 'delivery_mode');
+        // return $results;
+        // return $coursesWithCA;
+        
+        $counts = $coursesFromEdurole->unique('StudyID')->count();  
+                
+        
+        $withCa = $filteredResults;
+        // return $withCa;
         
         // return $results;
         
         // $totalCoursesCoordinated = (ceil($counts/ 3));
-        $totalCoursesCoordinated = $counts;
-        $counts = $results->countBy('basicInformationId');
-        $totalCoursesWithCA = $withCa->sum();
-        $results= $results->unique('basicInformationId', 'Name');
+        $totalCoursesCoordinated = $coursesFromEdurole->unique('ID')->count();
+        $counts = $coursesFromEdurole->countBy('StudyID');
+        $totalCoursesWithCA = $withCa->count();
+        $withCa = $withCa->countBy('StudyID');
+        // return $coursesFromEdurole;
+        
+        $results= $coursesFromEdurole->unique('basicInformationId', 'Name');
         return view('dean.viewCoordinators', compact('results', 'counts','withCa','totalCoursesCoordinated','totalCoursesWithCA'));
     }
 
@@ -453,7 +477,9 @@ class AdministratorController extends Controller
     public function viewCoordinatorsCoursesWithComponents($courseId,$basicInformationId,$delivery,$studyId){
 
         $courseId = Crypt::decrypt($courseId);
+        // return $courseId;
         $basicInformationId = Crypt::decrypt($basicInformationId);
+        // return $basicInformationId;
         $delivery = Crypt::decrypt($delivery);
         $studyId = Crypt::decrypt($studyId);
         $academicYear = 2024;
@@ -465,8 +491,7 @@ class AdministratorController extends Controller
         $getStudy = EduroleStudy::where('ID', $studyId)->first();
         $studyName = $getStudy->Name;
         $deliveryMode = $getStudy->Delivery;
-
-        
+                
         return view('coordinator.caComponents.viewCoordinatorsCourses', compact('results','courseCode','studyName','deliveryMode','basicInformationId'));
 
     }
