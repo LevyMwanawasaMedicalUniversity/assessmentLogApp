@@ -3,7 +3,7 @@
         <div class="pagetitle">
             <h1>{{$course->Name}} Course Settings 
                 <span style="color: {{ $delivery == 'Distance' ? 'green' : ($delivery == 'Fulltime' ? 'blue' : 'black') }}">
-                    {{ $delivery }} {{$hasComponents}}
+                    {{ $delivery }} @if($hasComponents){{$hasComponents}}@endif
                     
                 </span>
             </h1>
@@ -25,7 +25,7 @@
                                 @endphp
                                 
                                 <div class="d-flex justify-content-between align-items-center mb-4">
-                                    <h5 class="card-title">{{$course->CourseDescription}} {{$hasComponents}}</h5>
+                                    <h5 class="card-title">{{$course->CourseDescription}} @if($hasComponents){{$hasComponents}}@endif</h5>
                                     <h5 class="card-title">Marks Available : <span id="remainingMarks" style="font-weight: bold;">{{$total_marks - $marksToDeduct}}</span></h5>
                                 </div>
                                 

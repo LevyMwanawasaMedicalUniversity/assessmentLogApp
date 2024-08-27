@@ -64,6 +64,7 @@
                                     @endforeach
                                     <form method="GET" action="{{ route('coordinator.viewTotalCaInCourse', ['statusId' => encrypt($result->caType),'courseIdValue' => encrypt($result->course_id),'basicInformationId' => encrypt($basicInformationId),'delivery'=>encrypt($result->delivery_mode)]) }}">
                                         <input type="hidden" name="componentId" value="{{ ($result->course_components_id) }}">
+                                        <input type="hidden" name="hasComponents" value="{{ ($result->component_name) }}">
                                         <button type="submit" class="btn btn-light shadow-sm text-center mb-3" style="border: 2px solid black;">
                                             <div class="p-3 text-dark">
                                                 {{ __("Total CA") }}

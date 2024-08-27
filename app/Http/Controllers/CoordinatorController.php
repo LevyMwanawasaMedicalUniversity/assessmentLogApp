@@ -110,6 +110,8 @@ class CoordinatorController extends Controller
         $deliveryEncrypt = encrypt($delivery);
         $studyIdEncrypt = encrypt($studyId);
 
+        // return $basicInformationId;
+
         if(!$courseComponentAllocated || $isSettings == 1){
             return view('coordinator.caComponents.setCourseComponents', compact('academicYear','courseComponentAllocated','courseDetails','courseId', 'basicInformationId', 'delivery', 'studyId', 'courseComponents'));
         }else{
@@ -159,6 +161,8 @@ class CoordinatorController extends Controller
     public function courseCASettings(Request $request,$courseIdValue, $basicInformationId, $delivery){ 
         $courseId = Crypt::decrypt($courseIdValue);
         $delivery = Crypt::decrypt($delivery);
+        $basicInformationId = Crypt::decrypt($basicInformationId);
+        // return $basicInformationId;
         $studyId = $request->studyId;   
         $hasComponents = $request->hasComponents;
         $componentId = $request->input('componentId');
@@ -501,10 +505,8 @@ class CoordinatorController extends Controller
                 ->first();
             $studyId = $result->StudyID;
         }
-        
-
-        
-        // return $result;
+        $componentId = $request->componentId;
+        $hasComponents = $request->hasComponents;
 
         $courseDetails = EduroleCourses::where('ID', $courseId)->first();
 
@@ -518,7 +520,7 @@ class CoordinatorController extends Controller
         // return $results;
         $assessmentType = $this->setAssesmentType($statusId);
 
-        return view('coordinator.viewAllCaInCourse', compact('delivery','results', 'statusId', 'courseId','courseDetails','assessmentType','basicInformationId'));
+        return view('coordinator.viewAllCaInCourse', compact('hasComponents','delivery','results', 'statusId', 'courseId','courseDetails','assessmentType','basicInformationId'));
     }
 
     private function setAssesmentType($statusId){
@@ -526,7 +528,7 @@ class CoordinatorController extends Controller
         return $getAssesmntType->assesment_type_name;
     }
 
-    public function viewSpecificCaInCourse($statusId, $courseIdValue, $assessmentNumber){
+    public function viewSpecificCaInCourse(Request $request,$statusId, $courseIdValue, $assessmentNumber){
         $courseId = Crypt::decrypt($courseIdValue);
         $statusId = Crypt::decrypt($statusId);
         $assessmentNumber = Crypt::decrypt($assessmentNumber);
@@ -539,6 +541,7 @@ class CoordinatorController extends Controller
             ->get();
         
         $delivery = $results[0]->delivery_mode;
+        $hasComponents =  $request->hasComponents;
             
         $resultsArrayStudentNumbers = $results->pluck('student_id')->toArray();
         
@@ -562,7 +565,7 @@ class CoordinatorController extends Controller
         // return $results;
     
         $assessmentType = $this->setAssesmentType($statusId) .' '. $assessmentNumber;
-        return view('coordinator.viewSpecificCaInCourse', compact('delivery','results', 'courseId','assessmentType','courseDetails','statusId'));
+        return view('coordinator.viewSpecificCaInCourse', compact('hasComponents','delivery','results', 'courseId','assessmentType','courseDetails','statusId'));
     }
 
     public function viewTotalCaInCourse(Request $request ,$statusId, $courseIdValue, $basicInformationId,$delivery){
@@ -571,6 +574,7 @@ class CoordinatorController extends Controller
         $basicInformationId = Crypt::decrypt($basicInformationId);
         $delivery = Crypt::decrypt($delivery);
         $componentId = $request->componentId;
+        $hasComponents = $request->hasComponents;
         $courseDetails = EduroleCourses::where('ID', $courseId)->first();
         $coursesInEdurole = $this->getCoursesFromEdurole()
                 ->where('courses.ID', $courseId)
@@ -610,7 +614,7 @@ class CoordinatorController extends Controller
             return $result;
         });
         // return $results;
-        return view('coordinator.viewTotalCaInCourse', compact('delivery','results', 'statusId', 'courseId','courseDetails')); 
+        return view('coordinator.viewTotalCaInCourse', compact('delivery','results', 'statusId', 'courseId','courseDetails','hasComponents')); 
     }
 
     public function deleteCaInCourse(Request $request, $courseAssessmenId, $courseId)
@@ -674,7 +678,7 @@ class CoordinatorController extends Controller
             'basicInformationId' => 'required',
             'delivery' => 'required',
             'study_id' => 'required',
-            'component_id' => 'required',
+            // 'component_id' => 'required',
         ]);
         $expectedColumnCount = 2;
 
@@ -797,7 +801,7 @@ class CoordinatorController extends Controller
             'basicInformationId' => 'required',
             'delivery' => 'required',
             'study_id' => 'required',
-            'component_id' => 'required',
+            // 'component_id' => 'required',
         ]);
 
         DB::beginTransaction();

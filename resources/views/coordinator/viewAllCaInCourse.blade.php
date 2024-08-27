@@ -3,7 +3,7 @@
     <div class="pagetitle">
         <h1>{{$assessmentType }}s for {{$courseDetails->CourseDescription}} - {{$courseDetails->Name}} 
             <span style="color: {{ $delivery == 'Distance' ? 'green' : ($delivery == 'Fulltime' ? 'blue' : 'black') }}">
-            {{ $delivery }}
+            {{ $delivery }} @if($hasComponents) in {{$hasComponents}}@endif
             </span>
         </h1>
         @include('layouts.alerts')
@@ -47,9 +47,19 @@
                                             <td class="px-4 py-2">{{$result->academic_year}}</td>
                                             <td class="px-4 py-2">
                                                 <div class="btn-group" role="group" aria-label="Button group">
-                                                    <a href="{{ route('coordinator.viewSpecificCaInCourse', ['statusId' => encrypt($statusId), 'courseIdValue' => encrypt($result->course_assessments_id), 'assessmentNumber' => encrypt($loop->iteration)]) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-start">
+                                                    {{-- <a href="{{ route('coordinator.viewSpecificCaInCourse', ['statusId' => encrypt($statusId), 'courseIdValue' => encrypt($result->course_assessments_id), 'assessmentNumber' => encrypt($loop->iteration)]) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-start">
                                                         View
-                                                    </a>
+                                                    </a> --}}
+                                                    <form action="{{ route('coordinator.viewSpecificCaInCourse',['statusId' => encrypt($statusId), 'courseIdValue' => encrypt($result->course_assessments_id), 'assessmentNumber' => encrypt($loop->iteration)]) }}" method="GET" class="d-inline">
+                                                        @csrf
+                                                        <input type="hidden" name="statusId" value="{{ encrypt($statusId) }}">
+                                                        <input type="hidden" name="courseIdValue" value="{{ encrypt($result->course_assessments_id) }}">
+                                                        <input type="hidden" name="assessmentNumber" value="{{ encrypt($loop->iteration) }}">
+                                                        <input type="hidden" name="hasComponents" value="{{($hasComponents) }}">
+                                                        <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-start">
+                                                            View
+                                                        </button>
+                                                    </form>
                                                     @if (auth()->user()->hasPermissionTo('Dean'))
                                                     <a href="{{ route('coordinator.editCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId)]) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
                                                         Edit

@@ -466,22 +466,22 @@ class AdministratorController extends Controller
             ->where('basic-information.ID', $basicInformationId)
             ->orderBy('programmes.Year')
             ->orderBy('courses.Name')
-            ->orderBy('study.Delivery')
-            
+            ->orderBy('study.Delivery')            
             ->get();
         
         return view('coordinator.viewCoordinatorsCourses', compact('results'));
 
     }
 
-    public function viewCoordinatorsCoursesWithComponents($courseId,$basicInformationId,$delivery,$studyId){
+    public function viewCoordinatorsCoursesWithComponents($courseIdEncrypt,$basicInformationIdEncrypt,$deliveryEncrypt,$studyIdEncrypt){
 
-        $courseId = Crypt::decrypt($courseId);
-        // return $courseId;
-        $basicInformationId = Crypt::decrypt($basicInformationId);
+        $courseId = Crypt::decrypt($courseIdEncrypt);
+        // return $courseIdEncrypt;
+        // return $basicInformationIdEncrypt;
+        $basicInformationId = Crypt::decrypt($basicInformationIdEncrypt);
         // return $basicInformationId;
-        $delivery = Crypt::decrypt($delivery);
-        $studyId = Crypt::decrypt($studyId);
+        $delivery = Crypt::decrypt($deliveryEncrypt);
+        $studyId = Crypt::decrypt($studyIdEncrypt);
         $academicYear = 2024;
         // return $courseId . ' ' . $basicInformationId . ' ' . $delivery . ' ' . $studyId;
         $naturalScienceCourses = $this->getNSAttachedCourses();

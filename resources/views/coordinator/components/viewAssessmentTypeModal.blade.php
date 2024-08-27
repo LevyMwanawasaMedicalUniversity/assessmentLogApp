@@ -22,6 +22,7 @@
                     ->select('assessment_types.id','assessment_types.assesment_type_name')
                     ->get();
                 $componentId = null;
+                $component_name = null;
 
                 $totalMarks = \App\Models\CATypeMarksAllocation::where('course_id', $result->ID)
                     ->where('study_id', $result->StudyID)
@@ -48,6 +49,7 @@
                                             <input type="hidden" name="delivery" value="{{ $result->Delivery }}">
                                             <input type="hidden" name="studyId" value="{{$result->StudyID}}">
                                             <input type="hidden" name="componentId" value="{{$componentId}}">
+                                            <input type="hidden" name="hasComponents" value="{{ ($component_name) }}">
                                             <button type="submit" class="btn btn-light shadow-sm text-center mb-3" style="border: 2px solid green;">
                                                 <div class="p-3 text-dark">
                                                     {{ $courseAssessmenetType->assesment_type_name }}
@@ -57,6 +59,7 @@
                                     @endforeach
                                     <form method="GET" action="{{ route('coordinator.viewTotalCaInCourse', ['statusId' => encrypt($result->caType),'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery'=>encrypt($result->Delivery)]) }}">
                                         <input type="hidden" name="componentId" value="{{$componentId}}">
+                                        <input type="hidden" name="hasComponents" value="{{ ($component_name) }}">
                                         <button type="submit" class="btn btn-light shadow-sm text-center mb-3" style="border: 2px solid black;">
                                             <div class="p-3 text-dark">
                                                 {{ __("Total CA") }}
@@ -71,6 +74,7 @@
                                     ]) }}" method="GET">
                                         <input type="hidden" name="studyId" value="{{ ($result->StudyID) }}">
                                         <input type="hidden" name="componentId" value="{{$componentId}}">
+                                        <input type="hidden" name="hasComponents" value="{{ ($component_name) }}">
                                         <button type="submit" style="background:none;border:none;padding:0;">
                                             <div class="alert alert-warning" role="alert">
                                                 The distribution of the total marks is incomplete. Please click here to allocate the remaining 40 marks.
@@ -86,6 +90,7 @@
                                 ]) }}" method="GET">
                                     <input type="hidden" name="studyId" value="{{ ($result->StudyID) }}">
                                     <input type="hidden" name="componentId" value="{{$componentId}}">
+                                    <input type="hidden" name="hasComponents" value="{{ ($component_name) }}">
                                     <button type="submit" style="background:none;border:none;padding:0;">
                                         <div class="alert alert-danger" role="alert">
                                             No Assessment Type Found, click here to set up Assessment Types.

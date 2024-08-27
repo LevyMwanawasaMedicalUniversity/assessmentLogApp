@@ -3,6 +3,7 @@
     <div class="pagetitle">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{$assessmentType }} for {{$courseDetails->CourseDescription}} - {{$courseDetails->Name}} for {{$results->count()}} <span style="color: {{ $delivery == 'Fulltime' ? 'blue' : ($delivery == 'Distance' ? 'green' : 'black') }}">{{$delivery}}</span> students
+            @if($hasComponents) in {{$hasComponents}}@endif
         </h2>
         @include('layouts.alerts')
         
