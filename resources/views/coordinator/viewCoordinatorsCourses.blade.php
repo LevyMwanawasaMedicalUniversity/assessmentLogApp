@@ -107,7 +107,7 @@
                                                     </div>                                                    
                                                 @elseif(strtoupper($result->Name) == 'BASIC SCIENCES')
                                                     <div class="btn-group float-end" role="group" aria-label="Button group">
-                                                        <form action="{{ route('coordinator.viewCourseWithComponents', ['courseIdValue' => encrypt($result->ID), 'basicInformationId' => encrypt($result->basicInformationId), 'delivery' => encrypt($result->Delivery)]) }}" method="GET" class="d-inline">
+                                                        <form action="" method="GET" class="d-inline">
                                                             <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
                                                             <input type="hidden" name="isSettings" value="0">
                                                             <button type="submit" class="btn btn-secondary font-weight-bold py-2 px-4 rounded-0">
