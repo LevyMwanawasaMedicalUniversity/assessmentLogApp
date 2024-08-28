@@ -52,6 +52,16 @@
                                         <tr>
                                             @php
                                                 $user = \App\Models\User::where('basic_information_id', $result->basicInformationId)->first();
+                                                $numberOfCourses = \App\Models\EduroleCourseElective::select('c.ID')
+                                                    ->join('courses as c', 'c.ID', '=', 'course-electives.CourseID')
+                                                    ->join('program-course-link as pcl', 'c.ID', '=', 'pcl.CourseID')
+                                                    ->join('programmes as p', 'p.ID', '=', 'pcl.ProgramID')
+                                                    ->join('student-study-link as ssl2', 'ssl2.StudentID', '=', 'course-electives.StudentID')
+                                                    ->join('study as s', 's.ID', '=', 'ssl2.StudyID')                                                    
+                                                    ->where('course-electives.Year', '=', '2024')
+                                                    ->where('s.ID',$result->StudyID )
+                                                    ->distinct('c.ID')
+                                                    ->count();
                                             @endphp
                                             {{-- <th scope="row">1</th> --}}
                                             <td>{{$loop->iteration}}</td>
@@ -62,7 +72,12 @@
                                             <td style="color: {{ $user && $user->last_login_at ? 'blue' : 'red' }};">
                                                 {{ $user && $user->last_login_at ? $user->last_login_at : 'NEVER' }}
                                             </td>
-                                            <td>{{ $counts[$result->StudyID] ?? '0' }} Courses</td>
+                                            @if(($result->StudyID == 163) || ($result->StudyID == 165))
+                                                <td>{{ $counts[$result->StudyID] ?? '0' }} Courses</td>
+                                            @else
+                                                <td>{{$numberOfCourses}} Courses</td>
+                                                {{-- <td>{{ $counts[$result->StudyID] ?? '0' }} Courses</td> --}}
+                                            @endif
                                             <td>
                                                 <form action="{{ route('coordinator.viewOnlyProgrammesWithCaForCoordinator', $result->basicInformationId) }}" method="GET">
                                                     <button type="submit" style="background:none;border:none;color:blue;text-decoration:underline;cursor:pointer;">

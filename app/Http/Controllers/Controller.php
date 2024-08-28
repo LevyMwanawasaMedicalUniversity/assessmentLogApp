@@ -68,11 +68,15 @@ abstract class Controller
     }
 
     public function queryCourseFromEdurole(){
-        $coursesFromCourseElectives = EduroleCourseElective::select('CourseID')
-            ->where('Year', 2024)
-            ->where('Approved', 1)
+        $coursesFromCourseElectives = EduroleCourseElective::select('course-electives.CourseID')
+            ->join('courses', 'courses.ID','=','course-electives.CourseID')
+            ->join('program-course-link', 'program-course-link.CourseID','=','courses.ID')
+            ->join('student-study-link','student-study-link.StudentID','=','course-electives.StudentID')
+            ->join('study','study.ID','=','student-study-link.StudyID')
+            ->where('course-electives.Year', 2024)
+            ->where('course-electives.Approved', 1)
             ->distinct()
-            ->pluck('CourseID')
+            ->pluck('course-electives.CourseID')
             ->toArray();
 
         return EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
@@ -82,7 +86,7 @@ abstract class Controller
             ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
             ->join('schools', 'schools.ID', '=', 'study.ParentID')
             // ->join('course-electives', 'course-electives.CourseID', '=', 'courses.ID')
-            ->select('programmes.Year as YearOfStudy','study.ShortName as ProgrammeCode', 'basic-information.ID as username','basic-information.ID as basicInformationId', 'courses.ID','courses.ID as CourseID', 'basic-information.Firstname', 'schools.Description AS SchoolName','basic-information.PrivateEmail', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName', 'courses.CourseDescription','study.Delivery','study.ParentID','study.ID as StudyID','schools.Name as School')
+            ->select('programmes.Year as YearOfStudy','study.ShortName as ProgrammeCode', 'basic-information.ID as username','basic-information.ID as basicInformationId', 'courses.ID','courses.ID as CourseID', 'basic-information.Firstname', 'schools.Description AS SchoolName','basic-information.PrivateEmail', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName', 'courses.CourseDescription','study.Delivery','study.ParentID','study.ID as StudyID','schools.Name as School','study.ProgrammesAvailable')
             ->where('study.ProgrammesAvailable', '!=', 1)
             ->whereIn('courses.ID', $coursesFromCourseElectives);
             // ->where('course-electives.Year', 2024);

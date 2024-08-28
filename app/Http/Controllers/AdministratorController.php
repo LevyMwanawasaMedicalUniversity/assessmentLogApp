@@ -7,6 +7,7 @@ use App\Models\CourseAssessment;
 use App\Models\CourseAssessmentScores;
 use App\Models\CourseComponentAllocation;
 use App\Models\EduroleBasicInformation;
+use App\Models\EduroleCourseElective;
 use App\Models\EduroleCourses;
 use App\Models\EduroleStudy;
 use App\Models\StudentsContinousAssessment;
@@ -459,15 +460,42 @@ class AdministratorController extends Controller
     }
 
     public function viewCoordinatorsCourses($basicInformationId){
-
         $basicInformationId = Crypt::decrypt($basicInformationId);
-        $naturalScienceCourses = $this->getNSAttachedCourses();
-        $results = $this->getCoursesFromEdurole()
-            ->where('basic-information.ID', $basicInformationId)
+        
+        $getStudyId = EduroleStudy::where('ProgrammesAvailable', '=', $basicInformationId)->first();
+        // return $getStudyId;
+        $studyId = $getStudyId->ID;
+        // return $coursesFromCourseElectives;
+
+        
+        // $naturalScienceCourses = $this->getNSAttachedCourses();
+        if($studyId == 163 || $studyId == 165){
+            $results = $this->getCoursesFromEdurole()
+            ->where('basic-information.ID', $basicInformationId)            
             ->orderBy('programmes.Year')
             ->orderBy('courses.Name')
             ->orderBy('study.Delivery')            
             ->get();
+        }else{
+            $coursesFromCourseElectives = EduroleCourseElective::select('course-electives.CourseID')
+                ->join('courses', 'courses.ID','=','course-electives.CourseID')
+                ->join('program-course-link', 'program-course-link.CourseID','=','courses.ID')
+                ->join('student-study-link','student-study-link.StudentID','=','course-electives.StudentID')
+                ->join('study','study.ID','=','student-study-link.StudyID')
+                ->where('course-electives.Year', 2024)
+                ->where('course-electives.Approved', 1)
+                ->where('study.ProgrammesAvailable', $basicInformationId)
+                ->distinct()
+                ->pluck('course-electives.CourseID')
+                ->toArray();
+            $results = $this->getCoursesFromEdurole()
+                ->where('basic-information.ID', $basicInformationId)
+                ->whereIn('courses.ID', $coursesFromCourseElectives)
+                ->orderBy('programmes.Year')
+                ->orderBy('courses.Name')
+                ->orderBy('study.Delivery')            
+                ->get();
+        }
         
         return view('coordinator.viewCoordinatorsCourses', compact('results'));
 
