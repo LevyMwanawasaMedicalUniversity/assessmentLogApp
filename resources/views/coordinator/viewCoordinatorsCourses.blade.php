@@ -85,7 +85,7 @@
                                                 </form>
                                             </td>
                                             <td class="text-right">
-                                                @if(in_array($result->CourseName, ['CAG201', 'GRA201']))
+                                                @if(in_array($result->CourseName, ['CAG201', 'GRA201']) || strtoupper($result->Name) != 'BASIC SCIENCES')
                                                     <div class="btn-group float-end" role="group" aria-label="Button group">
                                                         {{-- @if(auth()->user()->hasPermissionTo('Coordinator')) --}}
                                                             <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#uploadCourseModal{{ $result->ID }}{{ $result->Delivery }}{{$result->StudyID}}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">

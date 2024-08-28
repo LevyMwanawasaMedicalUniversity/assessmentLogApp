@@ -101,6 +101,8 @@ abstract class Controller
                 $query->whereNotIn('courses.Name', ['BAB201', 'CAG201', 'CVS301', 'GIT301','GRA201','IHD201','MCT201','NER301','PEB201','REN301','RES301'])
                     ->orWhereIn('study.ID', $getBasicSciencesCourses);
             });
+            //Attachements need to be excluded they do not have CA
+            //
     }
 
     public function getStudentInformation($studentId){
