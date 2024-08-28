@@ -472,10 +472,12 @@ class CoordinatorController extends Controller
     }
 
 
-    public function editCaInCourse($courseAssessmenId,$courseId, $basicInformationId){
+    public function editCaInCourse(Request $request, $courseAssessmenId,$courseId, $basicInformationId){
         $courseAssessmentId = Crypt::decrypt($courseAssessmenId);
         $courseId = Crypt::decrypt($courseId);
         $basicInformationId = Crypt::decrypt($basicInformationId);
+        $componentId = $request->componentId;
+        $hasComponents = $request->hasComponents;
         $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
             ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
             ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
@@ -484,10 +486,14 @@ class CoordinatorController extends Controller
             ->select('courses.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name','study.ID as StudyID', 'courses.Name as CourseName','courses.CourseDescription','basic-information.ID as basicInformationId')
             ->where('courses.ID', $courseId)
             ->first();
-        $courseAssessment = CourseAssessment::where('course_assessments_id', $courseAssessmentId)->first();
+        $courseAssessment = CourseAssessment::where('course_assessments_id', $courseAssessmentId)
+            ->join('assessment_types','assessment_types.id','=','course_assessments.ca_type')
+            ->first();
+
+        // return $courseAssessment;
         // $delivery;
         $delivery = $courseAssessment->delivery_mode;
-        return view('coordinator.editCaInCourse', compact('delivery','results', 'courseId','courseAssessmentId','basicInformationId'));
+        return view('coordinator.editCaInCourse', compact('courseAssessment','hasComponents','componentId','delivery','results', 'courseId','courseAssessmentId','basicInformationId'));
     }
 
     public function viewAllCaInCourse(Request $request,$statusId, $courseIdValue, $basicInformationId, $delivery){
@@ -508,6 +514,7 @@ class CoordinatorController extends Controller
         $componentId = $request->componentId;
         $hasComponents = $request->hasComponents;
 
+        // return $hasComponents;
         $courseDetails = EduroleCourses::where('ID', $courseId)->first();
 
         $results = CourseAssessment::where('course_id', $courseId)
@@ -520,7 +527,7 @@ class CoordinatorController extends Controller
         // return $results;
         $assessmentType = $this->setAssesmentType($statusId);
 
-        return view('coordinator.viewAllCaInCourse', compact('hasComponents','delivery','results', 'statusId', 'courseId','courseDetails','assessmentType','basicInformationId'));
+        return view('coordinator.viewAllCaInCourse', compact('componentId','hasComponents','delivery','results', 'statusId', 'courseId','courseDetails','assessmentType','basicInformationId'));
     }
 
     private function setAssesmentType($statusId){

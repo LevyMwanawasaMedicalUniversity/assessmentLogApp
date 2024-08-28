@@ -5,7 +5,7 @@
     </div> --}}
 
     <!-- Alert Messages -->
-    <div class="w-full mb-6">
+    {{-- <div class="w-full mb-6">
         @if (session('success'))
             <div class="bg-green-100 text-green-800 px-4 py-2 rounded">
                 {{ session('success') }}
@@ -17,7 +17,7 @@
                 {{ session('error') }}
             </div>
         @endif
-    </div>
+    </div> --}}
 
     <!-- File Upload Form -->
     <form action="{{ route('coordinator.updateCAFromExcelSheet') }}" method="POST" enctype="multipart/form-data" class="p-4 bg-light border rounded shadow-sm">
@@ -25,7 +25,10 @@
 
         <!-- Form Header -->
         <div class="mb-4">
-            <h3 class="font-weight-bold text-primary">Update Course Assessment</h3>
+            {{-- <h3 class="font-weight-bold text-primary"></h3> --}}
+            <h3 class="font-weight-bold {{ $delivery == 'Fulltime' ? 'text-primary' : ($delivery == 'Distance' ? 'text-success' : '') }}">
+                    Update Course Assessment {{$delivery}} {{$courseAssessment->assesment_type_name}} Results
+                </h3>
             <p class="text-muted">Please upload the Excel file to update the course assessment information.</p>
         </div>
 

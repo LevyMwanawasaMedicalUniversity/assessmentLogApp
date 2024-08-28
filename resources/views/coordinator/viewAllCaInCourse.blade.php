@@ -46,7 +46,7 @@
                                             <td class="px-4 py-2">{{$result->created_at}}</td>
                                             <td class="px-4 py-2">{{$result->academic_year}}</td>
                                             <td class="px-4 py-2">
-                                                <div class="btn-group" role="group" aria-label="Button group">
+                                                <div class="btn-group float-end" role="group" aria-label="Button group">
                                                     {{-- <a href="{{ route('coordinator.viewSpecificCaInCourse', ['statusId' => encrypt($statusId), 'courseIdValue' => encrypt($result->course_assessments_id), 'assessmentNumber' => encrypt($loop->iteration)]) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-start">
                                                         View
                                                     </a> --}}
@@ -56,25 +56,32 @@
                                                         <input type="hidden" name="courseIdValue" value="{{ encrypt($result->course_assessments_id) }}">
                                                         <input type="hidden" name="assessmentNumber" value="{{ encrypt($loop->iteration) }}">
                                                         <input type="hidden" name="hasComponents" value="{{($hasComponents) }}">
-                                                        <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-start">
+                                                        <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
                                                             View
                                                         </button>
                                                     </form>
-                                                    @if (auth()->user()->hasPermissionTo('Dean'))
-                                                    <a href="{{ route('coordinator.editCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId)]) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
+                                                    {{-- @if (auth()->user()->hasPermissionTo('Dean')) --}}
+                                                    {{-- <a href="{{ route('coordinator.editCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId)]) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
                                                         Edit
-                                                    </a> 
+                                                    </a>  --}}
+                                                    <form action="{{ route('coordinator.editCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId)]) }}" method="GET" class="d-inline">
+                                                        <input type="hidden" name="hasComponents" value="{{($hasComponents) }}">
+                                                        <input type="hidden" name="componentId" value="{{($componentId)}}">
+                                                        <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
+                                                            Edit
+                                                        </button>
+                                                    </form>
                                                     <form method="POST" action="{{ route('coordinator.deleteCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}" onsubmit="return confirm('Are you sure you want to delete this?');">
                                                         {{ method_field('DELETE') }}
                                                         {{ csrf_field() }}
                                                         <input type="hidden" name="academicYear" value={{$result->academic_year}}>
                                                         <input type="hidden" name="ca_type" value={{$statusId}}>
                                                         <input type="hidden" name="delivery" value={{$delivery}}>
-                                                        <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-end">
+                                                        <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-0">
                                                             Delete
                                                         </button>
                                                     </form>
-                                                    @endif
+                                                    {{-- @endif --}}
                                                 </div>
                                             </td>                                                                     
                                         </tr>

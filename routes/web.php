@@ -93,10 +93,8 @@ Route::middleware(['auth','force.password.change'])->group(function () {
         Route::get('/coordinator/viewTotalCaInCourse/{statusId}/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'viewTotalCaInCourse'])->name('coordinator.viewTotalCaInCourse');
         Route::get('/coordinator/viewCa/{statusId}/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'viewAllCaInCourse'])->name('coordinator.viewAllCaInCourse');
     });
-    Route::middleware('can:Dean')->group(function () {
-        Route::get('/coordinator/editCaInCourse/{courseAssessmenId}/{courseId}/{basicInformationId}',[CoordinatorController::class, 'editCaInCourse'])->name('coordinator.editCaInCourse');
-        Route::delete('/coordinator/deleteCaInCourse/{courseAssessmenId}/{courseId}',[CoordinatorController::class, 'deleteCaInCourse'])->name('coordinator.deleteCaInCourse');
-        Route::POST('/coordinator/updateCAFromExcelSheet',[CoordinatorController::class, 'updateCAFromExcelSheet'])->name('coordinator.updateCAFromExcelSheet');
+    
+    Route::middleware('can:Dean')->group(function () {        
     });
 
     Route::middleware('can:Registrar')->group(function () {
@@ -105,7 +103,11 @@ Route::middleware(['auth','force.password.change'])->group(function () {
     });
 
     Route::middleware([ 'can:ViewCoordinatorsCourses'])->group(function () { //deans, coordinators, registrar permissions included
+        Route::get('/coordinator/editCaInCourse/{courseAssessmenId}/{courseId}/{basicInformationId}',[CoordinatorController::class, 'editCaInCourse'])->name('coordinator.editCaInCourse');
+        Route::POST('/coordinator/updateCAFromExcelSheet',[CoordinatorController::class, 'updateCAFromExcelSheet'])->name('coordinator.updateCAFromExcelSheet');
         Route::get('/admin/viewCoordinators',[AdministratorController::class, 'viewCoordinators'])->name('admin.viewCoordinators');
+        Route::delete('/coordinator/deleteCaInCourse/{courseAssessmenId}/{courseId}',[CoordinatorController::class, 'deleteCaInCourse'])->name('coordinator.deleteCaInCourse');
+
         Route::get('/coordinator/viewCoordinatorsUnderDean/{schoolId}',[AdministratorController::class, 'viewCoordinatorsUnderDean'])->name('admin.viewCoordinatorsUnderDean');
         Route::get('/editCourseAssessmentDescription/{courseAssessmentId}/{statusId}',[AdministratorController::class, 'editCourseAssessmentDescription'])->name('editCourseAssessmentDescription');
         Route::post('/updateCourseAssessmentDescription/{courseAssessmentId}',[AdministratorController::class, 'updateCourseAssessmentDescription'])->name('updateCourseAssessmentDescription');

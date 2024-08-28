@@ -3,7 +3,8 @@
     <main id="main" class="main">
         <div class="pagetitle">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                <span style="color: {{ $delivery == 'Fulltime' ? 'blue' : ($delivery == 'Distance' ? 'green' : 'black') }}"><b>{{ $results->CourseDescription }} - {{$results->CourseName}} : {{$delivery}} {{$assessmentType}} @isset($hasComponents) in {{$hasComponents}} @endisset</b></span>
+                <span style="color: {{ $delivery == 'Fulltime' ? 'blue' : ($delivery == 'Distance' ? 'green' : 'black') }}">
+                <b>{{ $results->CourseDescription }} - {{$results->CourseName}} : {{$delivery}} {{$assessmentType}} @isset($hasComponents) in {{$hasComponents}} @endisset</b></span>
             </h2>
             @include('layouts.alerts')
             <div class="alert alert-info alert-dismissible fade show" role="alert">
