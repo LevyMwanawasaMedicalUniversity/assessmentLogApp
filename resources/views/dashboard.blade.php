@@ -23,22 +23,26 @@
                 <div class="col-xxl-4 col-md-6">
                 <div class="card info-card sales-card">                   
 
-                    <div class="card-body">
-                    <h5 class="card-title">Coordinators <span>| Total</span></h5>
+                        <div class="card-body">
+                            <h5 class="card-title">Students With CA <span>| Uploaded</span></h5>
 
-                    <div class="d-flex align-items-center">
-                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                        <i class="bi bi-people"></i>
+                            @php
+                            $uniqueStudentIds = \App\Models\CourseAssessmentScores::distinct()
+                                ->pluck('student_id');
+                            @endphp
+
+                            <div class="d-flex align-items-center">
+                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                                <div class="ps-3">
+                                    <h6>{{ $uniqueStudentIds->count() }}</h6>
+                                    <span class="text-success small pt-1 fw-bold">From</span> <span class="text-muted small pt-2 ps-1">Assessments System</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="ps-3">
-                        <h6>{{$coursesFromEdurole->unique('username')->count()}}</h6>
-                        <span class="text-success small pt-1 fw-bold">From</span> <span class="text-muted small pt-2 ps-1">Edurole</span>
 
-                        </div>
                     </div>
-                    </div>
-
-                </div>
                 </div><!-- End Sales Card -->
 
                 <!-- Revenue Card -->
@@ -105,49 +109,48 @@
                         <div class="card-body">
                             <h5 class="card-title">Course With CA Per Programme</h5>
                             @php
+                                // Ensure $coursesWithCA and $coursesFromEdurole are collections
+                                $coursesWithCA = collect($coursesWithCA);
+                                $coursesFromEdurole = collect($coursesFromEdurole);
+
                                 // Extract unique ProgrammeCodes from coursesFromEdurole
-                                $programmeCodes = $coursesFromEdurole->pluck('ProgrammeCode')->unique()->values()->toArray();
+                                $programmeCodes = $coursesFromEdurole->pluck('ProgrammeCode')->unique()->values();
 
                                 // Initialize arrays to hold counts for each ProgrammeCode
                                 $coursesWithCAProgrammeCountsArray = [];
                                 $coursesFromEduroleProgrammeCountsArray = [];
 
+                                $coursesFromCourseElectivesQuery = \App\Models\EduroleCourseElective::select('course-electives.CourseID')
+                                    ->join('courses', 'courses.ID', '=', 'course-electives.CourseID')
+                                    ->join('program-course-link', 'program-course-link.CourseID', '=', 'courses.ID')
+                                    ->join('student-study-link', 'student-study-link.StudentID', '=', 'course-electives.StudentID')
+                                    ->join('study', 'study.ID', '=', 'student-study-link.StudyID')
+                                    ->where('course-electives.Year', 2024)
+                                    ->where('course-electives.Approved', 1);
+
                                 foreach ($programmeCodes as $code) {
                                     // Count courses with CA for the current ProgrammeCode
                                     $coursesWithCAProgrammeCountsArray[] = $coursesWithCA->where('ProgrammeCode', $code)->count();
-                                    // Count courses from Edurole for the current ProgrammeCode
-                                    if(($code == 'BBS') || ($code == 'NS')){
-                                        $coursesFromEduroleProgrammeCountsArray[] = $coursesFromEdurole->where('ProgrammeCode', $code)->count();
-                                    }else{
-                                        $coursesFromCourseElectives = \App\Models\EduroleCourseElective::select('course-electives.CourseID')
-                                                ->join('courses', 'courses.ID','=','course-electives.CourseID')
-                                                ->join('program-course-link', 'program-course-link.CourseID','=','courses.ID')
-                                                ->join('student-study-link','student-study-link.StudentID','=','course-electives.StudentID')
-                                                ->join('study','study.ID','=','student-study-link.StudyID')
-                                                ->where('course-electives.Year', 2024)
-                                                ->where('course-electives.Approved', 1)
-                                                ->where('study.ShortName', $code)
-                                                ->distinct()
-                                                ->pluck('course-electives.CourseID')
-                                                ->toArray();
-                                        $coursesFromEduroleProgrammeCountsArray[] = $resultsForCount->where('ProgrammeCode', $code)
-                                                    ->whereIn('ID', $coursesFromCourseElectives)
-                                                    ->count();
 
-                                        /*$coursesFromEduroleProgrammeCountsArray[] = \App\Models\EduroleCourseElective::select('c.ID')
-                                            ->join('courses as c', 'c.ID', '=', 'course-electives.CourseID')
-                                            ->join('program-course-link as pcl', 'c.ID', '=', 'pcl.CourseID')
-                                            ->join('programmes as p', 'p.ID', '=', 'pcl.ProgramID')
-                                            ->join('student-study-link as ssl2', 'ssl2.StudentID', '=', 'course-electives.StudentID')
-                                            ->join('study as s', 's.ID', '=', 'ssl2.StudyID')                                                    
-                                            ->where('course-electives.Year', '=', '2024')
-                                            ->where('s.ShortName',$code )
-                                            ->whereNotIn('c.Name',['MAT101', 'PHY101', 'CHM101', 'BIO101','BAB201', 'CAG201', 'CVS301', 'GIT301','GRA201','IHD201','MCT201','NER301','PEB201','REN301','RES301'])
-                                            ->distinct('c.ID')
-                                            ->count();*/
+                                    // Count courses from Edurole for the current ProgrammeCode
+                                    if (in_array($code, ['BBS', 'NS'])) {
+                                        $coursesFromEduroleProgrammeCountsArray[] = $coursesFromEdurole->where('ProgrammeCode', $code)->count();
+                                    } else {
+                                        // Clone the query for each iteration to avoid modifying the original query
+                                        $coursesFromCourseElectives = clone $coursesFromCourseElectivesQuery;
+                                        $coursesFromCourseElectives = $coursesFromCourseElectives
+                                            ->where('study.ShortName', $code)
+                                            ->distinct()
+                                            ->pluck('course-electives.CourseID')
+                                            ->toArray();
+
+                                        $coursesFromEduroleProgrammeCountsArray[] = $resultsForCount->where('ProgrammeCode', $code)
+                                            ->whereIn('ID', $coursesFromCourseElectives)
+                                            ->count();
                                     }
                                 }
                             @endphp
+                            
                             <!-- Column Chart -->
                             <div id="columnChart"></div>
 
@@ -398,7 +401,7 @@
             <!-- Website Traffic -->
             <div class="card">
                 <div class="card-body pb-0">
-                    <h5 class="card-title">Number Of Coordinators Per School</h5>
+                    <h5 class="card-title">Number Of Coordinators : {{$coursesFromEdurole->unique('username')->count()}}</h5>
                     <div id="trafficChart" style="min-height: 400px;" class="echart"></div>
 
                     @php

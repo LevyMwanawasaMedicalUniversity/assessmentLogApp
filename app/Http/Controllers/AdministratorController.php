@@ -352,112 +352,46 @@ class AdministratorController extends Controller
         return back()->with('success', 'Updated successfully click "View CA"');
     }
 
-    public function viewCoordinators(){
-        // $naturalScienceCourses = $this->getNSAttachedCourses();
-        // $coursesWithCA = $this->getCoursesFromLMMAX();
-        // $results = $this->getCoursesFromEdurole()
-        //     // ->groupBy('basic-information.ID')
-        //     ->orderBy('schools.Name')
-        //     ->orderBy('study.Name')
-        //     ->get();
-        //     $filteredResults = $results->filter(function ($item) use ($coursesWithCA) {
-        //         foreach ($coursesWithCA as $course) {
-        //             if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->ProgrammesAvailable == $course['basic_information_id']) {
-        //                 return true;
-        //             }
-        //         }
-        //         return false;
-        //     });
-        $coursesFromLMMAX = $this->getCoursesFromLMMAX();
-        // return $coursesFromLMMAX;
-        $coursesFromEdurole = $this->getCoursesFromEdurole()
+    public function viewCoordinators()
+    {
+        return $this->generateCoordinatorsView();
+    }
+
+    public function viewCoordinatorsUnderDean($schoolId)
+    {
+        $schoolId = Crypt::decrypt($schoolId);
+        return $this->generateCoordinatorsView($schoolId);
+    }
+
+    private function generateCoordinatorsView($schoolId = null)
+    {
+        // Fetch courses from Edurole, optionally filtering by school ID
+        $coursesFromEduroleQuery = $this->getCoursesFromEdurole()
             ->orderBy('schools.Name')
             ->orderBy('study.Name')
-            ->orderBy('basic-information.FirstName')
-            ->get();            
-        // return $coursesWithCA;
-        // $filteredResults = $coursesFromEdurole->filter(function ($item) use ($coursesFromLMMAX) {
-        //     foreach ($coursesFromLMMAX as $course) {
-        //         if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->StudyID == $course['study_id']) {
-        //             return true;
-        //         }
-        //     }
-        //     return false;
-        // });
+            ->orderBy('basic-information.FirstName');
 
-        // return $results;
-        
+        if ($schoolId) {
+            $coursesFromEduroleQuery->where('study.ParentID', $schoolId);
+        }
 
-        // return $results;
+        $coursesFromEdurole = $coursesFromEduroleQuery->get();
         
-        // return $coursesWithCA;
-        // return $getoursesWithCA;
-        // $coursesWithCA = array_column($getoursesWithCA, 'course_code');
-        // $deliveryModes = array_column($getoursesWithCA, 'delivery_mode');
-        // return $results;
-        // return $coursesWithCA;
-        
-        $counts = $coursesFromEdurole->unique('StudyID')->count();
-        
+        // Generate necessary data for view
         $resultsForCount = $this->getCoursesFromEdurole()
-                // ->where('basic-information.ID', $basicInformationId)
-                // ->whereIn('courses.ID', $coursesFromCourseElectives)
-                ->orderBy('programmes.Year')
-                ->orderBy('courses.Name')
-                ->orderBy('study.Delivery')
-                ->get();
-                
-        
-        // $withCa = $filteredResults;
-        // return $withCa;
-        
-        // return $results;
-        
-        // $totalCoursesCoordinated = (ceil($counts/ 3));
+            ->orderBy('programmes.Year')
+            ->orderBy('courses.Name')
+            ->orderBy('study.Delivery')
+            ->get();
+
         $totalCoursesCoordinated = $coursesFromEdurole->unique('ID')->count();
         $counts = $coursesFromEdurole->countBy('StudyID');
-        // $totalCoursesWithCA = $withCa->count();
-        // $withCa = $withCa->countBy('StudyID');
-        // return $coursesFromEdurole;
-        
-        $results= $coursesFromEdurole->unique('basicInformationId', 'Name');
-        return view('dean.viewCoordinators', compact('resultsForCount','results', 'counts','totalCoursesCoordinated'));
+        $results = $coursesFromEdurole->unique('basicInformationId', 'Name');
+
+        // Return the view with the data
+        return view('dean.viewCoordinators', compact('resultsForCount', 'results', 'counts', 'totalCoursesCoordinated'));
     }
 
-    public function viewCoordinatorsUnderDean($schoolId){
-        $schoolId = Crypt::decrypt($schoolId);
-        // $naturalScienceCourses = $this->getNSAttachedCourses();
-        $results = $this->getCoursesFromEdurole()
-            ->where('study.ParentID', $schoolId)
-            ->get();
-        $coursesWithCA = $this->getCoursesFromLMMAX();
-        $filteredResults = $results->filter(function ($item) use ($coursesWithCA) {
-            foreach ($coursesWithCA as $course) {
-                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->ProgrammesAvailable == $course['basic_information_id']) {
-                    return true;
-                }
-            }
-            return false;
-        });
-            
-        $counts = $results->unique('ID')->count();
-        $withCa = $filteredResults->countBy('basicInformationId');
-        $resultsForCount = $this->getCoursesFromEdurole()
-        // ->where('basic-information.ID', $basicInformationId)
-        // ->whereIn('courses.ID', $coursesFromCourseElectives)
-        ->orderBy('programmes.Year')
-        ->orderBy('courses.Name')
-        ->orderBy('study.Delivery')
-        ->get();
-        
-        
-        // $totalCoursesCoordinated = (ceil($counts/ 3));
-        $totalCoursesCoordinated = ($counts);
-        $counts = $results->countBy('basicInformationId');
-        $results= $results->unique('username');
-        $totalCoursesWithCA = $withCa->sum();
-        return view('dean.viewCoordinators', compact('resultsForCount','schoolId','results', 'counts','withCa','totalCoursesCoordinated','totalCoursesWithCA'));
-    }
 
     public function viewDeans(){
         $results = EduroleBasicInformation::join('access', 'access.ID', '=', 'basic-information.ID')

@@ -66,7 +66,19 @@ class PagesController extends Controller
     {
         $coursesFromLMMAX = $this->getCoursesFromLMMAX();
         // return $coursesFromLMMAX;
-        $coursesFromEdurole = $this->getCoursesFromEdurole()->get();            
+        $coursesFromEdurole = $this->getCoursesFromEdurole();
+
+        $resultsForCount = $coursesFromEdurole
+                // ->where('basic-information.ID', $basicInformationId)
+                // ->whereIn('courses.ID', $coursesFromCourseElectives)
+                ->orderBy('programmes.Year')
+                ->orderBy('courses.Name')
+                ->orderBy('study.Delivery')
+                ->get();
+        
+        $coursesFromEdurole =  $coursesFromEdurole->get();
+        
+        
         // return $coursesFromEdurole;
         $filteredResults = $coursesFromEdurole->filter(function ($item) use ($coursesFromLMMAX) {
             foreach ($coursesFromLMMAX as $course) {
@@ -88,17 +100,11 @@ class PagesController extends Controller
             ->get();
         $deansData= $deansDataGet->unique('ID');
         // $results= $deansDataGet->unique('ID');
-        $counts = $deansDataGet->countBy('ID');;
+        // $counts = $deansDataGet->countBy('ID');;
         // return $coursesWithCA;
 
-        $resultsForCount = $this->getCoursesFromEdurole()
-                // ->where('basic-information.ID', $basicInformationId)
-                // ->whereIn('courses.ID', $coursesFromCourseElectives)
-                ->orderBy('programmes.Year')
-                ->orderBy('courses.Name')
-                ->orderBy('study.Delivery')
-                ->get();
-        return view('dashboard', compact('resultsForCount','counts','coursesWithCA', 'coursesFromEdurole','deansData'));
+        
+        return view('dashboard', compact('resultsForCount','coursesWithCA', 'coursesFromEdurole','deansData'));
     }
 
     
