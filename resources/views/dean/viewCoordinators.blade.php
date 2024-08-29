@@ -66,13 +66,7 @@
                                 <tbody>
 
                                 @php
-                                    $coursesFromCourseElectivesQuery = \App\Models\EduroleCourseElective::select('course-electives.CourseID')
-                                    ->join('courses', 'courses.ID', '=', 'course-electives.CourseID')
-                                    ->join('program-course-link', 'program-course-link.CourseID', '=', 'courses.ID')
-                                    ->join('student-study-link', 'student-study-link.StudentID', '=', 'course-electives.StudentID')
-                                    ->join('study', 'study.ID', '=', 'student-study-link.StudyID')
-                                    ->where('course-electives.Year', 2024)
-                                    ->where('course-electives.Approved', 1);
+                                    
                                 @endphp
                                     @foreach($results as $result)
                                         @include('coordinator.components.uploadAssessmentTypeModal')

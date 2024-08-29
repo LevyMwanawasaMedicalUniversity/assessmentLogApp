@@ -378,18 +378,25 @@ class AdministratorController extends Controller
         $coursesFromEdurole = $coursesFromEduroleQuery->get();
         
         // Generate necessary data for view
-        $resultsForCount = $this->getCoursesFromEdurole()
+        $resultsForCount = $coursesFromEduroleQuery
             ->orderBy('programmes.Year')
             ->orderBy('courses.Name')
             ->orderBy('study.Delivery')
             ->get();
+        $coursesFromCourseElectivesQuery =EduroleCourseElective::select('course-electives.CourseID')
+        ->join('courses', 'courses.ID', '=', 'course-electives.CourseID')
+        ->join('program-course-link', 'program-course-link.CourseID', '=', 'courses.ID')
+        ->join('student-study-link', 'student-study-link.StudentID', '=', 'course-electives.StudentID')
+        ->join('study', 'study.ID', '=', 'student-study-link.StudyID')
+        ->where('course-electives.Year', 2024)
+        ->where('course-electives.Approved', 1);
 
         $totalCoursesCoordinated = $coursesFromEdurole->unique('ID')->count();
         $counts = $coursesFromEdurole->countBy('StudyID');
         $results = $coursesFromEdurole->unique('basicInformationId', 'Name');
 
         // Return the view with the data
-        return view('dean.viewCoordinators', compact('resultsForCount', 'results', 'counts', 'totalCoursesCoordinated'));
+        return view('dean.viewCoordinators', compact('coursesFromCourseElectivesQuery','resultsForCount', 'results', 'counts', 'totalCoursesCoordinated'));
     }
 
 

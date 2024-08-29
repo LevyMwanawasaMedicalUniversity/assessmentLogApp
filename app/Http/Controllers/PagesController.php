@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CourseComponentAllocation;
 use App\Models\EduroleBasicInformation;
+use App\Models\EduroleCourseElective;
 use App\Models\EduroleCourses;
 use App\Models\EduroleStudy;
 use App\Models\StudentsContinousAssessment;
@@ -102,9 +103,16 @@ class PagesController extends Controller
         // $results= $deansDataGet->unique('ID');
         // $counts = $deansDataGet->countBy('ID');;
         // return $coursesWithCA;
+        $coursesFromCourseElectivesQuery = EduroleCourseElective::select('course-electives.CourseID')
+                ->join('courses', 'courses.ID', '=', 'course-electives.CourseID')
+                ->join('program-course-link', 'program-course-link.CourseID', '=', 'courses.ID')
+                ->join('student-study-link', 'student-study-link.StudentID', '=', 'course-electives.StudentID')
+                ->join('study', 'study.ID', '=', 'student-study-link.StudyID')
+                ->where('course-electives.Year', 2024)
+                ->where('course-electives.Approved', 1);
 
         
-        return view('dashboard', compact('resultsForCount','coursesWithCA', 'coursesFromEdurole','deansData'));
+        return view('dashboard', compact('coursesFromCourseElectivesQuery','resultsForCount','coursesWithCA', 'coursesFromEdurole','deansData'));
     }
 
     
