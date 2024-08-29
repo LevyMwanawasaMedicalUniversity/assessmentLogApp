@@ -73,19 +73,25 @@
                                         @include('coordinator.components.viewAssessmentTypeModal')
                                         <tr>
                                             @php
+                                            $coursesFromCourseElectives = \App\Models\EduroleCourseElective::select('course-electives.CourseID')
+                                                ->join('courses', 'courses.ID','=','course-electives.CourseID')
+                                                ->join('program-course-link', 'program-course-link.CourseID','=','courses.ID')
+                                                ->join('student-study-link','student-study-link.StudentID','=','course-electives.StudentID')
+                                                ->join('study','study.ID','=','student-study-link.StudyID')
+                                                ->where('course-electives.Year', 2024)
+                                                ->where('course-electives.Approved', 1)
+                                                ->where('study.ProgrammesAvailable', $result->basicInformationId)
+                                                ->distinct()
+                                                ->pluck('course-electives.CourseID')
+                                                ->toArray();
                                                 $user = \App\Models\User::where('basic_information_id', $result->basicInformationId)->first();
-                                                $numberOfCourses = \App\Models\EduroleCourseElective::select('c.ID')
-                                                    ->join('courses as c', 'c.ID', '=', 'course-electives.CourseID')
-                                                    ->join('program-course-link as pcl', 'c.ID', '=', 'pcl.CourseID')
-                                                    ->join('programmes as p', 'p.ID', '=', 'pcl.ProgramID')
-                                                    ->join('student-study-link as ssl2', 'ssl2.StudentID', '=', 'course-electives.StudentID')
-                                                    ->join('study as s', 's.ID', '=', 'ssl2.StudyID')                                                    
-                                                    ->where('course-electives.Year', '=', '2024')
-                                                    ->where('s.ShortName',$result->ProgrammeCode )
-                                                    //->where('s.ID',$result->StudyID )
-                                                    ->whereNotIn('c.Name',['MAT101', 'PHY101', 'CHM101', 'BIO101','BAB201', 'CAG201', 'CVS301', 'GIT301','GRA201','IHD201','MCT201','NER301','PEB201','REN301','RES301'])
-                                                    ->distinct('c.ID')
+                                                $numberOfCourses = $resultsForCount->where('basicInformationId', $result->basicInformationId)
+                                                    ->whereIn('ID', $coursesFromCourseElectives)
                                                     ->count();
+
+                                                
+
+                                                //$numberOfCourses = $numberOfCourses->sum('c.ID');
 
                                                 /*$couresWithCa = \App\Models\CourseAssessment::select('course_id')
                                                     //->where('course_id', '=', $result->ID )

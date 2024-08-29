@@ -67,7 +67,7 @@ class PagesController extends Controller
         $coursesFromLMMAX = $this->getCoursesFromLMMAX();
         // return $coursesFromLMMAX;
         $coursesFromEdurole = $this->getCoursesFromEdurole()->get();            
-        // return $coursesWithCA;
+        // return $coursesFromEdurole;
         $filteredResults = $coursesFromEdurole->filter(function ($item) use ($coursesFromLMMAX) {
             foreach ($coursesFromLMMAX as $course) {
                 if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->StudyID == $course['study_id']) {
@@ -76,6 +76,7 @@ class PagesController extends Controller
             }
             return false;
         });
+        
 
         $coursesWithCA = $filteredResults;
         // return $coursesWithCA->count();
@@ -89,7 +90,15 @@ class PagesController extends Controller
         // $results= $deansDataGet->unique('ID');
         $counts = $deansDataGet->countBy('ID');;
         // return $coursesWithCA;
-        return view('dashboard', compact('counts','coursesWithCA', 'coursesFromEdurole','deansData'));
+
+        $resultsForCount = $this->getCoursesFromEdurole()
+                // ->where('basic-information.ID', $basicInformationId)
+                // ->whereIn('courses.ID', $coursesFromCourseElectives)
+                ->orderBy('programmes.Year')
+                ->orderBy('courses.Name')
+                ->orderBy('study.Delivery')
+                ->get();
+        return view('dashboard', compact('resultsForCount','counts','coursesWithCA', 'coursesFromEdurole','deansData'));
     }
 
     
@@ -105,7 +114,7 @@ class PagesController extends Controller
             ->select('courses.ID','basic-information.Firstname', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName','courses.CourseDescription')
             ->where('basic-information.ID', $basicInformationId)
             ->get();
-        
+                
         return view('coordinator.viewCoordinatorsCourses', compact('results'));
 
     }

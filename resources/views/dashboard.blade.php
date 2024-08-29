@@ -56,7 +56,7 @@
                         </div>
                         <div class="ps-3">
                         {{-- <h6>{{ ceil($coursesFromEdurole->unique('ID')->count() / 3) }}</h6> --}}
-                        <h6>{{ ($coursesFromEdurole->unique('ID')->count() ) }}</h6>
+                        <h6>{{ ($coursesFromEdurole->unique('ID','Delivery','StudyID')->count() ) }}</h6>
                         <span class="text-primary small pt-1 fw-bold">With Coordinators Assigned</span>
 
                         </div>
@@ -73,6 +73,10 @@
 
                     <div class="card-body">
                     <h5 class="card-title">Courses From LM-MAX <span>| Total</span></h5>
+                    @php
+                    $totalCa = \App\Models\CourseAssessment::distinct(['course_id', 'delivery_mode','study_id'])
+                                    ->count();
+                    @endphp
                     @if (auth()->user()->hasPermissionTo('Registrar'))
                         <a href="{{ route('coordinator.viewOnlyProgrammesWithCa') }}">
                     @endif
@@ -81,7 +85,7 @@
                                 <i class="bi bi-receipt"></i>
                             </div>
                             <div class="ps-3">
-                                <h6>{{ $coursesWithCA->count() }}</h6>
+                                <h6>{{ $totalCa }}</h6>
                                 <span class="text-success small pt-1 fw-bold">With Continuous Assessments</span>
                             </div>
                         </div>
@@ -112,10 +116,25 @@
                                     // Count courses with CA for the current ProgrammeCode
                                     $coursesWithCAProgrammeCountsArray[] = $coursesWithCA->where('ProgrammeCode', $code)->count();
                                     // Count courses from Edurole for the current ProgrammeCode
-                                    if(($code != 'BBS') || ($code != 'NS')){
+                                    if(($code == 'BBS') || ($code == 'NS')){
                                         $coursesFromEduroleProgrammeCountsArray[] = $coursesFromEdurole->where('ProgrammeCode', $code)->count();
                                     }else{
-                                        $coursesFromEduroleProgrammeCountsArray[] = \App\Models\EduroleCourseElective::select('c.ID')
+                                        $coursesFromCourseElectives = \App\Models\EduroleCourseElective::select('course-electives.CourseID')
+                                                ->join('courses', 'courses.ID','=','course-electives.CourseID')
+                                                ->join('program-course-link', 'program-course-link.CourseID','=','courses.ID')
+                                                ->join('student-study-link','student-study-link.StudentID','=','course-electives.StudentID')
+                                                ->join('study','study.ID','=','student-study-link.StudyID')
+                                                ->where('course-electives.Year', 2024)
+                                                ->where('course-electives.Approved', 1)
+                                                ->where('study.ShortName', $code)
+                                                ->distinct()
+                                                ->pluck('course-electives.CourseID')
+                                                ->toArray();
+                                        $coursesFromEduroleProgrammeCountsArray[] = $resultsForCount->where('ProgrammeCode', $code)
+                                                    ->whereIn('ID', $coursesFromCourseElectives)
+                                                    ->count();
+
+                                        /*$coursesFromEduroleProgrammeCountsArray[] = \App\Models\EduroleCourseElective::select('c.ID')
                                             ->join('courses as c', 'c.ID', '=', 'course-electives.CourseID')
                                             ->join('program-course-link as pcl', 'c.ID', '=', 'pcl.CourseID')
                                             ->join('programmes as p', 'p.ID', '=', 'pcl.ProgramID')
@@ -125,7 +144,7 @@
                                             ->where('s.ShortName',$code )
                                             ->whereNotIn('c.Name',['MAT101', 'PHY101', 'CHM101', 'BIO101','BAB201', 'CAG201', 'CVS301', 'GIT301','GRA201','IHD201','MCT201','NER301','PEB201','REN301','RES301'])
                                             ->distinct('c.ID')
-                                            ->count();
+                                            ->count();*/
                                     }
                                 }
                             @endphp
@@ -264,13 +283,35 @@
 
                     @php
                         $schools = ['SOHS', 'SOPHES', 'SOMCS', 'DRGS', 'SON', 'IBBS'];
-                        $coursesWithCACounts = [];
-                        $coursesFromEduroleCounts = [];
 
+                        $coursesWithCACounts = [];
+                        $coursesFromEduroleCounts = [];                    
+                        
+                    
                         foreach ($schools as $school) {
-                            $coursesWithCACounts[$school] = $coursesWithCA->where('SchoolName', $school)->unique('ID')->count();
+                            $getSchools = \App\Models\EduroleSchool::where('Description', $school)->first();
+                            $schoolId = $getSchools->ID;
+                            $schoolProgrammes = \App\Models\EduroleStudy::where('ParentID', $schoolId)->pluck('ID')->toArray();
+
+                            
+                            //$coursesWithCACounts[$school] = $coursesWithCA->where('SchoolName', $school)->unique('ID')->count();
+                            $coursesWithCACounts[$school] = \App\Models\CourseAssessment::whereIn('study_id', $schoolProgrammes)
+                                ->select('course_id', 'delivery_mode')
+                                //->distinct()
+                                ->groupBy('course_id', 'delivery_mode')
+                                ->get()
+                                ->count();
                             $coursesFromEduroleCounts[$school] = $coursesFromEdurole->where('SchoolName', $school)->unique('ID')->count();
                         }
+
+                        /*$getCourdinatoresCourses = \App\Models\EduroleStudy::where('ProgrammesAvailable', $result->basicInformationId)->pluck('ID')->toArray();
+
+                        $coursesWithCa = \App\Models\CourseAssessment::whereIn('study_id', $getCourdinatoresCourses)
+                            ->select('course_id', 'delivery_mode')
+                            //->distinct()
+                            ->groupBy('course_id', 'delivery_mode')
+                            ->get()
+                            ->count();*/
 
                         // Convert arrays to indexed arrays for JavaScript
                         $schoolNames = array_keys($coursesWithCACounts);
