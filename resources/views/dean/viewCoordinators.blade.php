@@ -31,6 +31,24 @@
                         <!-- Table with hoverable rows -->
                         <div style="overflow-x:auto;">
                             <table id="myTable" class="table table-hover">
+                            @php
+
+                            if (isset($schoolId)) {
+                                $studyId = \App\Models\EduroleStudy::select('ID')
+                                    ->where('ParentID', '=', $schoolId)
+                                    ->pluck('ID')
+                                    ->toArray();
+
+                                $totalCa = \App\Models\CourseAssessment::whereIn('study_id', $studyId)
+                                    ->distinct(['course_id', 'delivery_mode',])
+                                    ->count();
+                            } else {
+                                $totalCa = \App\Models\CourseAssessment::distinct(['course_id', 'delivery_mode','study_id'])
+                                    ->count();
+                            }
+
+
+                            @endphp
                                 {{-- <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"> --}}
                                 <thead>
                                     <tr>
@@ -41,11 +59,15 @@
                                         <th scope="col">School</th>
                                         <th scope="col">Last Login</th>
                                         <th scope="col">Courses in @isset($schoolId) {{$results->first()->SchoolName}} @else Edurole @endif<span class="text-primary"> {{ $totalCoursesCoordinated }} </span></th>
-                                        <th scope="col">Courses With CA <span class="text-success"> {{$totalCoursesWithCA}} </span></th>
+                                        <th scope="col">Courses With CA <span class="text-success"> {{$totalCa}} </span></th>
                                         <th scope="col">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
+
+                                @php
+                                
+                                @endphp
                                     @foreach($results as $result)
                                         @include('coordinator.components.uploadAssessmentTypeModal')
                                         @include('coordinator.components.viewAssessmentTypeModal')
@@ -59,9 +81,28 @@
                                                     ->join('student-study-link as ssl2', 'ssl2.StudentID', '=', 'course-electives.StudentID')
                                                     ->join('study as s', 's.ID', '=', 'ssl2.StudyID')                                                    
                                                     ->where('course-electives.Year', '=', '2024')
-                                                    ->where('s.ID',$result->StudyID )
+                                                    ->where('s.ShortName',$result->ProgrammeCode )
+                                                    //->where('s.ID',$result->StudyID )
+                                                    ->whereNotIn('c.Name',['MAT101', 'PHY101', 'CHM101', 'BIO101','BAB201', 'CAG201', 'CVS301', 'GIT301','GRA201','IHD201','MCT201','NER301','PEB201','REN301','RES301'])
                                                     ->distinct('c.ID')
                                                     ->count();
+
+                                                /*$couresWithCa = \App\Models\CourseAssessment::select('course_id')
+                                                    //->where('course_id', '=', $result->ID )
+                                                    ->where('study_id', '=', $result->StudyID )
+                                                    ->distinct('course_id', 'delivery_mode')
+                                                    ->get()
+                                                    ->count();
+                                                */
+                                                $getCourdinatoresCourses = \App\Models\EduroleStudy::where('ProgrammesAvailable', $result->basicInformationId)->pluck('ID')->toArray();
+
+                                                $coursesWithCa = \App\Models\CourseAssessment::whereIn('study_id', $getCourdinatoresCourses)
+                                                    ->select('course_id', 'delivery_mode')
+                                                    //->distinct()
+                                                    ->groupBy('course_id', 'delivery_mode')
+                                                    ->get()
+                                                    ->count();
+                                                    
                                             @endphp
                                             {{-- <th scope="row">1</th> --}}
                                             <td>{{$loop->iteration}}</td>
@@ -81,7 +122,8 @@
                                             <td>
                                                 <form action="{{ route('coordinator.viewOnlyProgrammesWithCaForCoordinator', $result->basicInformationId) }}" method="GET">
                                                     <button type="submit" style="background:none;border:none;color:blue;text-decoration:underline;cursor:pointer;">
-                                                        {{ $withCa[$result->StudyID] ?? '0' }} Courses
+                                                        {{-- {{ $withCa[$result->StudyID] ?? '0' }} Courses --}}
+                                                        {{$coursesWithCa}} Courses
                                                     </button>
                                                 </form>
                                             </td>

@@ -209,16 +209,20 @@ class CoordinatorController extends Controller
 
     public function viewOnlyProgrammesWithCaForCoordinator($coordinatorId){
 
-        $coursesWithCA = $this->getCoursesFromLMMAX();   
+        $coursesWithCA = $this->getCoursesFromLMMAX(); 
+        
+        $getCourdinatoresCourses = EduroleStudy::where('ProgrammesAvailable', $coordinatorId)->pluck('ID')->toArray();
+
+        // return $getCourdinatoresCourses;
 
         $results = $this->getCoursesFromEdurole()
             
-            ->where('basic-information.ID', $coordinatorId)
+            ->whereIn('study.ID', $getCourdinatoresCourses)
             ->get();
         // return $results;
         $filteredResults = $results->filter(function ($item) use ($coursesWithCA) {
             foreach ($coursesWithCA as $course) {
-                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->ProgrammesAvailable == $course['basic_information_id']) {
+                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->StudyID == $course['study_id']) {
                     return true;
                 }
             }

@@ -376,14 +376,14 @@ class AdministratorController extends Controller
             ->orderBy('basic-information.FirstName')
             ->get();            
         // return $coursesWithCA;
-        $filteredResults = $coursesFromEdurole->filter(function ($item) use ($coursesFromLMMAX) {
-            foreach ($coursesFromLMMAX as $course) {
-                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->StudyID == $course['study_id']) {
-                    return true;
-                }
-            }
-            return false;
-        });
+        // $filteredResults = $coursesFromEdurole->filter(function ($item) use ($coursesFromLMMAX) {
+        //     foreach ($coursesFromLMMAX as $course) {
+        //         if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->StudyID == $course['study_id']) {
+        //             return true;
+        //         }
+        //     }
+        //     return false;
+        // });
 
         // return $results;
         
@@ -400,7 +400,7 @@ class AdministratorController extends Controller
         $counts = $coursesFromEdurole->unique('StudyID')->count();  
                 
         
-        $withCa = $filteredResults;
+        // $withCa = $filteredResults;
         // return $withCa;
         
         // return $results;
@@ -408,12 +408,12 @@ class AdministratorController extends Controller
         // $totalCoursesCoordinated = (ceil($counts/ 3));
         $totalCoursesCoordinated = $coursesFromEdurole->unique('ID')->count();
         $counts = $coursesFromEdurole->countBy('StudyID');
-        $totalCoursesWithCA = $withCa->count();
-        $withCa = $withCa->countBy('StudyID');
+        // $totalCoursesWithCA = $withCa->count();
+        // $withCa = $withCa->countBy('StudyID');
         // return $coursesFromEdurole;
         
         $results= $coursesFromEdurole->unique('basicInformationId', 'Name');
-        return view('dean.viewCoordinators', compact('results', 'counts','withCa','totalCoursesCoordinated','totalCoursesWithCA'));
+        return view('dean.viewCoordinators', compact('results', 'counts','totalCoursesCoordinated'));
     }
 
     public function viewCoordinatorsUnderDean($schoolId){
