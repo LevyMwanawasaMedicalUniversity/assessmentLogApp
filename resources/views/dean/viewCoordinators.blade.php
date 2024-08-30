@@ -33,7 +33,7 @@
                             <table id="myTable" class="table table-hover">
                             @php
 
-                            if (isset($schoolId)) {
+                            if (($schoolId)) {
                                 $studyId = \App\Models\EduroleStudy::select('ID')
                                     ->where('ParentID', '=', $schoolId)
                                     ->pluck('ID')

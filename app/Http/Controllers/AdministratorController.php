@@ -390,13 +390,17 @@ class AdministratorController extends Controller
         ->join('study', 'study.ID', '=', 'student-study-link.StudyID')
         ->where('course-electives.Year', 2024)
         ->where('course-electives.Approved', 1);
+        // return $coursesFromEdurole;
 
-        $totalCoursesCoordinated = $coursesFromEdurole->unique('ID')->count();
+        $totalCoursesCoordinated = $coursesFromEdurole->unique('ID','Delivery','StudyID')->count();
+        // $totalCoursesCoordinated = $coursesFromEdurole->unique(function ($item) {
+        //     return $item['ID'] . '-' . $item['Delivery'] . '-' . $item['StudyID'];
+        // })->count();
         $counts = $coursesFromEdurole->countBy('StudyID');
         $results = $coursesFromEdurole->unique('basicInformationId', 'Name');
 
         // Return the view with the data
-        return view('dean.viewCoordinators', compact('coursesFromCourseElectivesQuery','resultsForCount', 'results', 'counts', 'totalCoursesCoordinated'));
+        return view('dean.viewCoordinators', compact('schoolId','coursesFromCourseElectivesQuery','resultsForCount', 'results', 'counts', 'totalCoursesCoordinated'));
     }
 
 

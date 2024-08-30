@@ -61,6 +61,9 @@
                         <div class="ps-3">
                         {{-- <h6>{{ ceil($coursesFromEdurole->unique('ID')->count() / 3) }}</h6> --}}
                         <h6>{{ ($coursesFromEdurole->unique('ID','Delivery','StudyID')->count() ) }}</h6>
+                        {{-- <h6>{{ $totalCoursesCoordinated = $coursesFromEdurole->unique(function ($item) {
+                                return $item['ID'] . '-' . $item['Delivery'] . '-' . $item['StudyID'];
+                            })->count(); }}</h6> --}}
                         <span class="text-primary small pt-1 fw-bold">With Coordinators Assigned</span>
 
                         </div>

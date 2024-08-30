@@ -97,14 +97,20 @@ abstract class Controller
         $naturalScienceCourses = $this->getNSAttachedCourses();
         $getBasicSciencesCourses = $this->getBasicSciencesCourses();
         return $this->queryCourseFromEdurole()
-            ->where(function($query) use ($naturalScienceCourses) {
-                $query->whereNotIn('courses.Name', ['MAT101', 'PHY101', 'CHM101', 'BIO101'])
-                    ->orWhereIn('study.ID', $naturalScienceCourses);
-            })
-            ->where(function($query) use ($getBasicSciencesCourses) {
-                $query->whereNotIn('courses.Name', ['BAB201', 'CAG201', 'CVS301', 'GIT301','GRA201','IHD201','MCT201','NER301','PEB201','REN301','RES301'])
-                    ->orWhereIn('study.ID', $getBasicSciencesCourses);
-            });
+        ->where(function($query) use ($naturalScienceCourses) {
+            $query->whereNotIn('courses.Name', ['MAT101', 'PHY101', 'CHM101', 'BIO101'])
+                ->orWhereIn('study.ID', $naturalScienceCourses);
+        })
+        ->where(function($query) use ($getBasicSciencesCourses) {
+            $query->whereNotIn('courses.Name', ['BAB201', 'CAG201', 'CVS301', 'GIT301','GRA201','IHD201','MCT201','NER301','PEB201','REN301','RES301'])
+                ->orWhereIn('study.ID', $getBasicSciencesCourses);
+        })
+        ->where(function($query) {
+            $query->where('courses.CourseDescription', 'NOT LIKE', '%Research%')
+                ->where('courses.CourseDescription', 'NOT LIKE', '%Practical%')
+                ->where('courses.CourseDescription', 'NOT LIKE', '%Attachment%')
+                ->where('courses.Name', 'NOT LIKE', '%OSC%');
+        });
             //Attachements need to be excluded they do not have CA
             //
     }
