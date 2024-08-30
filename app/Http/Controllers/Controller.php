@@ -109,6 +109,8 @@ abstract class Controller
             $query->where('courses.CourseDescription', 'NOT LIKE', '%Research%')
                 ->where('courses.CourseDescription', 'NOT LIKE', '%Practical%')
                 ->where('courses.CourseDescription', 'NOT LIKE', '%Attachment%')
+                ->where('courses.CourseDescription', 'NOT LIKE', '%Clinical Practice%')
+                ->where('courses.CourseDescription', 'NOT LIKE', '%Dissertation%')
                 ->where('courses.Name', 'NOT LIKE', '%OSC%');
         });
             //Attachements need to be excluded they do not have CA
