@@ -324,7 +324,7 @@ class AdministratorController extends Controller
 
         $audits = Audit::with('user')
         ->orderBy('created_at', 'desc')
-        ->paginate(15); // Eager load the related user
+        ->paginate(100); // Eager load the related user
 
         return view('admin.users.audits', compact('audits'));
     }

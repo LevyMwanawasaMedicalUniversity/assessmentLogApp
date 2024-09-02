@@ -55,4 +55,16 @@ class User extends Authenticatable implements AuditableContract
             'password' => 'hashed',
         ];
     }
+
+     /**
+     * Get the attributes that should be excluded from the audit.
+     *
+     * @return array<string>
+     */
+    public function excludedAttributes(): array
+    {
+        return [
+            'last_login_at',
+        ];
+    }
 }
