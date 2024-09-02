@@ -270,6 +270,21 @@ Breadcrumbs::for('coordinator.viewTotalCaInCourse', function ($trail, $statusId,
     $trail->push('Total Ca', route('coordinator.viewTotalCaInCourse', ['statusId' => $statusId, 'courseIdValue' => $courseIdValue, 'basicInformationId' => $basicInformationId,'delivery' => $delivery]));
 });
 
+Breadcrumbs::for('coordinator.viewTotalCaInComponentCourse', function ($trail, $statusId, $courseIdValue ,$basicInformationId,$delivery) {
+    $courseId = Crypt::decrypt($courseIdValue);
+
+    // Make sure to pass the correct parameters to the parent breadcrumb
+    if (auth()->user()->hasRole('Coordinator')) {
+        $trail->parent('pages.upload');
+    } else {
+        $trail->parent('admin.viewCoordinatorsCourses', $basicInformationId);
+    }
+        
+    
+    // Generate the route correctly with all required parameters
+    $trail->push('Total Ca', route('coordinator.viewTotalCaInComponentCourse', ['statusId' => $statusId, 'courseIdValue' => $courseIdValue, 'basicInformationId' => $basicInformationId,'delivery' => $delivery]));
+});
+
 
 
 
