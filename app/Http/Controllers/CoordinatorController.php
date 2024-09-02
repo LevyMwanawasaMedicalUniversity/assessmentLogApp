@@ -239,6 +239,8 @@ class CoordinatorController extends Controller
 
     public function updateCourseCASetings(Request $request)
     {
+
+        // return "here";
         DB::beginTransaction();
 
         try {
@@ -356,7 +358,7 @@ class CoordinatorController extends Controller
                     return redirect()->route('admin.viewCoordinatorsCoursesWithComponents', ['courseId' => $courseIdEncrypt, 'basicInformationId' => $basicInformationEncrypt, 'delivery' => $deliveryEncrypt, 'studyId' => $studyIdEncrypt])
                         ->with('success', $courseCode . ' CA settings updated successfully');
                 }else{
-                    return redirect()->route('admin.viewCoordinatorsCourses', $basicInformationId)->with('success', $courseCode . ' CA settings updated successfully');
+                    return redirect()->route('admin.viewCoordinatorsCourses', $basicInformationEncrypt)->with('success', $courseCode . ' CA settings updated successfully');
                 }
             }
         } catch (\Exception $e) {
