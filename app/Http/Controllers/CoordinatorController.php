@@ -630,6 +630,70 @@ class CoordinatorController extends Controller
         return view('coordinator.viewTotalCaInCourse', compact('delivery','results', 'statusId', 'courseId','courseDetails','hasComponents')); 
     }
 
+    public function viewTotalCaInComponentCourse(Request $request ,$statusId, $courseIdValue, $basicInformationId,$delivery){
+        $courseId = Crypt::decrypt($courseIdValue);
+        // $caType = Crypt::decrypt($statusId);
+        $basicInformationId = Crypt::decrypt($basicInformationId);
+        $delivery = Crypt::decrypt($delivery);
+        $componentId = $request->componentId;
+        $hasComponents = $request->hasComponents;
+
+        // return $courseId . ' ' . $basicInformationId . ' ' . $delivery . ' ' . $componentId . ' ' . $hasComponents;
+        $courseDetails = EduroleCourses::where('ID', $courseId)->first();
+        $coursesInEdurole = $this->getCoursesFromEdurole()
+                ->where('courses.ID', $courseId)
+                ->where('study.ProgrammesAvailable', $basicInformationId)
+                ->where('study.Delivery', $delivery)
+                ->first();
+        // return $courseDetails;
+        // if($caType != 4){            
+        $resultsGetAllInstances = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
+            ->where('students_continous_assessments.delivery_mode', $delivery)
+            ->where('students_continous_assessments.study_id', $coursesInEdurole->StudyID)
+            ->whereNotNull('students_continous_assessments.component_id');
+        
+        // Count the number of unique instances based on component_id
+        $numberOfUniqueInstances = $resultsGetAllInstances->distinct('students_continous_assessments.component_id')->count('students_continous_assessments.component_id');
+        
+        // Calculate the total marks for each student
+        $results = $resultsGetAllInstances
+            ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id')
+            ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
+            ->groupBy('students_continous_assessments.student_id')
+            ->get();
+        
+        // Divide the total marks by the number of unique instances
+        $results->transform(function ($item) use ($numberOfUniqueInstances) {
+            $item->total_marks = round($item->total_marks / $numberOfUniqueInstances, 2);
+            return $item;
+        });
+
+        // return $results;
+            
+        // }else{
+        //     $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
+        //         ->where('ca_type', 4) 
+        //         ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
+        //         ->groupBy('students_continous_assessments.student_id')
+        //         ->get();
+        // }
+
+        $resultsArrayStudentNumbers = $results->pluck('student_id')->toArray();
+        $resultsFromBasicInformation= EduroleBasicInformation::join('student-study-link', 'student-study-link.StudentID', '=', 'basic-information.ID')
+            ->join('study', 'study.ID', '=', 'student-study-link.StudyID')            
+            ->join('schools', 'schools.ID', '=', 'study.ParentID')
+            ->select('basic-information.ID', 'basic-information.FirstName', 'basic-information.Surname','basic-information.StudyType', 'basic-information.PrivateEmail', 'study.Name as Programme', 'schools.Name as School')
+            ->whereIn('basic-information.ID', $resultsArrayStudentNumbers)
+            ->get();
+        // return $resultsFromBasicInformation;
+        $results = $results->map(function ($result) use ($resultsFromBasicInformation) {
+            $result->basic_information = $resultsFromBasicInformation->firstWhere('ID', $result->student_id);
+            return $result;
+        });
+        // return $results;
+        return view('coordinator.viewTotalCaInCourse', compact('delivery','results', 'statusId', 'courseId','courseDetails','hasComponents')); 
+    }
+
     public function deleteCaInCourse(Request $request, $courseAssessmenId, $courseId)
     {
         $courseAssessmentId = Crypt::decrypt($courseAssessmenId);

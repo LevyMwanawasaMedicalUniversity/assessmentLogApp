@@ -16,7 +16,7 @@
             <div class="row">
                 <div class="col-lg-12">
                     <div class="card">
-                        <form method="POST" action="{{ route('coordinator.updateCourseCASetings', $course->ID) }}" class="row g-3">
+                        <form method="POST" action="{{ route('coordinator.updateCourseCASetings', encrypt($course->ID)) }}" class="row g-3">
                             {{-- @method('patch') --}}
                             @csrf
                             <div class="card-body">
