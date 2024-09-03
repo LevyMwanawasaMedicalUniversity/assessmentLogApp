@@ -527,6 +527,7 @@ class CoordinatorController extends Controller
             ->where('ca_type', $statusId)
             ->where('delivery_mode', $delivery)
             ->where('study_id', $studyId)
+            ->where('component_id', $componentId)
             // ->join('course_assessment_scores', 'course_assessments.id', '=', 'course_assessment_scores.course_assessment_id')
             ->orderBy('course_assessments.course_assessments_id', 'asc')
             ->get();

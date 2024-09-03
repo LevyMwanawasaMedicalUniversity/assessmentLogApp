@@ -56,7 +56,7 @@ class User extends Authenticatable implements AuditableContract
         ];
     }
 
-     /**
+    /**
      * Get the attributes that should be excluded from the audit.
      *
      * @return array<string>
