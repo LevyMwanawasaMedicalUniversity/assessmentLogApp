@@ -81,9 +81,15 @@ Route::middleware(['auth','force.password.change'])->group(function () {
     });
     Route::middleware('can:ViewTheContionousAssessment')->group(function () { //deans, & registrar permissions included
         Route::get('/coordinator/editCaInCourse/{courseAssessmenId}/{courseId}/{basicInformationId}',[CoordinatorController::class, 'editCaInCourse'])->name('coordinator.editCaInCourse');
+        Route::get('/coordinator/editAStudentsCaInCourse/{courseAssessmenId}/{courseId}/{basicInformationId}',[CoordinatorController::class, 'editAStudentsCaInCourse'])->name('coordinator.editAStudentsCaInCourse');
+
         Route::POST('/coordinator/updateCAFromExcelSheet',[CoordinatorController::class, 'updateCAFromExcelSheet'])->name('coordinator.updateCAFromExcelSheet'); 
 
+        Route::POST('/coordinator/updateCAForSingleStudent',[CoordinatorController::class, 'updateCAForSingleStudent'])->name('coordinator.updateCAForSingleStudent'); 
+
+
         Route::delete('/coordinator/deleteCaInCourse/{courseAssessmenId}/{courseId}',[CoordinatorController::class, 'deleteCaInCourse'])->name('coordinator.deleteCaInCourse');
+        Route::delete('/coordinator/deleteStudentCaInCourse/',[CoordinatorController::class, 'deleteStudentCaInCourse'])->name('coordinator.deleteStudentCaInCourse');
 
         Route::get('/coordinator/viewSpecificCaInCourse/{statusId}/{courseIdValue}/{assessmentNumber}',[CoordinatorController::class, 'viewSpecificCaInCourse'])->name('coordinator.viewSpecificCaInCourse');
         Route::get('/coordinator/courseCASetings/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'courseCASettings'])->name('coordinator.courseCASettings');

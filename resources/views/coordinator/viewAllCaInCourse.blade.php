@@ -32,7 +32,7 @@
                                         <th class="px-4 py-2">Time Created</th>
                                         <th class="px-4 py-2">Time Updated</th>
                                         <th class="px-4 py-2">Academic Year</th>
-                                        <th class="px-4 py-2">Actions</th>
+                                        <th class="px-4 py-2 text-end">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -45,7 +45,7 @@
                                             <td class="px-4 py-2">{{$result->updated_at}}</td>
                                             <td class="px-4 py-2">{{$result->created_at}}</td>
                                             <td class="px-4 py-2">{{$result->academic_year}}</td>
-                                            <td class="px-4 py-2">
+                                            <td class="px-4 py-2 text-end">
                                                 <div class="btn-group float-end" role="group" aria-label="Button group">
                                                     {{-- <a href="{{ route('coordinator.viewSpecificCaInCourse', ['statusId' => encrypt($statusId), 'courseIdValue' => encrypt($result->course_assessments_id), 'assessmentNumber' => encrypt($loop->iteration)]) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-start">
                                                         View
@@ -55,6 +55,7 @@
                                                         <input type="hidden" name="statusId" value="{{ encrypt($statusId) }}">
                                                         <input type="hidden" name="courseIdValue" value="{{ encrypt($result->course_assessments_id) }}">
                                                         <input type="hidden" name="assessmentNumber" value="{{ encrypt($loop->iteration) }}">
+                                                        <input type="hidden" name="componentId" value="{{($componentId)}}">
                                                         <input type="hidden" name="hasComponents" value="{{($hasComponents) }}">
                                                         <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
                                                             View
@@ -68,7 +69,7 @@
                                                         <input type="hidden" name="hasComponents" value="{{($hasComponents) }}">
                                                         <input type="hidden" name="componentId" value="{{($componentId)}}">
                                                         <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
-                                                            Edit
+                                                            Update
                                                         </button>
                                                     </form>
                                                     <form method="POST" action="{{ route('coordinator.deleteCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}" onsubmit="return confirm('Are you sure you want to delete this?');">

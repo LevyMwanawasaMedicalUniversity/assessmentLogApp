@@ -85,6 +85,22 @@
                                             @endif
                                             {{-- <td class="px-4 py-2">{{ $result->academic_year ?? 'N/A' }}</td> --}}
                                             <td class="px-4 py-2">{{ $result->total_marks }}</td>
+                                            <td class="px-4 py-2 text-right">                                                
+                                                <div class="btn-group float-end" role="group" aria-label="Button group">
+                                                    <form action="" method="GET" class="d-inline">
+                                                        @csrf
+                                                        <input type="hidden" name="statusId" value="{{ encrypt($statusId) }}">
+                                                        <input type="hidden" name="courseIdValue" value="{{ encrypt($result->course_assessments_id) }}">
+                                                        <input type="hidden" name="assessmentNumber" value="{{ encrypt($loop->iteration) }}">
+                                                        <input type="hidden" name="hasComponents" value="{{($hasComponents) }}">
+                                                        <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
+                                                            View 
+                                                        </button>
+                                                    </form>
+                                                
+                                                    {{-- @endif --}}
+                                                </div>                                            
+                                            </td>
                                         </tr>
                                     @endforeach
 
