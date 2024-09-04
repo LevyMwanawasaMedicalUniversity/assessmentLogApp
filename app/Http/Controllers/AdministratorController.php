@@ -392,10 +392,10 @@ class AdministratorController extends Controller
         ->where('course-electives.Approved', 1);
         // return $coursesFromEdurole;
 
-        $totalCoursesCoordinated = $coursesFromEdurole->unique('ID','Delivery','StudyID')->count();
-        // $totalCoursesCoordinated = $coursesFromEdurole->unique(function ($item) {
-        //     return $item['ID'] . '-' . $item['Delivery'] . '-' . $item['StudyID'];
-        // })->count();
+        // $totalCoursesCoordinated = $coursesFromEdurole->unique('ID','Delivery','StudyID')->count();
+        $totalCoursesCoordinated = $coursesFromEdurole->unique(function ($item) {
+            return $item['ID'] . '-' . $item['Delivery'] . '-' . $item['StudyID'];
+        })->count();
         $counts = $coursesFromEdurole->countBy('StudyID');
         $results = $coursesFromEdurole->unique('basicInformationId', 'Name');
 

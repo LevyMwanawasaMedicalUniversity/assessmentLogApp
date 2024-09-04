@@ -56,6 +56,12 @@ class CoordinatorController extends Controller
     public function showCaWithin(Request $request,$courseId){
         $courseId = Crypt::decrypt($courseId);
         $studyId = $request->studyId;
+
+        if($request->componentId){
+            $componentId = $request->componentId;
+        }else{
+            $componentId = null;
+        }
         $assessmentDetails = CourseAssessment::select(
             'course_assessments.basic_information_id',
             'assessment_types.assesment_type_name',
@@ -65,6 +71,7 @@ class CoordinatorController extends Controller
         )
         ->where('course_assessments.course_id', $courseId)
         ->where('course_assessments.study_id', $studyId)
+        ->where('course_assessments.component_id', $componentId)
         ->join('assessment_types', 'assessment_types.id', '=', 'course_assessments.ca_type')
         ->groupBy('assessment_types.id','course_assessments.basic_information_id', 'assessment_types.assesment_type_name','course_assessments.delivery_mode')
         ->get();

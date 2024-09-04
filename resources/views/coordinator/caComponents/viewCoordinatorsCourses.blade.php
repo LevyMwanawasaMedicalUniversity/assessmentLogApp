@@ -78,6 +78,7 @@
                                             <td>
                                                 <form action="{{ route('coordinator.showCaWithin', encrypt($result->course_id)) }}" method="GET">
                                                     <input type="hidden" name="studyId" value="{{ $result->study_id }}">
+                                                    <input type="hidden" name="componentId" value="{{ $result->course_components_id }}">
                                                     <button type="submit" style="background:none;border:none;color:blue;text-decoration:underline;cursor:pointer;">
                                                         {{ $totalAssessments ? $totalAssessments : 0 }} assessments
                                                     </button>

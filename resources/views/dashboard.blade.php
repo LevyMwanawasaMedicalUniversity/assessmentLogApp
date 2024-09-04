@@ -60,10 +60,10 @@
                         </div>
                         <div class="ps-3">
                         {{-- <h6>{{ ceil($coursesFromEdurole->unique('ID')->count() / 3) }}</h6> --}}
-                        <h6>{{ ($coursesFromEdurole->unique('ID','Delivery','StudyID')->count() ) }}</h6>
-                        {{-- <h6>{{ $totalCoursesCoordinated = $coursesFromEdurole->unique(function ($item) {
+                        {{-- <h6>{{ ($coursesFromEdurole->unique('ID','Delivery','StudyID')->count() ) }}</h6> --}}
+                        <h6>{{ $totalCoursesCoordinated = $coursesFromEdurole->unique(function ($item) {
                                 return $item['ID'] . '-' . $item['Delivery'] . '-' . $item['StudyID'];
-                            })->count(); }}</h6> --}}
+                            })->count(); }}</h6>
                         <span class="text-primary small pt-1 fw-bold">With Coordinators Assigned</span>
 
                         </div>
@@ -301,7 +301,15 @@
                                 ->groupBy('course_id', 'delivery_mode')
                                 ->get()
                                 ->count();
-                            $coursesFromEduroleCounts[$school] = $coursesFromEdurole->where('SchoolName', $school)->unique('ID')->count();
+
+                            $totalCoursesCoordinated = $coursesFromEdurole->unique(function ($item) {
+                                return $item['ID'] . '-' . $item['Delivery'] . '-' . $item['StudyID'];
+                            })->count();
+                            //$coursesFromEduroleCounts[$school] = $coursesFromEdurole->where('SchoolName', $school)->unique('ID')->count();
+                            $coursesFromEduroleCounts[$school] = $coursesFromEdurole->where('SchoolName', $school)->unique(function ($item) {
+                                return $item['ID'] . '-' . $item['Delivery'] . '-' . $item['StudyID'];
+                            })->count();
+
                         }
 
                         /*$getCourdinatoresCourses = \App\Models\EduroleStudy::where('ProgrammesAvailable', $result->basicInformationId)->pluck('ID')->toArray();
