@@ -106,10 +106,10 @@ abstract class Controller
                 ->orWhereIn('study.ID', $getBasicSciencesCourses);
         })
         ->where(function($query) {
-            $query->where('courses.CourseDescription', 'NOT LIKE', '%Research%')
-                ->where('courses.CourseDescription', 'NOT LIKE', '%Practical%')
-                ->where('courses.CourseDescription', 'NOT LIKE', '%Attachment%')
-                ->where('courses.CourseDescription', 'NOT LIKE', '%Clinical Practice%')
+            $query->where('courses.CourseDescription', 'NOT LIKE', '%Practical%')
+                // ->where('courses.CourseDescription', 'NOT LIKE', '%Research%')                
+                // ->where('courses.CourseDescription', 'NOT LIKE', '%Attachment%')
+                // ->where('courses.CourseDescription', 'NOT LIKE', '%Clinical Practice%')
                 ->where('programmes.ProgramName', 'NOT LIKE', '%BSCBMS-DE-2023-Y2%')                
                 // ->where('courses.Name', 'NOT LIKE', '%OSC%')
                 ->where('courses.CourseDescription', 'NOT LIKE', '%Dissertation%');
