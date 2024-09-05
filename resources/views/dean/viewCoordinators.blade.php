@@ -21,7 +21,7 @@
                             @if(auth()->user()->hasPermissionTo('Administrator'))
                                 <form method="post" action="{{ route('admin.importCoordinators') }}">
                                     @csrf
-                                    <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
+                                    <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
                                         Import
                                     </button>
                                 </form>
@@ -142,7 +142,7 @@
                                             </td>
                                             <td>
                                                 <form method="GET" action="{{ route('admin.viewCoordinatorsCourses', ['basicInformationId' => encrypt($result->basicInformationId)]) }}">
-                                                    <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
+                                                    <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
                                                         View
                                                     </button>
                                                 </form>
