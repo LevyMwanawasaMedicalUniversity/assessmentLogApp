@@ -61,10 +61,10 @@ class User extends Authenticatable implements AuditableContract
      *
      * @return array<string>
      */
-    public function excludedAttributes(): array
-    {
-        return [
-            'last_login_at',
-        ];
-    }
+    // public function excludedAttributes(): array
+    // {
+    //     return [
+    //         'last_login_at',
+    //     ];
+    // }
 }
