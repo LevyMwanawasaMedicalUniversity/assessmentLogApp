@@ -111,7 +111,7 @@
                                                             <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
                                                             <input type="hidden" name="isSettings" value="0">
                                                             <button type="submit" class="btn btn-secondary font-weight-bold py-2 px-4 rounded-0">
-                                                                Overall CA
+                                                                Total-CA
                                                             </button>
                                                         </form> 
                                                         <form action="{{ route('coordinator.viewCourseWithComponents', ['courseIdValue' => encrypt($result->ID), 'basicInformationId' => encrypt($result->basicInformationId), 'delivery' => encrypt($result->Delivery)]) }}" method="GET" class="d-inline">

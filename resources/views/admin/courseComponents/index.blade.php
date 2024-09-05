@@ -16,7 +16,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title">Course Components</h5>
                             
-                            <a class="btn btn-primary" href="{{ route('courseComponents.create') }}">Add Course Component</a>
+                            <a class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" href="{{ route('courseComponents.create') }}">Add Course Component</a>
                             
                         </div>
                         <!-- Table with hoverable rows -->

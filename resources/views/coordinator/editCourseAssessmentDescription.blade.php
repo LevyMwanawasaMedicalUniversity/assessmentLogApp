@@ -58,7 +58,7 @@
                                             </div>
                                             <!-- Submit Button -->
                                             <div>
-                                                <button type="submit" class="btn btn-primary btn-block">
+                                                <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
                                                     Update
                                                 </button>
                                             </div>

@@ -60,8 +60,8 @@
                                 @endif
                             </div>                          
                             <div class="text-center">
-                                <a href="{{ route('users.index') }}"><button type="button" class="btn btn-secondary">Back</button></a>
-                                <button type="submit" class="btn btn-primary">Submit</button>
+                                <a href="{{ route('users.index') }}"><button type="button" class="btn btn-secondary font-weight-bold py-2 px-4 rounded-0">Back</button></a>
+                                <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">Submit</button>
                             </div>
                         </form>
 

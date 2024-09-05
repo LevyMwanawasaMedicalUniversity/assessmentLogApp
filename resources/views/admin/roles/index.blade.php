@@ -15,7 +15,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title">Roles</h5>
-                            <a class="btn btn-primary font-weight-bold" href="{{ route('roles.create') }}">Add Role</a>
+                            <a class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" href="{{ route('roles.create') }}">Add Role</a>
                         </div>
                         <!-- Table with hoverable rows -->
                         <div style="overflow-x:auto;">
@@ -38,7 +38,7 @@
                                                     {{-- <a href="{{ route('roles.show', $role->id) }}" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
                                                         Show
                                                     </a> --}}
-                                                    <a href="{{ route('roles.edit', $role->id) }}" class="btn btn-primary font-weight-bold">
+                                                    <a href="{{ route('roles.edit', $role->id) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
                                                         Edit
                                                     </a>
                                                     {{-- <form method="POST" action="{{ route('roles.destroy', $role->id) }}" style="display: inline">

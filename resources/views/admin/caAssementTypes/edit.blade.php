@@ -36,8 +36,8 @@
                                 @endif
                             </div>                          
                             <div class="text-center">
-                                <a href="{{ route('caAssessmentTypes.index') }}"><button type="button" class="btn btn-secondary">Back</button></a>
-                                <button type="submit" class="btn btn-primary">Update CA Type</button>
+                                <a href="{{ route('caAssessmentTypes.index') }}"><button type="button" class="btn btn-secondary font-weight-bold py-2 px-4 rounded-0">Back</button></a>
+                                <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">Update CA Type</button>
                             </div>
                         </form>
 

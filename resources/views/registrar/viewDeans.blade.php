@@ -17,14 +17,14 @@
                             @if(auth()->user()->hasPermissionTo('Administrator'))
                                 <form method="post" action="{{ route('admin.importDeans') }}">
                                     @csrf
-                                    <button type="submit" class="btn btn-success font-weight-bold">
+                                    <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
                                         Import
                                     </button>
                                 </form>
 
                                 <form method="post" action="{{ route('admin.refreshCAs') }}">
                                     @csrf
-                                    <button type="submit" class="btn btn-secondary font-weight-bold">
+                                    <button type="submit" class="btn btn-secondary font-weight-bold py-2 px-4 rounded-0">
                                         Refresh CAs
                                     </button>
                                 </form>
@@ -40,7 +40,7 @@
                                         <th scope="col">Lastname</th>
                                         <th scope="col">Last Login<BR>(Since 24-07-2024)</th>
                                         <th scope="col">School</th>
-                                        <th scope="col">Actions</th>
+                                        <th scope="col" class="text-end">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -56,9 +56,9 @@
                                                 {{ $user && $user->last_login_at ? $user->last_login_at : 'NEVER' }}
                                             </td>
                                             <td>{{ $result->SchoolName }}</td>
-                                            <td>
+                                            <td class="text-end">
                                                 <form method="GET" action="{{ route('admin.viewCoordinatorsUnderDean', ['schoolId' => encrypt($result->ParentID)]) }}">
-                                                    <button type="submit" class="btn btn-primary font-weight-bold">
+                                                    <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
                                                         View
                                                     </button>
                                                 </form>

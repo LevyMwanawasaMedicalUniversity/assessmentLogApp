@@ -959,6 +959,67 @@ class CoordinatorController extends Controller
         }
     }
 
+    public function importStudentCA(Request $request)
+    {
+        set_time_limit(1200000);
+
+        // Validate the form data
+        $request->validate([
+            'studentNumber' => 'required',
+            // 'oldStudentNumber' => 'required',
+            'mark' => 'required',
+            'academicYear' => 'required',
+            'course_assessment_id' => 'required',
+            'course_id' => 'required',
+            'course_code' => 'required',
+            'basicInformationId' => 'required',
+            'delivery' => 'required',
+            'study_id' => 'required',
+            'course_assessment_scores_id' => 'required',
+            // 'component_id' => 'required',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $newAssessment = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)
+                ->update([
+                    'academic_year' => $request->academicYear,
+                    'basic_information_id' => $request->basicInformationId,
+                ]);
+
+            $getCaType = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)->first();
+            $caType = $getCaType->ca_type;
+            $studyId = $getCaType->study_id;
+            if($request->component_id){
+                $componentId = $request->component_id;
+            }else{
+                $componentId =  null;
+            }
+            // $courseAssessmentScoresStudentNumber = CourseAssessmentScores::where('course_assessment_scores_id', $request->course_assessment_scores_id)->first()->student_id;
+            
+            CourseAssessmentScores::updateOrCreate([
+                'course_assessment_id' => $request->course_assessment_id,
+                'student_id' => trim($request->studentNumber),
+                'component_id' => $componentId,
+                'course_code' => $request->course_code,
+                'delivery_mode' => $request->delivery,
+                'study_id' => $studyId,
+            ],[
+                'cas_score' => trim($request->mark),
+            ]);
+            $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $caType, trim($request->studentNumber), $request->course_assessment_id, $request->delivery, $studyId,$componentId);
+            
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Student Updated successfully');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to import data: ' . $e->getMessage());
+            return back()->with('error', 'An error occurred while importing the data. Please try again.');
+        }
+    }
+
 
     public function updateCAFromExcelSheet(Request $request)
     {

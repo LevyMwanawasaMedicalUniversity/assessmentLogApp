@@ -69,7 +69,7 @@
                                             <form action="{{ route('coordinator.showCaWithin', encrypt($result->ID)) }}" method="GET">
                                                 <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
                                                 {{-- <button type="submit" style="background:none;border:none;color:blue;text-decoration:underline;cursor:pointer;"> --}}
-                                                <button type="submit" class="btn btn-success font-weight-bold py-2">
+                                                <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
                                                     View
                                                 </button>
                                             </form>

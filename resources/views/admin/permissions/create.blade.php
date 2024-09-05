@@ -29,8 +29,8 @@
                                 @endif
                             </div>
                             <div class="text-center">
-                                <a href="{{ route('permissions.index') }}"><button type="button" class="btn btn-secondary">Back</button></a>
-                                <button type="submit" class="btn btn-primary">Save permission</button>
+                                <a href="{{ route('permissions.index') }}"><button type="button" class="btn btn-secondary font-weight-bold py-2 px-4 rounded-0y">Back</button></a>
+                                <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">Save permission</button>
                             </div>
                         </form>
 

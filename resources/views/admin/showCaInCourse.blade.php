@@ -42,7 +42,7 @@
                                             'delivery' => encrypt($assessment->delivery_mode)
                                         ]) }}" method="GET">
                                             <input type="hidden" name="studyId" value="{{ $studyId }}">
-                                            <button type="submit"  class="btn btn-success font-weight-bold py-2">
+                                            <button type="submit"  class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
                                                 Veiw
                                             </button>
                                         </form>

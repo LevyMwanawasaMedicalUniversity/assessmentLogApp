@@ -80,7 +80,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <button type="submit" class="btn btn-primary bg-blue-500 text-white rounded px-4 py-2">Upload</button>
+                                            <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">Upload</button>
                                         </form>
                                     </div>
                                 </div>

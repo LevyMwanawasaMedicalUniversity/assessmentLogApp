@@ -78,7 +78,7 @@
                                     </tbody>
                                 </table>
                                 <div class="text-center">                                    
-                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                    <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">Save Changes</button>
                                 </div>
                             </div>
                         </form>

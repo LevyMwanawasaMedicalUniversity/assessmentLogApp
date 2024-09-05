@@ -89,7 +89,7 @@
                     <!-- Course details go here -->
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary font-weight-bold py-2 px-4 rounded-0" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>

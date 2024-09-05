@@ -1,28 +1,10 @@
 <div class="container">
-    <div class="modal fade" id="editStudentResults{{$result->student_id}}{{$result->course_assessments_id }}{{ $courseId }}{{$result->basic_information_id}}" tabindex="-1" role="dialog" aria-labelledby="viewCourseModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addNewStudentResults" tabindex="-1" role="dialog" aria-labelledby="viewCourseModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 class="modal-title" id="editStudentResults">
-                        <b>Edit Results for 
-                            <span style="color: blue;">
-                                @if(isset($result->basic_information->FirstName)) {{$result->basic_information->FirstName}} @endif 
-                                @if(isset($result->basic_information->Surname)) {{$result->basic_information->Surname}} @endif 
-                                @if(isset($result->student_id)) {{$result->student_id}} @endif                                 
-                            </span>
-                            in 
-                            <span style="color: blue;">
-                                @if(isset($courseDetails->Name)) {{$courseDetails->Name}} @endif 
-                                @if(isset($hasComponents) && $hasComponents) in {{$hasComponents}} @endif 
-                                @if(isset($assessmentType)) {{$assessmentType}} @endif
-                                @if(!isset($result->basic_information))                                     
-                                    <span style="color: red;"> 
-                                        <b>
-                                            (No Edurole account found for student id {{$result->student_id}})
-                                        </b>
-                                    </span>
-                                @endif
-                            </span>
+                    <h3 class="modal-title" id="addNewStudentResults">
+                        <b>Add a new student Result
                         </b>
                     </h3>
                     <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
@@ -36,11 +18,11 @@
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <h5 class="card-title">Edit Details</h5>
-                                        <form class="row align-items-center" action="{{ route('coordinator.updateCAForSingleStudent') }}" method="POST" enctype="multipart/form-data"> <!-- Added align-items-center for better vertical alignment -->
+                                        <form class="row align-items-center" action="{{ route('coordinator.importStudentCA') }}" method="POST" enctype="multipart/form-data"> <!-- Added align-items-center for better vertical alignment -->
                                             @csrf
                                             <div class="row">
                                                 {{-- <input type="hidden" name="hasComponents" value="{{($hasComponents) }}"> --}}
-                                                <input type="hidden" name="oldStudentNumber" value="{{($result->student_id)}}">
+                                                {{-- <input type="hidden" name="oldStudentNumber" value="{{($result->student_id)}}"> --}}
                                                 <input type="hidden" name="component_id" value="{{($componentId)}}">
                                                 <input type="hidden" name="course_assessment_id" value="{{($courseAssessmentId)}}">
                                                 <input type="hidden" name="course_id" value="{{($courseId)}}">
@@ -49,15 +31,15 @@
                                                 <input type="hidden" name="basicInformationId" value="{{($basicInformationId)}}">
                                                 <input type="hidden" name="study_id" value="{{($studyId)}}">
                                                 <input type="hidden" name="delivery" value="{{($delivery)}}">
-                                                <input type="hidden" name="course_assessment_scores_id" value="{{($result->course_assessment_scores_id)}}">
+                                                <input type="hidden" name="course_assessment_scores_id" value="{{($results->first()->course_assessment_scores_id)}}">
                                                 
                                                 <div class="col-md-9">
                                                     <label for="studentNumber" class="form-label">Student Number</label>
-                                                    <input name="studentNumber" value="{{$result->student_id}}" type="number" class="form-control" placeholder="Your Name" required>
+                                                    <input name="studentNumber" value="" type="number" class="form-control" placeholder="Enter student number" required>
                                                 </div>
                                                 <div class="col-md-3">
                                                     <label for="mark" class="form-label">Marks</label>
-                                                    <input name="mark" value="{{$result->cas_score}}" type="number" class="form-control" placeholder="Marks" max="100" step="0.01" required oninput="validateMaxValue(this)">
+                                                    <input name="mark" value="" type="number" class="form-control" placeholder="The Mark" max="100" step="0.01" required oninput="validateMaxValue(this)">
                                                 </div>
 
                                                 <script>

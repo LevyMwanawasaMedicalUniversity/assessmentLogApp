@@ -4,7 +4,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h3 class="modal-title" id="uploadCourseModalLabel">
-                        <b>Select Assessment Type To Upload {{$basicInformationId}}
+                        <b>Select Assessment Type To Upload 
                             <b style="color: {{ $result->delivery_mode == 'Fulltime' ? 'blue' : ($result->delivery_mode == 'Distance' ? 'green' : 'black') }}">
                                 {{$result->delivery_mode}} {{$result->component_name}}
                             </b>

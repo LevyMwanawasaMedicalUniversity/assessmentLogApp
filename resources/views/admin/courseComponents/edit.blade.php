@@ -36,8 +36,8 @@
                                 @endif
                             </div>                          
                             <div class="text-center">
-                                <a href="{{ route('courseComponents.index') }}"><button type="button" class="btn btn-secondary">Back</button></a>
-                                <button type="submit" class="btn btn-primary">Update Component</button>
+                                <a href="{{ route('courseComponents.index') }}"><button type="button" class="btn btn-secondary font-weight-bold py-2 px-4 rounded-0">Back</button></a>
+                                <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">Update Component</button>
                             </div>
                         </form>
 

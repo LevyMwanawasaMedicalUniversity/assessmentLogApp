@@ -14,7 +14,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title">Permissions</h5>
-                            <a class="btn btn-primary font-weight-bold" href="{{ route('permissions.create') }}">Add Permissions</a>
+                            <a class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" href="{{ route('permissions.create') }}">Add Permissions</a>
                         </div>
                         <!-- Table with hoverable rows -->
                         <div style="overflow-x:auto;">
@@ -36,7 +36,7 @@
                                                 <td>{{ $permission->guard_name }}</td>
                                                 <td>
                                                     <div class="btn-group float-end" role="group" aria-label="Button group">
-                                                        <a href="{{ route('permissions.edit', $permission->id) }}" class="btn btn-primary font-weight-bold">
+                                                        <a href="{{ route('permissions.edit', $permission->id) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
                                                             Edit
                                                         </a>
                                                         {{-- <form method="POST" action="{{ route('permissions.destroy', $permission->id) }}" style="display: inline">

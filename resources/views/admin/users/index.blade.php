@@ -19,10 +19,10 @@
                                 @csrf
                                 <div class="flex items-center">
                                     <input type="text" name="name" id="name" class="shadow appearance-none border rounded-l w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline flex-grow h-10" placeholder="Enter email address">
-                                    <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-end" style="height: 2.5rem;">Search</button>                                
+                                    <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" style="height: 2.5rem;">Search</button>                                
                                 </div>                             
                             </form>
-                            <a class="d-inline-block btn btn-primary font-weight-bold py-2 px-4 rounded" href="{{ route('users.create') }}">Add user</a>                            
+                            <a class="d-inline-block btn btn-primary font-weight-bold py-2 px-4 rounded-0" href="{{ route('users.create') }}">Add user</a>                            
                         </div>
                         <!-- Table with hoverable rows -->
                         <div style="overflow-x:auto;">
@@ -37,7 +37,7 @@
                                     <th scope="col">Last Login<BR>(Since 24-07-2024)</th>
                                     <th scope="col">Creation date</th>
                                     
-                                    <th scope="col">Actions</th>
+                                    <th scope="col" class="text-end">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -52,7 +52,7 @@
                                                 {{ $user->last_login_at ? $user->last_login_at : 'NEVER' }}
                                             </td>
                                             <td>{{$user->created_at}}</td>
-                                            <td>
+                                            <td class="text-end">
                                                 <div class="btn-group" role="group" aria-label="Button group">
                                                     <form method="POST" action="{{ route('users.resetUserPassword', $user->id) }}" class="d-inline-block">
                                                         @csrf

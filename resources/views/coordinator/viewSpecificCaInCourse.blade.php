@@ -4,6 +4,7 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{$assessmentType }} for {{$courseDetails->CourseDescription}} - {{$courseDetails->Name}} for {{$results->count()}} <span style="color: {{ $delivery == 'Fulltime' ? 'blue' : ($delivery == 'Distance' ? 'green' : 'black') }}">{{$delivery}}</span> students
             @if($hasComponents) in {{$hasComponents}}@endif
+            
         </h2>
         @include('layouts.alerts')
         
@@ -48,6 +49,7 @@
         </nav>
 
     </div><!-- End Page Title -->
+    @include('coordinator.components.addNewStudentResultsModal')
     <section class="section">
         <div class="row">
             <div class="col-lg-12">
@@ -55,6 +57,18 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title">{{$assessmentType }} for {{$results->count()}} students</h5>
+                            <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" 
+                                data-bs-toggle="modal" data-bs-target="#addNewStudentResults"
+                                data-courseAssessmentsId="{{ $courseAssessmentId }}" 
+                                data-componentId = "{{ $componentId }}"
+                                data-basicInformationId = "{{ $basicInformationId }}"
+                                data-courseId = "{{ $courseId }}"                                                            
+                                >
+                                Add Student
+                            </button>
+                            <div class=""> 
+                                <button class="btn btn-info font-weight-bold py-2 px-4 rounded-0" id="exportBtn">Export to Excel</button>
+                            </div>
                             <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search by student number.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         </div>
                         <!-- Table with hoverable rows -->
@@ -104,12 +118,13 @@
                                                 </td>
                                                 <td class="px-4 py-2 text-right">                                                
                                                     <div class="btn-group float-end" role="group" aria-label="Button group">
-                                                        <form action="" method="GET" class="d-inline">
+                                                        <form action="{{route('docket.studentsCAResults')}}" method="GET" class="d-inline">
                                                             @csrf
-                                                            <input type="hidden" name="statusId" value="{{ encrypt($statusId) }}">
-                                                            <input type="hidden" name="courseIdValue" value="{{ encrypt($result->course_assessments_id) }}">
+                                                            {{-- <input type="hidden" name="statusId" value="{{ encrypt($statusId) }}"> --}}
+                                                            <input type="hidden" name="studentId" value="{{ $result->student_id }}">
+                                                            {{-- <input type="hidden" name="courseIdValue" value="{{ encrypt($result->course_assessments_id) }}">
                                                             <input type="hidden" name="assessmentNumber" value="{{ encrypt($loop->iteration) }}">
-                                                            <input type="hidden" name="hasComponents" value="{{($hasComponents) }}">
+                                                            <input type="hidden" name="hasComponents" value="{{($hasComponents) }}"> --}}
                                                             <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
                                                                 View 
                                                             </button>
@@ -164,7 +179,14 @@
         </div>
     </section>
 </main><!-- End #main -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+@php
+    $tableName = $assessmentType . ' for ' . $courseDetails->CourseDescription . ' - ' . $courseDetails->Name . ' for ' . $results->count() . ' ' . $delivery . ' students';
+@endphp
 <script>
+
+
     function myFunction() {
         var input, filter, table, tr, td, i, txtValue;
         input = document.getElementById("myInput");
@@ -183,5 +205,11 @@
             }       
         }
     }
+    var tableName = @json($tableName);
+    document.getElementById('exportBtn').addEventListener('click', function() {
+        var table = document.getElementById('myTable');
+        var wb = XLSX.utils.table_to_book(table, {sheet: "Sheet JS"});
+        XLSX.writeFile(wb, tableName + ".xlsx");
+    });
 </script>
 </x-app-layout>

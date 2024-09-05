@@ -4,6 +4,9 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             Total CAs for {{$courseDetails->CourseDescription}} - {{$courseDetails->Name}} for {{$results->count()}}
             <span style="color: {{ $delivery == 'Fulltime' ? 'blue' : ($delivery == 'Distance' ? 'green' : 'black') }}">{{$delivery}}</span> @if($hasComponents){{$hasComponents}}@endif students
+        @php
+            $tableName = 'Total CAs for ' . $courseDetails->CourseDescription . ' - ' . $courseDetails->Name . ' for '. $results->count() . ' ' . $delivery . ' ' . ($hasComponents ? 'in ' . $hasComponents : '') . ' students';
+        @endphp
         </h2>
         @include('layouts.alerts')
         
@@ -47,9 +50,15 @@
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title">Total CAs out of 40</h5>
                             <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search by student number.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            
+                            <div class=""> 
+                                <button class="btn btn-info font-weight-bold py-2 px-4 rounded-0" id="exportBtn">Export to Excel</button>
+                            </div>
                             @if (auth()->user()->hasPermissionTo('Dean'))
                                 <a href="" class="btn btn-primary">PUBLISH CA</a>
                             @endif
+
+
                         </div>
                         <!-- Table with hoverable rows -->
                         <div style="overflow-x:auto;">
@@ -70,29 +79,41 @@
                                 <tbody>
                                     @foreach($results as $result)
                                         <tr class="border-t border-b hover:bg-gray-100">
-                                            <td class="px-4 py-2">{{$loop->iteration}}</td>
-                                            <td class="px-4 py-2">{{ $result->student_id }}</td>
-                                            @if($result->basic_information)
-                                                <td class="px-4 py-2">{{ $result->basic_information->FirstName }}</td>
-                                                <td class="px-4 py-2">{{ $result->basic_information->Surname }}</td>
-                                                <td class="px-4 py-2" style="color: {{ $result->basic_information->StudyType != $delivery ? 'red' : 'black' }};">
-                                                    {{ $result->basic_information->StudyType }}
-                                                </td>
-                                                <td class="px-4 py-2">{{ $result->basic_information->Programme }}</td>
-                                                <td class="px-4 py-2">{{ $result->basic_information->School }}</td>
-                                            @else
-                                                <td class="px-4 py-2" style="color:red" colspan="4">No Edurole account found for student id {{$result->student_id}}</td>
-                                            @endif
-                                            {{-- <td class="px-4 py-2">{{ $result->academic_year ?? 'N/A' }}</td> --}}
-                                            <td class="px-4 py-2">{{ $result->total_marks }}</td>
+                                            <td class="px-4 py-2" style="color: {{ is_null($result->basic_information) ? 'red' : 'black' }}; font-weight: {{ is_null($result->basic_information) ? 'bold' : 'normal' }};">
+                                                {{$loop->iteration}}
+                                            </td>
+                                            <td class="px-4 py-2" style="color: {{ is_null($result->basic_information) ? 'red' : 'black' }}; font-weight: {{ is_null($result->basic_information) ? 'bold' : 'normal' }};">
+                                                {{ $result->student_id }}
+                                            </td>
+                                            <td class="px-4 py-2" style="color: {{ isset($result->basic_information->FirstName) ? 'black' : 'red' }}; font-weight: {{ isset($result->basic_information->FirstName) ? 'normal' : 'bold' }};">
+                                                {{ $result->basic_information->FirstName ?? 'No Edurole' }}
+                                            </td>
+                                            <td class="px-4 py-2" style="color: {{ isset($result->basic_information->Surname) ? 'black' : 'red' }}; font-weight: {{ isset($result->basic_information->Surname) ? 'normal' : 'bold' }};">
+                                                {{$result->basic_information->Surname ?? 'account found'}}
+                                            </td>
+                                            <td class="px-4 py-2" style="color: {{ !isset($result->basic_information) || $result->basic_information->StudyType != $delivery ? 'red' : 'black' }}; font-weight: {{ !isset($result->basic_information) || $result->basic_information->StudyType != $delivery ? 'bold' : 'normal' }};">
+                                                {{ $result->basic_information->StudyType ?? 'for the' }}
+                                            </td>
+                                            <td class="px-4 py-2" style="color: {{ isset($result->basic_information->Programme) ? 'black' : 'red' }}; font-weight: {{ isset($result->basic_information->Programme) ? 'normal' : 'bold' }};">
+                                                {{$result->basic_information->Programme ?? 'student id'}}
+                                            </td>                                                
+                                            <td class="px-4 py-2" style="color: {{ isset($result->basic_information->School) ? 'black' : 'red' }}; font-weight: {{ isset($result->basic_information->School) ? 'normal' : 'bold' }};">
+                                                {{$result->basic_information->School ?? $result->student_id}}
+                                            </td>                                             
+                                            <td class="px-4 py-2" style="color: {{ is_null($result->basic_information) ? 'red' : 'black' }}; font-weight: {{ is_null($result->basic_information) ? 'bold' : 'normal' }};">
+                                                {{$result->total_marks}}
+                                            </td>
                                             <td class="px-4 py-2 text-right">                                                
                                                 <div class="btn-group float-end" role="group" aria-label="Button group">
-                                                    <form action="" method="GET" class="d-inline">
+                                                    
+
+                                                    <form action="{{route('docket.studentsCAResults')}}" method="GET" class="d-inline">
                                                         @csrf
-                                                        <input type="hidden" name="statusId" value="{{ encrypt($statusId) }}">
-                                                        <input type="hidden" name="courseIdValue" value="{{ encrypt($result->course_assessments_id) }}">
+                                                        {{-- <input type="hidden" name="statusId" value="{{ encrypt($statusId) }}"> --}}
+                                                        <input type="hidden" name="studentId" value="{{ $result->student_id }}">
+                                                        {{-- <input type="hidden" name="courseIdValue" value="{{ encrypt($result->course_assessments_id) }}">
                                                         <input type="hidden" name="assessmentNumber" value="{{ encrypt($loop->iteration) }}">
-                                                        <input type="hidden" name="hasComponents" value="{{($hasComponents) }}">
+                                                        <input type="hidden" name="hasComponents" value="{{($hasComponents) }}"> --}}
                                                         <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
                                                             View 
                                                         </button>
@@ -133,5 +154,12 @@
             }       
         }
     }
+
+    var tableName = @json($tableName);
+    document.getElementById('exportBtn').addEventListener('click', function() {
+        var table = document.getElementById('myTable');
+        var wb = XLSX.utils.table_to_book(table, {sheet: "Sheet JS"});
+        XLSX.writeFile(wb, tableName + ".xlsx");
+    });
 </script>
 </x-app-layout>

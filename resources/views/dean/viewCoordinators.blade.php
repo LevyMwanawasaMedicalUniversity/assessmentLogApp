@@ -16,12 +16,12 @@
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title">Coordinators @isset($schoolId) in {{$results->first()->SchoolName}} @else on Edurole @endif</h5>
                             <div class=""> 
-                                <button class="btn btn-info" id="exportBtn">Export to Excel</button>
+                                <button class="btn btn-info font-weight-bold py-2 px-4 rounded-0" id="exportBtn">Export to Excel</button>
                             </div>
                             @if(auth()->user()->hasPermissionTo('Administrator'))
                                 <form method="post" action="{{ route('admin.importCoordinators') }}">
                                     @csrf
-                                    <button type="submit" class="btn btn-success font-weight-bold">
+                                    <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
                                         Import
                                     </button>
                                 </form>
@@ -142,7 +142,7 @@
                                             </td>
                                             <td>
                                                 <form method="GET" action="{{ route('admin.viewCoordinatorsCourses', ['basicInformationId' => encrypt($result->basicInformationId)]) }}">
-                                                    <button type="submit" class="btn btn-primary font-weight-bold">
+                                                    <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
                                                         View
                                                     </button>
                                                 </form>
