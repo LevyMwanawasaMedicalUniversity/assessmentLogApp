@@ -13,125 +13,105 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Student Details</h5>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group row">
-                                    <label for="name" class="col-sm-4 col-form-label">Student Name</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" value="{{$studentDetails->FirstName}} {{$studentDetails->Surname}}" readonly>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group row">
-                                    <label for="studentNumber" class="col-sm-4 col-form-label">Student Number</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" value="{{$studentDetails->ID}}" readonly>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group row">
-                                    <label for="studyMode" class="col-sm-4 col-form-label">Mode Of Study</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" value="{{$studentDetails->StudyType}}" readonly>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group row">
-                                    <label for="email" class="col-sm-4 col-form-label">Email</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" value="{{$studentDetails->PrivateEmail}}" readonly>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group row">
-                                    <label for="programme" class="col-sm-4 col-form-label">Programme</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" value="{{$studentDetails->Name}}" readonly>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group row">
-                                    <label for="school" class="col-sm-4 col-form-label">School</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" value="{{$studentDetails->Description}}" readonly>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card">
                     <div class="card-header">
-                        <h4 class="card-title">{{$results->first()->assesment_type_name}} results for {{$results->first()->course_code}} {{$componentName}}</h4>
-                        <div class="col-md-12">
-                                @if (session('success'))
-                                    <div class="alert alert-success">
-                                        {{ session('success') }}
-                                    </div>
-                                @endif
-            
-                                @if (session('error'))
-                                    <div class="alert alert-danger">
-                                        {{ session('error') }}
-                                    </div>
-                                @endif
-
-                                @if (session('warning'))
-                                    <div class="alert alert-warning">
-                                        {{ session('warning') }}
-                                    </div>
-                                @endif
-                            </div>
-                        {{-- <div class="col-md-12">
-                            <div class="alert alert-info">
-                                <p class="text-white">Below are the marks recorded for each {{$results->first()->assesment_type_name}} in {{$results->first()->course_code}}</p>
-                            </div>
-                        </div> --}}
+                        
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead class="text-primary">
-                                <tr>
-                                    {{-- <th>#</th> --}}
-                                    <th>{{$results->first()->assesment_type_name}}</th>                             
-                                    <th>Mark</th>   
-                                    <th class="text-end">Details</th>
-                                </tr>
-                                </thead>
-                                <tbody> 
-                                    @foreach($results as $result)
-                                    @php
-                                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Student Details</h5>
+                                        <div class="row">
+                                            <!-- Image Section -->
+                                            <div class="col-12 text-center mb-3">
+                                                <div style="width: 180px; height: 200px; overflow: hidden; border: 2px solid black; margin: 0 auto;">
+                                                    <img src="//edurole.lmmu.ac.zm/datastore/identities/pictures/{{ $studentDetails->ID }}.png" style="width: 100%; height: 100%; object-fit: cover;">
+                                                </div>
+                                            </div>
 
-                                    @endphp
-                                        <tr>                                    
-                                            {{-- <td>{{$loop->iteration}}</td> --}}
-                                            <td>{{$result->assesment_type_name}} {{$loop->iteration}}</td>                                    
-                                            {{-- <td >{{$result->cas_score}} %</td>  --}}
-                                            <td>
-                                                <span class="badge bg-primary">{{$result->cas_score}}%</span>
-                                            </td>
-                                            @if($result->description)
-                                            <td class="text-end">{{$result->description}}</td> 
-                                            @else                                  
-                                            <td class="text-end">None Provided</td>
-                                            @endif 
-                                        </tr>
-                                    @endforeach                  
-                                </tbody>
-                            </table>
+                                            <!-- Student Details -->
+                                            <div class="col-12 text-center mb-2">
+                                                <small class="text-muted">Student Name</small>
+                                                <p class="mb-1">{{$studentDetails->FirstName}} {{$studentDetails->Surname}}</p>
+                                            </div>
+
+                                            <div class="col-12 text-center mb-2">
+                                                <small class="text-muted">Student Number</small>
+                                                <p class="mb-1">{{$studentDetails->ID}}</p>
+                                            </div>
+
+                                            <div class="col-12 text-center mb-2">
+                                                <small class="text-muted">Mode of Study</small>
+                                                <p class="mb-1">{{$studentDetails->StudyType}}</p>
+                                            </div>
+
+                                            <div class="col-12 text-center mb-2">
+                                                <small class="text-muted">Email</small>
+                                                <p class="mb-1">{{$studentDetails->PrivateEmail}}</p>
+                                            </div>
+
+                                            <div class="col-12 text-center mb-2">
+                                                <small class="text-muted">Programme</small>
+                                                <p class="mb-1">{{$studentDetails->Name}}</p>
+                                            </div>
+
+                                            <div class="col-12 text-center mb-2">
+                                                <small class="text-muted">School</small>
+                                                <p class="mb-1">{{$studentDetails->Description}}</p>
+                                            </div>
+                                        </div>
+                                                                                </div>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h4 class="card-title">{{$results->first()->assesment_type_name}} results for {{$results->first()->course_code}} {{$componentName}}</h4>
+                                            
+                                        
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead class="text-primary">
+                                                <tr>
+                                                    {{-- <th>#</th> --}}
+                                                    <th>{{$results->first()->assesment_type_name}}</th>                             
+                                                    <th>Mark</th>   
+                                                    <th class="text-end">Details</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody> 
+                                                    @foreach($results as $result)
+                                                    @php
+                                                        
+
+                                                    @endphp
+                                                        <tr>                                    
+                                                            {{-- <td>{{$loop->iteration}}</td> --}}
+                                                            <td>{{$result->assesment_type_name}} {{$loop->iteration}}</td>                                    
+                                                            {{-- <td >{{$result->cas_score}} %</td>  --}}
+                                                            <td>
+                                                                <span class="badge bg-primary">{{$result->cas_score}}%</span>
+                                                            </td>
+                                                            @if($result->description)
+                                                            <td class="text-end">{{$result->description}}</td> 
+                                                            @else                                  
+                                                            <td class="text-end">None Provided</td>
+                                                            @endif 
+                                                        </tr>
+                                                    @endforeach                  
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div> 
+                            </div>
                         </div>
                     </div>
-                    </div>
-                </div>      
+                </div>     
             </div>
         </div>
     </section>
