@@ -27,8 +27,9 @@
                             <h5 class="card-title">Students With CA <span>| Uploaded</span></h5>
 
                             @php
-                            $uniqueStudentIds = \App\Models\CourseAssessmentScores::distinct()
-                                ->pluck('student_id');
+                            $uniqueStudentIds = \App\Models\SisReportsStudent::distinct()
+                                ->where('status', 6)
+                                ->pluck('student_number');
                             @endphp
 
                             <div class="d-flex align-items-center">

@@ -83,6 +83,19 @@ return [
             'strict' => false,
         ],
 
+        'sis_reports_database' => [
+            'driver' => 'mysql',
+            'host' => env('SISREPORTS_DB_HOST'),
+            'port' => env('SISREPORTS_DB_PORT'),
+            'database' => env('SISREPORTS_DB_DATABASE'),
+            'username' => env('SISREPORTS_DB_USERNAME'),
+            'password' => env('SISREPORTS_DB_PASSWORD'),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => false,
+        ],
+
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
