@@ -8,12 +8,12 @@
         <i class="bi bi-list toggle-sidebar-btn"></i>
     </div><!-- End Logo -->
 
-    {{-- <div class="search-bar">
+    <div class="search-bar">
         <form class="search-form d-flex align-items-center" method="POST" action="#">
-        <input type="text" name="query" placeholder="Search" title="Enter search keyword">
+        <input id="search" type="text" name="query" placeholder="Enter student number.." title="Search for student">
         <button type="submit" title="Search"><i class="bi bi-search"></i></button>
         </form>
-    </div><!-- End Search Bar --> --}}
+    </div><!-- End Search Bar -->
 
     <nav class="header-nav ms-auto">
         <ul class="d-flex align-items-center">
@@ -491,3 +491,89 @@
         </div>
     </div>
 </nav> --}}
+
+<style>
+/* Ensure the autocomplete suggestions appear on top */
+.ui-autocomplete {
+    z-index: 1050;
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    width: 10%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Style individual autocomplete items */
+.ui-menu-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.ui-menu-item:hover {
+    background-color: #f9f9f9;
+}
+
+/* Ensure the container of the search bar is positioned correctly */
+.search-bar {
+    position: relative;
+    z-index: 1000; /* Lower than the autocomplete but higher than the surrounding elements */
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    $("#search").autocomplete({
+        source: function(request, response) {
+            $.ajax({
+                url: "{{ route('coordinator.searchForStudents') }}",
+                type: "GET",
+                data: { term: request.term },
+                success: function(data) {
+                    response($.map(data, function(item) {
+                        return {
+                            label: item.label,  // Display label in the dropdown
+                            value: item.value,  // Set value when selected
+                            id: item.id        // Use this for form submission
+                        };
+                    }));
+                }
+            });
+        },
+        minLength: 1,
+        select: function(event, ui) {
+            // Create a dynamic form with method GET to the specific route
+            var form = $('<form>', {
+                'method': 'GET',
+                'action': "{{ route('docket.studentsCAResults') }}" // The route you want to lead to
+            });
+
+            // Add CSRF token as a hidden input
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': '_token',
+                'value': $('meta[name="csrf-token"]').attr('content') // Assuming you have a meta tag for CSRF token
+            }));
+
+            // Add the student ID as a hidden input
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'studentId',
+                'value': ui.item.id // Student ID from the selected item
+            }));
+
+            // Append the form to the body
+            $('body').append(form);
+
+            // Submit the form
+            form.submit();
+        }
+    }).autocomplete("instance")._renderItem = function(ul, item) {
+        // Customize the appearance of the predicted results
+        return $("<li>")
+            .append("<div class='d-flex bd-highlight'><a href='#'>" + item.label + "</a></div>")
+            .appendTo(ul);
+    };
+});
+</script>
+

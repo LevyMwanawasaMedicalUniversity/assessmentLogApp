@@ -120,11 +120,9 @@
                                                     <div class="btn-group float-end" role="group" aria-label="Button group">
                                                         <form action="{{route('docket.studentsCAResults')}}" method="GET" class="d-inline">
                                                             @csrf
-                                                            {{-- <input type="hidden" name="statusId" value="{{ encrypt($statusId) }}"> --}}
+                                                            
                                                             <input type="hidden" name="studentId" value="{{ $result->student_id }}">
-                                                            {{-- <input type="hidden" name="courseIdValue" value="{{ encrypt($result->course_assessments_id) }}">
-                                                            <input type="hidden" name="assessmentNumber" value="{{ encrypt($loop->iteration) }}">
-                                                            <input type="hidden" name="hasComponents" value="{{($hasComponents) }}"> --}}
+                                                            
                                                             <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
                                                                 View 
                                                             </button>

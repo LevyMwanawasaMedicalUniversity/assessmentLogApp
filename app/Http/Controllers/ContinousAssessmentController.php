@@ -14,6 +14,28 @@ use Illuminate\Support\Facades\DB;
 
 class ContinousAssessmentController extends Controller
 {
+
+    public function searchForStudents(Request $request)
+    {
+        $searchTerm = $request->get('term');
+
+        // Retrieve student IDs that match the search term
+        $studentIds = StudentsContinousAssessment::where('student_id', 'LIKE', '%' . $searchTerm . '%')
+                        ->distinct()
+                        ->pluck('student_id');
+
+        // Create an array of objects with label and id
+        $results = $studentIds->map(function($studentId) {
+            return [
+                'label' => $studentId,  // Label for autocomplete
+                'value' => $studentId,  // Value for autocomplete selection
+                'id' => $studentId      // ID for URL construction
+            ];
+        });
+
+        return response()->json($results);
+    }
+
     public function studentsCAResults(Request $request)
     {
         // $courseAssessments = LMMAXCourseAssessment::join('course_assessment_scores', 'course_assessments.course_assessments_id', '=', 'course_assessment_scores.course_assessment_id')
