@@ -18,6 +18,9 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title">{{$assessmentType }}s</h5>
+                            <div class=""> 
+                                <button class="btn btn-info font-weight-bold py-2 px-4 rounded-0" id="exportBtn">Export to Excel</button>
+                            </div>
                             <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search by date uploaded.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                         </div>
                         <!-- Table with hoverable rows -->
@@ -116,5 +119,12 @@
             }       
         }
     }
+</script>
+<script>
+    document.getElementById('exportBtn').addEventListener('click', function() {
+        var table = document.getElementById('myTable');
+        var wb = XLSX.utils.table_to_book(table, {sheet: "Sheet JS"});
+        XLSX.writeFile(wb, "ALL COORDINATORS.xlsx");
+    });
 </script>
 </x-app-layout>
