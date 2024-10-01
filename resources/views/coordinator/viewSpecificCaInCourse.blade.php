@@ -26,7 +26,7 @@
             $basicInformationId = $results->first()->basic_information_id;
             $studyId = $results->first()->study_id;
             $delivery = $results->first()->delivery_mode;
-            $caType = $results->first()->ca_type;
+            $caType = $caTypeFromAssessment;
         @endphp   
 
         @if($mismatchedCount > 0)

@@ -52,6 +52,7 @@ class ContinousAssessmentController extends Controller
         $results = StudentsContinousAssessment::join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id')        
             ->where('students_continous_assessments.student_id', $studentNumber)
             ->where('course_assessments.academic_year', $academicYear)    
+            // ->where('students_continous_assessments.ca_type', '=', DB::raw('course_assessments.ca_type')) // Ensures ca_type matches
             ->select('students_continous_assessments.student_id',
                     'students_continous_assessments.course_id',
                     'students_continous_assessments.study_id',
@@ -112,9 +113,15 @@ class ContinousAssessmentController extends Controller
             ->join('assessment_types', 'assessment_types.id', '=', 'students_continous_assessments.ca_type')
             ->where('students_continous_assessments.student_id', $studentNumber)
             ->where('students_continous_assessments.course_id', $courseId)
+            ->where('students_continous_assessments.study_id', $studyId)
             ->where('students_continous_assessments.delivery_mode', $delivery)  
             ->where('students_continous_assessments.component_id', $componentId)
+            // ->where('students_continous_assessments.ca_type', '=', DB::raw('course_assessments.ca_type')) // Ensures ca_type matches
             ->select(
+                'course_assessments.basic_information_id',
+                'course_assessments.course_assessments_id',
+                'course_assessments.course_id',
+                'students_continous_assessments.student_id',
                 'students_continous_assessments.component_id',
                 'students_continous_assessments.delivery_mode',
                 'students_continous_assessments.study_id',
@@ -137,6 +144,7 @@ class ContinousAssessmentController extends Controller
             )
             ->get();
 
+            // return $results;
             if ($results->isEmpty()) {
                 return redirect()->back()->with('warning', 'No Results Uploaded Yet');
             }

@@ -580,8 +580,11 @@ class CoordinatorController extends Controller
     public function viewSpecificCaInCourse(Request $request,$statusId, $courseIdValue, $assessmentNumber){
         $courseIdAssessmentId = Crypt::decrypt($courseIdValue);
         $statusId = Crypt::decrypt($statusId);
+        $caTypeFromAssessment = Crypt::decrypt($request->caType);
         $assessmentNumber = Crypt::decrypt($assessmentNumber);
         $componentId = $request->componentId;
+
+        // return 'Ca Type: ' . $caTypeFromAssessment . ' Status ID: ' . $statusId;
 
         // return $statusId;
         // return $courseId;
@@ -618,7 +621,7 @@ class CoordinatorController extends Controller
         // return $results;
     
         $assessmentType = $this->setAssesmentType($statusId) .' '. $assessmentNumber;
-        return view('coordinator.viewSpecificCaInCourse', compact('componentId','hasComponents','delivery','results', 'courseId','assessmentType','courseDetails','statusId'));
+        return view('coordinator.viewSpecificCaInCourse', compact('caTypeFromAssessment','componentId','hasComponents','delivery','results', 'courseId','assessmentType','courseDetails','statusId'));
     }
 
     public function viewTotalCaInCourse(Request $request ,$statusId, $courseIdValue, $basicInformationId,$delivery){
@@ -1138,7 +1141,7 @@ class CoordinatorController extends Controller
                 ]);
 
             $getCaType = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)->first();
-            $caType = $getCaType->ca_type;
+            $caType = $request->ca_type;
             $studyId = $getCaType->study_id;
             if($request->component_id){
                 $componentId = $request->component_id;

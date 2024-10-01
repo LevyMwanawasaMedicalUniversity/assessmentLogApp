@@ -50,6 +50,7 @@
                                                 <input type="hidden" name="study_id" value="{{($studyId)}}">
                                                 <input type="hidden" name="delivery" value="{{($delivery)}}">
                                                 <input type="hidden" name="course_assessment_scores_id" value="{{($result->course_assessment_scores_id)}}">
+                                                <input type="hidden" name="ca_type" value="{{($caTypeFromAssessment)}}">
                                                 
                                                 <div class="col-md-9">
                                                     <label for="studentNumber" class="form-label">Student Number</label>

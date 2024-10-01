@@ -56,6 +56,7 @@
                                                     <form action="{{ route('coordinator.viewSpecificCaInCourse',['statusId' => encrypt($statusId), 'courseIdValue' => encrypt($result->course_assessments_id), 'assessmentNumber' => encrypt($loop->iteration)]) }}" method="GET" class="d-inline">
                                                         @csrf
                                                         <input type="hidden" name="statusId" value="{{ encrypt($statusId) }}">
+                                                        <input type="hidden" name="caType" value="{{ encrypt($result->ca_type) }}">
                                                         <input type="hidden" name="courseIdValue" value="{{ encrypt($result->course_assessments_id) }}">
                                                         <input type="hidden" name="assessmentNumber" value="{{ encrypt($loop->iteration) }}">
                                                         <input type="hidden" name="componentId" value="{{($componentId)}}">
@@ -79,7 +80,7 @@
                                                         {{ method_field('DELETE') }}
                                                         {{ csrf_field() }}
                                                         <input type="hidden" name="academicYear" value={{$result->academic_year}}>
-                                                        <input type="hidden" name="ca_type" value={{$statusId}}>
+                                                        <input type="hidden" name="ca_type" value={{$result->ca_type}}>
                                                         <input type="hidden" name="delivery" value={{$delivery}}>
                                                         <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-0">
                                                             Delete

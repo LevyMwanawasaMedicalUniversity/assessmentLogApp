@@ -27,7 +27,7 @@
         <div class="mb-4">
             {{-- <h3 class="font-weight-bold text-primary"></h3> --}}
             <h3 class="font-weight-bold {{ $delivery == 'Fulltime' ? 'text-primary' : ($delivery == 'Distance' ? 'text-success' : '') }}">
-                    Update Course Assessment {{$delivery}} {{$courseAssessment->assesment_type_name}} Results
+                    Update Course Assessment {{$delivery}} {{$courseAssessment->assesment_type_name}} {{$courseAssessment->ca_type}} Results
                 </h3>
             <p class="text-muted">Please upload the Excel file to update the course assessment information.</p>
         </div>
@@ -42,6 +42,7 @@
             <input type="hidden" name="study_id" value="{{ $results->StudyID }}">
             <input type="hidden" name="component_id" value="{{ $componentId }}">
             <input type="hidden" name="delivery" value="{{ $delivery }}">
+            <input type="hidden" name="ca_type" value="{{ $courseAssessment->ca_type }}">
             <input type="file" name="excelFile" accept=".xlsx, .xlsm" class="form-control-file" id="excelFileInput" required>
             <small class="form-text text-muted">Accepted formats: .xlsx, .xlsm</small>
         </div>
