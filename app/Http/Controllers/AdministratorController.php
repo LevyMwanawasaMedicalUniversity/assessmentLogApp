@@ -93,39 +93,39 @@ class AdministratorController extends Controller
             ->select('course_assessments.*')
             ->get();
 
-        foreach ($courseAssessments as $courseAssessment) {
-            $courseAssessment->delete();
-        }
+        // foreach ($courseAssessments as $courseAssessment) {
+        //     $courseAssessment->delete();
+        // }
 
-        $courseAssessments = CourseAssessment::all(); 
+        // $courseAssessments = CourseAssessment::all(); 
 
-        $assessmentsToDelete = StudentsContinousAssessment::leftJoin('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
-            ->whereNull('course_assessments.course_assessments_id')
-            ->select('students_continous_assessments.students_continous_assessment_id')
-            ->get();
+        // $assessmentsToDelete = StudentsContinousAssessment::leftJoin('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
+        //     ->whereNull('course_assessments.course_assessments_id')
+        //     ->select('students_continous_assessments.students_continous_assessment_id')
+        //     ->get();
 
-            // return $assessmentsToDelete;
+        //     // return $assessmentsToDelete;
 
-        // Loop through the assessments and delete them
-        foreach ($assessmentsToDelete as $assessment) {
-            $assessmentInstance = StudentsContinousAssessment::find($assessment->students_continous_assessment_id);
-            if ($assessmentInstance) {
-                $assessmentInstance->delete();
-            }
-        }
+        // // Loop through the assessments and delete them
+        // foreach ($assessmentsToDelete as $assessment) {
+        //     $assessmentInstance = StudentsContinousAssessment::find($assessment->students_continous_assessment_id);
+        //     if ($assessmentInstance) {
+        //         $assessmentInstance->delete();
+        //     }
+        // }
 
-        $assessmentsToDelete = CourseAssessment::leftJoin('students_continous_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id')
-            ->whereNull('students_continous_assessments.course_assessment_id')
-            ->select('course_assessments.course_assessments_id')
-            ->get();
+        // $assessmentsToDelete = CourseAssessment::leftJoin('students_continous_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id')
+        //     ->whereNull('students_continous_assessments.course_assessment_id')
+        //     ->select('course_assessments.course_assessments_id')
+        //     ->get();
 
-        // Loop through the assessments and delete them
-        foreach ($assessmentsToDelete as $assessment) {
-            $assessmentInstance = CourseAssessment::find($assessment->course_assessments_id);
-            if ($assessmentInstance) {
-                $assessmentInstance->delete();
-            }
-        }
+        // // Loop through the assessments and delete them
+        // foreach ($assessmentsToDelete as $assessment) {
+        //     $assessmentInstance = CourseAssessment::find($assessment->course_assessments_id);
+        //     if ($assessmentInstance) {
+        //         $assessmentInstance->delete();
+        //     }
+        // }
 
         $courseAssessments = CourseAssessment::all(); 
         $courseAssessmenetTypes = CATypeMarksAllocation::all();
