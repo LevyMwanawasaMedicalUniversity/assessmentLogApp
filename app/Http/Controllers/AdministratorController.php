@@ -88,14 +88,14 @@ class AdministratorController extends Controller
         //     $caType->save();
         // }
 
-        $courseAssessments = CourseAssessment::leftJoin('students_continous_assessments as ca', 'ca.course_assessment_id', '=', 'course_assessments.course_assessments_id')
-            ->whereNull('ca.course_assessment_id')
-            ->select('course_assessments.*')
-            ->get();
+        // $courseAssessments = CourseAssessment::leftJoin('students_continous_assessments as ca', 'ca.course_assessment_id', '=', 'course_assessments.course_assessments_id')
+        //     ->whereNull('ca.course_assessment_id')
+        //     ->select('course_assessments.*')
+        //     ->get();
 
-        foreach ($courseAssessments as $courseAssessment) {
-            $courseAssessment->delete();
-        }
+        // foreach ($courseAssessments as $courseAssessment) {
+        //     $courseAssessment->delete();
+        // }
 
         $courseAssessments = CourseAssessment::all(); 
 
