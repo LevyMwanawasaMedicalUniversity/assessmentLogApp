@@ -154,7 +154,7 @@ class AdministratorController extends Controller
                 $studentsInAssessmentType = CourseAssessmentScores::where('course_code', $courseCode)
                     ->where('delivery_mode', $delivery)
                     ->where('study_id', $studyId)
-                    ->where('course_assessment_id', $course_assessmet_id)
+                    // ->where('course_assessment_id', $course_assessmet_id)
                     ->where('component_id', $componentId)
                     ->get();
 
