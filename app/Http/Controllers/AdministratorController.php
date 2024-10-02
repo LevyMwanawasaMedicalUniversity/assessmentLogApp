@@ -137,6 +137,7 @@ class AdministratorController extends Controller
             $delivery = $courseAssessment->delivery_mode;
             $studyId = $courseAssessment->study_id;
             $componentId = $courseAssessment->component_id;
+            $course_assessmet_id = $courseAssessment->course_assessments_id;
             $assessmentTypes = $courseAssessment->ca_type;
             $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
                 ->where('study_id', $studyId)
@@ -153,6 +154,7 @@ class AdministratorController extends Controller
                 $studentsInAssessmentType = CourseAssessmentScores::where('course_code', $courseCode)
                     ->where('delivery_mode', $delivery)
                     ->where('study_id', $studyId)
+                    ->where('course_assessment_id', $course_assessmet_id)
                     ->where('component_id', $componentId)
                     ->get();
 
