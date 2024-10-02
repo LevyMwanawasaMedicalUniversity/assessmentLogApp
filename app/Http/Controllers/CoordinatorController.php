@@ -762,18 +762,18 @@ class CoordinatorController extends Controller
             // Delete the course assessment scores
             $getCourseAssessmentsScores->delete();            
             
-            // Find and delete orphaned continuous assessments
-            $assessmentsToDelete = StudentsContinousAssessment::leftJoin('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
-                ->whereNull('course_assessments.course_assessments_id')
-                ->select('students_continous_assessments.students_continous_assessment_id')
-                ->get();
+            // // Find and delete orphaned continuous assessments
+            // $assessmentsToDelete = StudentsContinousAssessment::leftJoin('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
+            //     ->whereNull('course_assessments.course_assessments_id')
+            //     ->select('students_continous_assessments.students_continous_assessment_id')
+            //     ->get();
             
-            foreach ($assessmentsToDelete as $assessment) {
-                $assessmentInstance = StudentsContinousAssessment::find($assessment->students_continous_assessment_id);
-                if ($assessmentInstance) {
-                    $assessmentInstance->delete();
-                }
-            }
+            // foreach ($assessmentsToDelete as $assessment) {
+            //     $assessmentInstance = StudentsContinousAssessment::find($assessment->students_continous_assessment_id);
+            //     if ($assessmentInstance) {
+            //         $assessmentInstance->delete();
+            //     }
+            // }
             
             // Commit the transaction if everything is successful
             DB::commit();
@@ -815,17 +815,17 @@ class CoordinatorController extends Controller
             CourseAssessmentScores::where('course_assessment_scores_id', $courseAssessmenScoresId)->delete();
             
             // Find and delete orphaned continuous assessments
-            $assessmentsToDelete = StudentsContinousAssessment::leftJoin('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
-                ->whereNull('course_assessments.course_assessments_id')
-                ->select('students_continous_assessments.students_continous_assessment_id')
-                ->get();
+            // $assessmentsToDelete = StudentsContinousAssessment::leftJoin('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
+            //     ->whereNull('course_assessments.course_assessments_id')
+            //     ->select('students_continous_assessments.students_continous_assessment_id')
+            //     ->get();
             
-            foreach ($assessmentsToDelete as $assessment) {
-                $assessmentInstance = StudentsContinousAssessment::find($assessment->students_continous_assessment_id);
-                if ($assessmentInstance) {
-                    $assessmentInstance->delete();
-                }
-            }
+            // foreach ($assessmentsToDelete as $assessment) {
+            //     $assessmentInstance = StudentsContinousAssessment::find($assessment->students_continous_assessment_id);
+            //     if ($assessmentInstance) {
+            //         $assessmentInstance->delete();
+            //     }
+            // }
             
             // Commit the transaction if everything is successful
             DB::commit();
