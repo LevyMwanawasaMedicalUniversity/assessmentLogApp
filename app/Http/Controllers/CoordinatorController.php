@@ -759,7 +759,7 @@ class CoordinatorController extends Controller
             
             // Delete the course assessment
             //TO DO: Delete the course assessment
-            CourseAssessment::where('course_assessments_id', $courseAssessmentId)->delete();
+            
             
             // Update and renew the continuous assessments before deletion
             foreach ($courseAssessmentsScores as $entry) {
@@ -767,7 +767,8 @@ class CoordinatorController extends Controller
             }
 
             // Delete the course assessment scores
-            $getCourseAssessmentsScores->delete();            
+            $getCourseAssessmentsScores->delete();      
+            CourseAssessment::where('course_assessments_id', $courseAssessmentId)->delete();      
             
             // // Find and delete orphaned continuous assessments
             // $assessmentsToDelete = StudentsContinousAssessment::leftJoin('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
