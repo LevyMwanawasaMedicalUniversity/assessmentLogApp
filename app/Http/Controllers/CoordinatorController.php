@@ -580,7 +580,13 @@ class CoordinatorController extends Controller
     public function viewSpecificCaInCourse(Request $request,$statusId, $courseIdValue, $assessmentNumber){
         $courseIdAssessmentId = Crypt::decrypt($courseIdValue);
         $statusId = Crypt::decrypt($statusId);
-        $caTypeFromAssessment = Crypt::decrypt($request->caType);
+        try{
+            $caTypeFromAssessment = Crypt::decrypt($request->caType);
+        }catch(Exception $e){
+            $caTypeFromAssessment = $statusId;
+        }
+
+        return $caTypeFromAssessment;
         $assessmentNumber = Crypt::decrypt($assessmentNumber);
         $componentId = $request->componentId;
 
