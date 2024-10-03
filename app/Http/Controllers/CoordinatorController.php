@@ -752,6 +752,9 @@ class CoordinatorController extends Controller
         
         DB::beginTransaction();
 
+        $courseCode = EduroleCourses::where('ID', $courseId)->first()->Name;
+        // return $courseCode;
+
         try {
             // Fetch the course assessment record
             $courseAssessment = CourseAssessment::where('course_assessments_id', $courseAssessmentId)
@@ -763,7 +766,7 @@ class CoordinatorController extends Controller
             
             // Fetch course assessment scores
             $getCourseAssessmentsScores = CourseAssessmentScores::where('course_assessment_id', $courseAssessmentId)
-                ->where('course_id', $courseId)
+                ->where('course_code', $courseCode)
                 ->where('delivery_mode', $request->delivery)
                 ->where('study_id', $request->study_id);  // Fixed study_id reference
             $courseAssessmentsScores = $getCourseAssessmentsScores->pluck('student_id')->toArray();
