@@ -1067,8 +1067,8 @@ class CoordinatorController extends Controller
                 ]);
 
             $getCaType = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)->first();
-            $caType = $getCaType->ca_type;
-            $studyId = $getCaType->study_id;
+            $caType = $request->ca_type;
+            $studyId = $request->study_id;
             if($request->component_id){
                 $componentId = $request->component_id;
             }else{
@@ -1158,7 +1158,7 @@ class CoordinatorController extends Controller
 
             $getCaType = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)->first();
             $caType = $request->ca_type;
-            $studyId = $getCaType->study_id;
+            $studyId = $request->study_id;
             if($request->component_id){
                 $componentId = $request->component_id;
             }else{
