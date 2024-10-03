@@ -14,6 +14,8 @@ use App\Models\EduroleStudy;
 use App\Models\StudentsContinousAssessment;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Exception;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -743,20 +745,13 @@ class CoordinatorController extends Controller
         return view('coordinator.viewTotalCaInCourse', compact('delivery','results', 'statusId', 'courseId','courseDetails','hasComponents')); 
     }
 
-    public function deleteCaInCourse(Request $request, $courseAssessmenId, $courseId)
+    public function deleteCaInCourse(Request $request, $courseAssessmentId, $courseId)
     {
-        $courseAssessmentId = Crypt::decrypt($courseAssessmenId);
+        $courseAssessmentId = Crypt::decrypt($courseAssessmentId);
         $courseId = Crypt::decrypt($courseId);
         
         DB::beginTransaction();
-        // $courseAssessment = CourseAssessment::where('course_assessments_id', $courseAssessmentId)
-        //         ->where('ca_type', $request->ca_type)
-        //         ->where('course_id', $courseId)
-        //         ->where('delivery_mode', $request->delivery)
-        //         ->where('study_id', $request->study_id)
-        //         ->first();
-        // return $courseAssessment;
-        
+
         try {
             // Fetch the course assessment record
             $courseAssessment = CourseAssessment::where('course_assessments_id', $courseAssessmentId)
@@ -765,50 +760,41 @@ class CoordinatorController extends Controller
                 ->where('delivery_mode', $request->delivery)
                 ->where('study_id', $request->study_id)
                 ->first();
+            
+            // Fetch course assessment scores
             $getCourseAssessmentsScores = CourseAssessmentScores::where('course_assessment_id', $courseAssessmentId)
                 ->where('course_id', $courseId)
                 ->where('delivery_mode', $request->delivery)
-                ->where('study_id', $request);
+                ->where('study_id', $request->study_id);  // Fixed study_id reference
             $courseAssessmentsScores = $getCourseAssessmentsScores->pluck('student_id')->toArray();
             $delivery = $request->delivery;
             
-            // Delete the course assessment
-            //TO DO: Delete the course assessment
-            
-            
-            // Update and renew the continuous assessments before deletion
+            // Renew continuous assessments before deletion
             foreach ($courseAssessmentsScores as $entry) {
-                $this->renewCABeforeDelete($courseId, $request->academicYear, $request->ca_type, trim($entry), $courseAssessmentId, $delivery, $courseAssessment->study_id,$courseAssessment->component_id);
+                $this->renewCABeforeDelete($courseId, $request->academicYear, $request->ca_type, trim($entry), $courseAssessmentId, $delivery, $courseAssessment->study_id, $courseAssessment->component_id);
             }
 
             // Delete the course assessment scores
             $getCourseAssessmentsScores->delete();      
-            $courseAssessment->delete();    
-            
-            // // Find and delete orphaned continuous assessments
-            // $assessmentsToDelete = StudentsContinousAssessment::leftJoin('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
-            //     ->whereNull('course_assessments.course_assessments_id')
-            //     ->select('students_continous_assessments.students_continous_assessment_id')
-            //     ->get();
-            
-            // foreach ($assessmentsToDelete as $assessment) {
-            //     $assessmentInstance = StudentsContinousAssessment::find($assessment->students_continous_assessment_id);
-            //     if ($assessmentInstance) {
-            //         $assessmentInstance->delete();
-            //     }
-            // }
-            
+            $courseAssessment->delete();  // Delete the course assessment itself
+
             // Commit the transaction if everything is successful
             DB::commit();
 
             return redirect()->back()->with('success', 'Data deleted successfully');
+        } catch (DecryptException $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Decryption failed.');
+        } catch (QueryException $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Database query failed.');
         } catch (\Exception $e) {
             // Rollback the transaction if there is an error
             DB::rollBack();
-
             return redirect()->back()->with('error', 'Data deletion failed: ' . $e->getMessage());
         }
     }
+
 
     public function deleteStudentCaInCourse( Request $request)
     {        

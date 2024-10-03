@@ -76,7 +76,7 @@
                                                             Update
                                                         </button>
                                                     </form>
-                                                    {{-- <form method="POST" action="{{ route('coordinator.deleteCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}" onsubmit="return confirm('Are you sure you want to delete this?');">
+                                                    <form method="POST" action="{{ route('coordinator.deleteCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}" onsubmit="return confirm('Are you sure you want to delete this?');">
                                                         {{ method_field('DELETE') }}
                                                         {{ csrf_field() }}
                                                         <input type="hidden" name="academicYear" value={{$result->academic_year}}>
@@ -87,7 +87,7 @@
                                                         <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-0">
                                                             Delete
                                                         </button>
-                                                    </form> --}}
+                                                    </form>
                                                     {{-- @endif --}}
                                                 </div>
                                             </td>                                                                     
