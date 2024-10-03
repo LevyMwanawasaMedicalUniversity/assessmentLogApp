@@ -76,16 +76,18 @@
                                                             Update
                                                         </button>
                                                     </form>
-                                                    <form method="POST" action="{{ route('coordinator.deleteCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}" onsubmit="return confirm('Are you sure you want to delete this?');">
+                                                    {{-- <form method="POST" action="{{ route('coordinator.deleteCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId)]) }}" onsubmit="return confirm('Are you sure you want to delete this?');">
                                                         {{ method_field('DELETE') }}
                                                         {{ csrf_field() }}
                                                         <input type="hidden" name="academicYear" value={{$result->academic_year}}>
                                                         <input type="hidden" name="ca_type" value={{$result->ca_type}}>
+                                                        <input type="hidden" name="course_id" value={{$courseId}}>
                                                         <input type="hidden" name="delivery" value={{$delivery}}>
+                                                        <input type="hidden" name="study_id" value={{$studyId}}>
                                                         <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-0">
                                                             Delete
                                                         </button>
-                                                    </form>
+                                                    </form> --}}
                                                     {{-- @endif --}}
                                                 </div>
                                             </td>                                                                     

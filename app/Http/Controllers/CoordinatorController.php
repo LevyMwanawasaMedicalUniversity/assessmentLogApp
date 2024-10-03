@@ -569,7 +569,7 @@ class CoordinatorController extends Controller
         // return $results;
         $assessmentType = $this->setAssesmentType($statusId);
 
-        return view('coordinator.viewAllCaInCourse', compact('componentId','hasComponents','delivery','results', 'statusId', 'courseId','courseDetails','assessmentType','basicInformationId'));
+        return view('coordinator.viewAllCaInCourse', compact('studyId','componentId','hasComponents','delivery','results', 'statusId', 'courseId','courseDetails','assessmentType','basicInformationId'));
     }
 
     private function setAssesmentType($statusId){
@@ -749,11 +749,26 @@ class CoordinatorController extends Controller
         $courseId = Crypt::decrypt($courseId);
         
         DB::beginTransaction();
+        // $courseAssessment = CourseAssessment::where('course_assessments_id', $courseAssessmentId)
+        //         ->where('ca_type', $request->ca_type)
+        //         ->where('course_id', $courseId)
+        //         ->where('delivery_mode', $request->delivery)
+        //         ->where('study_id', $request->study_id)
+        //         ->first();
+        // return $courseAssessment;
         
         try {
             // Fetch the course assessment record
-            $courseAssessment = CourseAssessment::where('course_assessments_id', $courseAssessmentId)->first();
-            $getCourseAssessmentsScores = CourseAssessmentScores::where('course_assessment_id', $courseAssessmentId);
+            $courseAssessment = CourseAssessment::where('course_assessments_id', $courseAssessmentId)
+                ->where('ca_type', $request->ca_type)
+                ->where('course_id', $courseId)
+                ->where('delivery_mode', $request->delivery)
+                ->where('study_id', $request->study_id)
+                ->first();
+            $getCourseAssessmentsScores = CourseAssessmentScores::where('course_assessment_id', $courseAssessmentId)
+                ->where('course_id', $courseId)
+                ->where('delivery_mode', $request->delivery)
+                ->where('study_id', $request);
             $courseAssessmentsScores = $getCourseAssessmentsScores->pluck('student_id')->toArray();
             $delivery = $request->delivery;
             
@@ -768,7 +783,7 @@ class CoordinatorController extends Controller
 
             // Delete the course assessment scores
             $getCourseAssessmentsScores->delete();      
-            CourseAssessment::where('course_assessments_id', $courseAssessmentId)->delete();      
+            $courseAssessment->delete();    
             
             // // Find and delete orphaned continuous assessments
             // $assessmentsToDelete = StudentsContinousAssessment::leftJoin('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
