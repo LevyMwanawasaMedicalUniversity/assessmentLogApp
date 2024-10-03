@@ -758,6 +758,7 @@ class CoordinatorController extends Controller
             $delivery = $request->delivery;
             
             // Delete the course assessment
+            //TO DO: Delete the course assessment
             // CourseAssessment::where('course_assessments_id', $courseAssessmentId)->delete();
             
             // Update and renew the continuous assessments before deletion
