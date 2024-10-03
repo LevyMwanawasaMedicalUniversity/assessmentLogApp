@@ -759,7 +759,7 @@ class CoordinatorController extends Controller
             
             // Delete the course assessment
             //TO DO: Delete the course assessment
-            // CourseAssessment::where('course_assessments_id', $courseAssessmentId)->delete();
+            CourseAssessment::where('course_assessments_id', $courseAssessmentId)->delete();
             
             // Update and renew the continuous assessments before deletion
             foreach ($courseAssessmentsScores as $entry) {
