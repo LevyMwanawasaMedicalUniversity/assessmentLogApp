@@ -30,7 +30,8 @@ class PagesController extends Controller
             ->orderBy('courses.Name')
             ->orderBy('study.Delivery')            
             ->get();
-        return view('coordinator.viewCoordinatorsCourses', compact('results'));
+        $studyId = $results->first()->StudyID;
+        return view('coordinator.viewCoordinatorsCourses', compact('results','studyId'));
     }
 
     public function uploadCourseWithComponents($courseId,$basicInformationId,$delivery,$studyId)
