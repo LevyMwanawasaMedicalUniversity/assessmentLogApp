@@ -30,7 +30,12 @@ class PagesController extends Controller
             ->orderBy('courses.Name')
             ->orderBy('study.Delivery')            
             ->get();
-        $studyId = $results->first()->StudyID;
+        try{
+            $studyId = $results->first()->StudyID;
+        }catch(\Exception $e){
+            return redirect()->back()->with('error', 'No courses found');
+        }
+        
         return view('coordinator.viewCoordinatorsCourses', compact('results','studyId'));
     }
 

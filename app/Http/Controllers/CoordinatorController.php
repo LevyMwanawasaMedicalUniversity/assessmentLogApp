@@ -749,11 +749,10 @@ class CoordinatorController extends Controller
     {
         $courseAssessmentId = Crypt::decrypt($courseAssessmentId);
         $courseId = Crypt::decrypt($courseId);
-        
+
         DB::beginTransaction();
 
         $courseCode = EduroleCourses::where('ID', $courseId)->first()->Name;
-        // return $courseCode;
 
         try {
             // Fetch the course assessment record
@@ -762,28 +761,31 @@ class CoordinatorController extends Controller
                 ->where('course_id', $courseId)
                 ->where('delivery_mode', $request->delivery)
                 ->where('study_id', $request->study_id)
-                ->first();
-            
+                ->firstOrFail(); // Fail if not found
+
             // Fetch course assessment scores
             $getCourseAssessmentsScores = CourseAssessmentScores::where('course_assessment_id', $courseAssessmentId)
                 ->where('course_code', $courseCode)
                 ->where('delivery_mode', $request->delivery)
-                ->where('study_id', $request->study_id);  // Fixed study_id reference
-            $courseAssessmentsScores = $getCourseAssessmentsScores->pluck('student_id')->toArray();
-            $deleteCourseAssessmentScores = $getCourseAssessmentsScores->get();
-            $delivery = $request->delivery;
-            
+                ->where('study_id', $request->study_id)
+                ->get();  // Get the full collection instead of `pluck`
+
+            if ($getCourseAssessmentsScores->isEmpty()) {
+                throw new \Exception('No assessment scores found.');
+            }
+
             // Renew continuous assessments before deletion
-            foreach ($courseAssessmentsScores as $entry) {
-                $this->renewCABeforeDelete($courseId, $request->academicYear, $request->ca_type, trim($entry), $courseAssessmentId, $delivery, $courseAssessment->study_id, $courseAssessment->component_id);
+            foreach ($getCourseAssessmentsScores as $entry) {
+                $this->renewCABeforeDelete($courseId, $request->academicYear, $request->ca_type, trim($entry->student_id), $courseAssessmentId, $request->delivery, $courseAssessment->study_id, $courseAssessment->component_id);
             }
 
             // Delete the course assessment scores
-            // $getCourseAssessmentsScores->delete();     
-            $deleteCourseAssessmentScores->each(function ($item) {
+            $getCourseAssessmentsScores->each(function ($item) {
                 $item->delete();
             });
-            $courseAssessment->delete();  // Delete the course assessment itself
+
+            // Delete the course assessment itself
+            $courseAssessment->delete();
 
             // Commit the transaction if everything is successful
             DB::commit();
@@ -801,6 +803,7 @@ class CoordinatorController extends Controller
             return redirect()->back()->with('error', 'Data deletion failed: ' . $e->getMessage());
         }
     }
+
 
 
     public function deleteStudentCaInCourse( Request $request)
