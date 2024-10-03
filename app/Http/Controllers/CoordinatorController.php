@@ -588,7 +588,7 @@ class CoordinatorController extends Controller
             $caTypeFromAssessment = $statusId;
         }
 
-        return $caTypeFromAssessment;
+        // return $caTypeFromAssessment;
         $assessmentNumber = Crypt::decrypt($assessmentNumber);
         $componentId = $request->componentId;
 
