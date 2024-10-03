@@ -137,7 +137,7 @@ class AdministratorController extends Controller
 
         StudentsContinousAssessment::join('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
             ->whereColumn('students_continous_assessments.ca_type', '!=', 'course_assessments.ca_type')
-            ->where('course_assessments.study_id', $programmeId)
+            ->where('students_continous_assessments.study_id', $programmeId)
             ->delete();
         
         $academicYear = 2024;
