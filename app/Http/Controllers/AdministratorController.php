@@ -36,83 +36,16 @@ class AdministratorController extends Controller
         $cooedinatorController = new CoordinatorController();
         
         $academicYear = 2024;
-        // foreach ($courseAssessments as $courseAssessment) {
-        //     $coursesInEdurole = $this->getCoursesFromEdurole()
-        //         ->where('courses.ID', $courseAssessment->course_id)
-        //         ->where('study.ProgrammesAvailable', $courseAssessment->basic_information_id)
-        //         ->where('study.Delivery', $courseAssessment->delivery_mode)
-        //         ->first();            
-            
-        //     if ($coursesInEdurole) {
-        //         $user = User::where('basic_information_id', $courseAssessment->basic_information_id)->first();
-        //         if ($user) {
-        //             $courseAssessment->study_id = $coursesInEdurole->StudyID;
-        //             $courseAssessment->save();            
-
-        //             $courseAssessmentsScore = CourseAssessmentScores::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
-        //             foreach ($courseAssessmentsScore as $courseAssessmentScore) {
-        //                 $courseAssessmentScore->study_id = $coursesInEdurole->StudyID;
-        //                 $courseAssessmentScore->save();
-        //             }
-                    
-        //         }
-                
-        //     }
-        // }
-
-        // foreach ($courseAssessments as $courseAssessment) {
-        //     $studentAssessments = StudentsContinousAssessment::where('course_assessment_id', $courseAssessment->course_assessments_id)->get();
-        //     foreach ($studentAssessments as $studentAssessment) {
-        //         $studentAssessment->study_id = $courseAssessment->study_id;
-        //         $studentAssessment->save();
-        //     }
-        // } 
-
+        
         $caTypeAllocation = CATypeMarksAllocation::all();
 
-        // foreach ($caTypeAllocation as $caType) {
+        $courseAssessments = CourseAssessment::all();  
+        
+        StudentsContinousAssessment::join('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
+            ->whereColumn('students_continous_assessments.ca_type', '!=', 'course_assessments.ca_type')
+            // ->where('course_assessments.study_id', $programmeId)
+            ->delete();
 
-        //     $user = User::where('id', $caType->user_id)->first();
-        //     $basicInformationId = $user->basic_information_id;
-        //     $coursesInEdurole = $this->queryCourseFromEdurole()
-        //         ->where('study.ProgrammesAvailable', $basicInformationId)
-        //         ->where('study.Delivery', $caType->delivery_mode)
-        //         ->where('courses.ID', $caType->course_id)
-        //         ->first();
-        //     try{
-        //         $caType->study_id = $coursesInEdurole->StudyID;
-        //     }catch (Exception $e) {
-        //         Log::error('Error refreshing student marks: ' . $e->getMessage());
-        //         continue;
-        //     }
-        //     $caType->save();
-        // }
-
-        // $courseAssessments = CourseAssessment::leftJoin('students_continous_assessments as ca', 'ca.course_assessment_id', '=', 'course_assessments.course_assessments_id')
-        //     ->whereNull('ca.course_assessment_id')
-        //     ->select('course_assessments.*')
-        //     ->get();
-
-        // foreach ($courseAssessments as $courseAssessment) {
-        //     $courseAssessment->delete();
-        // }
-
-        $courseAssessments = CourseAssessment::all(); 
-
-         
-
-        // $assessmentsToDelete = CourseAssessment::leftJoin('students_continous_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id')
-        //     ->whereNull('students_continous_assessments.course_assessment_id')
-        //     ->select('course_assessments.course_assessments_id')
-        //     ->get();
-
-        // // Loop through the assessments and delete them
-        // foreach ($assessmentsToDelete as $assessment) {
-        //     $assessmentInstance = CourseAssessment::find($assessment->course_assessments_id);
-        //     if ($assessmentInstance) {
-        //         $assessmentInstance->delete();
-        //     }
-        // }
 
         $courseAssessments = CourseAssessment::all(); 
         $courseAssessmenetTypes = CATypeMarksAllocation::all();
@@ -190,6 +123,73 @@ class AdministratorController extends Controller
         //         continue;
         //     }
         // }
+
+        return redirect()->back()->with('success', 'Course Assessments refreshed successfully');
+    }
+
+    public function refreshCAInAprogram(Request $request)
+    {
+        
+
+        $programmeId = $request->studyId;
+        set_time_limit(12000000);
+        $cooedinatorController = new CoordinatorController();
+
+        StudentsContinousAssessment::join('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
+            ->whereColumn('students_continous_assessments.ca_type', '!=', 'course_assessments.ca_type')
+            ->where('course_assessments.study_id', $programmeId)
+            ->delete();
+        
+        $academicYear = 2024;
+        
+        $caTypeAllocation = CATypeMarksAllocation::all();
+
+        $courseAssessments = CourseAssessment::where('study_id', $programmeId)->get();
+        $courseAssessmenetTypes = CATypeMarksAllocation::all();
+        // return $courseAssessmenetTypes;
+
+        foreach($courseAssessments as $courseAssessment){
+            $courseId = $courseAssessment->course_id;
+            $basicInformationId = $courseAssessment->basic_information_id;
+            $delivery = $courseAssessment->delivery_mode;
+            $studyId = $courseAssessment->study_id;
+            $componentId = $courseAssessment->component_id;
+            $course_assessmet_id = $courseAssessment->course_assessments_id;
+            $assessmentTypes = $courseAssessment->ca_type;
+            $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
+                ->where('study_id', $studyId)
+                ->where('delivery_mode', $delivery)
+                ->where('component_id', $componentId)
+                ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
+                ->get();
+
+            $academicYear = 2024;
+            $getCoure = EduroleCourses::where('ID', $courseId)->first();
+            $courseCode = $getCoure->Name;
+
+            foreach ($courseAssessmenetTypes as $courseAssessmentType) {
+                $studentsInAssessmentType = CourseAssessmentScores::where('course_code', $courseCode)
+                    ->where('delivery_mode', $delivery)
+                    ->where('study_id', $studyId)
+                    // ->where('course_assessment_id', $course_assessmet_id)
+                    ->where('component_id', $componentId)
+                    ->get();
+
+                foreach ($studentsInAssessmentType as $studentNumber) {
+                    $cooedinatorController->refreshAllStudentsMarks(
+                        $courseId,
+                        $academicYear,
+                        $courseAssessmentType->assessment_type_id,
+                        $studentNumber->student_id,
+                        $studentNumber->course_assessment_id,
+                        $delivery,
+                        $studentNumber->study_id,
+                        $componentId
+                    );
+                }
+            }
+        }   
+
 
         return redirect()->back()->with('success', 'Course Assessments refreshed successfully');
     }
@@ -446,7 +446,7 @@ class AdministratorController extends Controller
                 ->get();
         }
         
-        return view('coordinator.viewCoordinatorsCourses', compact('results'));
+        return view('coordinator.viewCoordinatorsCourses', compact('results','studyId'));
 
     }
 

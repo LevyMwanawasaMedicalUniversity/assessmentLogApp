@@ -65,6 +65,7 @@ Route::middleware(['auth','force.password.change'])->group(function () {
         Route::post('/admin/importCoordinators',[AdministratorController::class, 'importCoordinators'])->name('admin.importCoordinators');
         Route::post('/admin/importDeans',[AdministratorController::class, 'importDeans'])->name('admin.importDeans');
         Route::post('/admin/refreshCAs',[AdministratorController::class, 'refreshCAs'])->name('admin.refreshCAs');
+        Route::post('/admin/refreshCAInAprogram',[AdministratorController::class, 'refreshCAInAprogram'])->name('admin.refreshCAInAprogram');
         Route::get('/admin/auditTrails',[AdministratorController::class, 'auditTrails'])->name('admin.auditTrails');
         
     });

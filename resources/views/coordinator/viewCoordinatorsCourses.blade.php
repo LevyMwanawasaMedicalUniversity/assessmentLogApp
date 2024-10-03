@@ -24,6 +24,13 @@
                             <div class=""> 
                                 <button class="btn btn-info font-weight-bold py-2 px-4 rounded-0" id="exportBtn">Export to Excel</button>
                             </div>
+                            <form method="post" action="{{ route('admin.refreshCAInAprogram') }}">
+                                    <input type="hidden" name="studyId" value="{{$studyId}}">
+                                    @csrf
+                                    <button type="submit" class="btn btn-secondary font-weight-bold py-2 px-4 rounded-0">
+                                        Refresh CAs
+                                    </button>
+                                </form>
                             <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-1 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-9">
                         </div>
 
