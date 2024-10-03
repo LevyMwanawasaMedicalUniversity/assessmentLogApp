@@ -770,6 +770,7 @@ class CoordinatorController extends Controller
                 ->where('delivery_mode', $request->delivery)
                 ->where('study_id', $request->study_id);  // Fixed study_id reference
             $courseAssessmentsScores = $getCourseAssessmentsScores->pluck('student_id')->toArray();
+            $deleteCourseAssessmentScores = $getCourseAssessmentsScores->get();
             $delivery = $request->delivery;
             
             // Renew continuous assessments before deletion
@@ -778,7 +779,10 @@ class CoordinatorController extends Controller
             }
 
             // Delete the course assessment scores
-            $getCourseAssessmentsScores->delete();      
+            // $getCourseAssessmentsScores->delete();     
+            $deleteCourseAssessmentScores->each(function ($item) {
+                $item->delete();
+            });
             $courseAssessment->delete();  // Delete the course assessment itself
 
             // Commit the transaction if everything is successful
