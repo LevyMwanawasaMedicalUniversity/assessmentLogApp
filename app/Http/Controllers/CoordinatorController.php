@@ -492,6 +492,10 @@ class CoordinatorController extends Controller
         $courseId = Crypt::decrypt($courseId);
         $basicInformationId = Crypt::decrypt($basicInformationId);
         $componentId = $request->componentId;
+        $studyId = $request->study_id;
+        $delivery = $request->delivery;
+
+        // return 'Study ID: ' . $studyId . ' Delivery: ' . $delivery ;
         $hasComponents = $request->hasComponents;
         $results = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
             ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
@@ -507,8 +511,8 @@ class CoordinatorController extends Controller
 
         // return $courseAssessment;\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
         // $delivery;
-        $delivery = $courseAssessment->delivery_mode;
-        return view('coordinator.editCaInCourse', compact('courseAssessment','hasComponents','componentId','delivery','results', 'courseId','courseAssessmentId','basicInformationId'));
+        // $delivery = $courseAssessment->delivery_mode;
+        return view('coordinator.editCaInCourse', compact('courseAssessment','hasComponents','componentId','delivery','results', 'courseId','courseAssessmentId','basicInformationId','studyId'));
     }
 
     public function editAStudentsCaInCourse(Request $request, $courseAssessmenId,$courseId, $basicInformationId){
@@ -1062,7 +1066,7 @@ class CoordinatorController extends Controller
 
         DB::beginTransaction();
 
-        try {
+        // try {
             $newAssessment = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)
                 ->update([
                     'academic_year' => $request->academicYear,
@@ -1072,6 +1076,7 @@ class CoordinatorController extends Controller
             $getCaType = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)->first();
             $caType = $request->ca_type;
             $studyId = $request->study_id;
+            // return ' Ca Type: ' . $caType . ' Study ID: ' . $studyId;
             if($request->component_id){
                 $componentId = $request->component_id;
             }else{
@@ -1123,11 +1128,11 @@ class CoordinatorController extends Controller
             DB::commit();
 
             return redirect()->back()->with('success', 'Data imported successfully');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Failed to import data: ' . $e->getMessage());
-            return back()->with('error', 'An error occurred while importing the data. Please try again.');
-        }
+        // } catch (\Exception $e) {
+        //     DB::rollBack();
+        //     Log::error('Failed to import data: ' . $e->getMessage());
+        //     return back()->with('error', 'An error occurred while importing the data. Please try again.');
+        // }
     }
 
     public function updateCAForSingleStudent(Request $request)

@@ -72,6 +72,8 @@
                                                     <form action="{{ route('coordinator.editCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId)]) }}" method="GET" class="d-inline">
                                                         <input type="hidden" name="hasComponents" value="{{($hasComponents) }}">
                                                         <input type="hidden" name="componentId" value="{{($componentId)}}">
+                                                        <input type="hidden" name="delivery" value={{$delivery}}>
+                                                        <input type="hidden" name="study_id" value={{$studyId}}>
                                                         <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
                                                             Update
                                                         </button>

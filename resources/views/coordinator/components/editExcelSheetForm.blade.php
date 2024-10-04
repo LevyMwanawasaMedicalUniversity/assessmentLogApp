@@ -34,12 +34,12 @@
 
         <!-- Excel File Input -->
         <div class="form-group mb-4">
-            <label for="excelFile" class="font-weight-bold text-lg text-dark">Choose "Excel Workbook" (xlsx) File</label>
+            <label for="excelFile" class="font-weight-bold text-lg text-dark">Choose "Excel Workbook" (xlsx) File {{ $studyId}}</label>
             <input type="hidden" name="course_id" value="{{ $courseId }}">
             <input type="hidden" name="course_assessment_id" value="{{ $courseAssessmentId }}">
             <input type="hidden" name="course_code" value="{{ $results->CourseName }}">
             <input type="hidden" name="basicInformationId" value="{{ $basicInformationId }}">
-            <input type="hidden" name="study_id" value="{{ $results->StudyID }}">
+            <input type="hidden" name="study_id" value="{{ $studyId }}">
             <input type="hidden" name="component_id" value="{{ $componentId }}">
             <input type="hidden" name="delivery" value="{{ $delivery }}">
             <input type="hidden" name="ca_type" value="{{ $courseAssessment->ca_type }}">
