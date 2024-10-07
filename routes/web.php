@@ -73,11 +73,15 @@ Route::middleware(['auth','force.password.change'])->group(function () {
     
     Route::middleware('can:Coordinator')->group(function () {
         Route::get('/upload', [PagesController::class, 'upload'])->name('pages.upload');
+        Route::get('/uploadFinalExam', [PagesController::class, 'uploadFinalExam'])->name('pages.uploadFinalExam');
         Route::get('/uploadCourseWithComponents/{courseId}/{basicInformationId}/{delivery}/{studyId}', [PagesController::class, 'uploadCourseWithComponents'])->name('pages.uploadCourseWithComponents');
         Route::get('/coordinator/uploadCa/{statusId}/{courseIdValue}/{basicInformationId}',[CoordinatorController::class, 'uploadCa'])->name('coordinator.uploadCa');
+        Route::get('/coordinator/uploadCaFinalExam/{courseIdValue}/{basicInformationId}',[CoordinatorController::class, 'uploadCaFinalExam'])->name('coordinator.uploadCaFinalExam');
         
                     
         Route::POST('/coordinator/importCAFromExcelSheet',[CoordinatorController::class, 'importCAFromExcelSheet'])->name('coordinator.importCAFromExcelSheet');   
+        Route::POST('/coordinator/importFinalExamFromExcelSheet',[CoordinatorController::class, 'importFinalExamFromExcelSheet'])->name('coordinator.importFinalExamFromExcelSheet');   
+
         Route::POST('/coordinator/importStudentCA',[CoordinatorController::class, 'importStudentCA'])->name('coordinator.importStudentCA');     
         
     });

@@ -253,6 +253,15 @@
         </li><!-- End Profile Page Nav -->
         @endif
 
+        @if (auth()->user()->hasPermissionTo('Coordinator'))
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="{{route('pages.uploadFinalExam')}}">
+                <i class="bi bi-file-earmark-richtext-fill"></i>
+                <span>Final Examinations</span>
+            </a>
+        </li><!-- End Profile Page Nav -->
+        @endif
+
         @if (auth()->user()->hasPermissionTo('Registrar'))
         <li class="nav-item">
             <a class="nav-link collapsed" href="{{route('admin.viewCoordinators')}}">
