@@ -79,6 +79,18 @@ abstract class Controller
             ->pluck('course-electives.CourseID')
             ->toArray();
 
+        // return EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
+        //     ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
+        //     ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
+        //     ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
+        //     ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
+        //     ->join('schools', 'schools.ID', '=', 'study.ParentID')
+        //     // ->join('course-electives', 'course-electives.CourseID', '=', 'courses.ID')
+        //     ->select('programmes.Year as YearOfStudy','study.ShortName as ProgrammeCode', 'basic-information.ID as username','basic-information.ID as basicInformationId', 'courses.ID','courses.ID as CourseID', 'basic-information.Firstname', 'schools.Description AS SchoolName','basic-information.PrivateEmail', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName', 'courses.CourseDescription','study.Delivery','study.ParentID','study.ID as StudyID','schools.Name as School','study.ProgrammesAvailable')
+        //     ->where('study.ProgrammesAvailable', '!=', 1)
+        //     ->whereIn('courses.ID', $coursesFromCourseElectives);
+        //     // ->where('course-electives.Year', 2024);
+
         return EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
             ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
             ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
@@ -86,10 +98,17 @@ abstract class Controller
             ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
             ->join('schools', 'schools.ID', '=', 'study.ParentID')
             // ->join('course-electives', 'course-electives.CourseID', '=', 'courses.ID')
-            ->select('programmes.Year as YearOfStudy','study.ShortName as ProgrammeCode', 'basic-information.ID as username','basic-information.ID as basicInformationId', 'courses.ID','courses.ID as CourseID', 'basic-information.Firstname', 'schools.Description AS SchoolName','basic-information.PrivateEmail', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.ProgrammesAvailable', 'study.Name', 'courses.Name as CourseName', 'courses.CourseDescription','study.Delivery','study.ParentID','study.ID as StudyID','schools.Name as School','study.ProgrammesAvailable')
+            ->distinct()
+            ->select('programmes.Year as YearOfStudy', 'study.ShortName as ProgrammeCode', 
+                    'basic-information.ID as username', 'basic-information.ID as basicInformationId', 
+                    'courses.ID', 'courses.ID as CourseID', 'basic-information.Firstname', 
+                    'schools.Description AS SchoolName', 'basic-information.PrivateEmail', 
+                    'basic-information.Surname', 'study.ProgrammesAvailable', 'study.Name', 
+                    'courses.Name as CourseName', 'courses.CourseDescription', 'study.Delivery', 
+                    'study.ParentID', 'study.ID as StudyID', 'schools.Name as School', 'study.ProgrammesAvailable')
             ->where('study.ProgrammesAvailable', '!=', 1)
             ->whereIn('courses.ID', $coursesFromCourseElectives);
-            // ->where('course-electives.Year', 2024);
+
     } 
 
     public function getCoursesFromEdurole()
