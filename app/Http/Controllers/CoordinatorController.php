@@ -612,6 +612,48 @@ class CoordinatorController extends Controller
         return view('coordinator.viewAllCaInCourse', compact('studyId','componentId','hasComponents','delivery','results', 'statusId', 'courseId','courseDetails','assessmentType','basicInformationId'));
     }
 
+    public function viewAllExamInCourse(Request $request, $courseIdValue, $basicInformationId, $delivery){
+        $courseId = Crypt::decrypt($courseIdValue);
+        $basicInformationId = Crypt::decrypt($basicInformationId);
+        $delivery = Crypt::decrypt($delivery);
+        $academicYear = 2024;
+        
+        $studyId = $request->studyId;       
+
+        // return $hasComponents;
+        $courseDetails = EduroleCourses::where('ID', $courseId)->first();
+
+        // return 'Course ID: ' . $courseId . ' Basic Information ID: ' . $basicInformationId . ' Delivery: ' . $delivery . ' Study ID: ' . $studyId;
+
+        $results = FinalExaminationResults::where('final_examination_results.course_id', $courseId)
+            ->where('final_examination_results.delivery_mode', $delivery)
+            ->where('final_examination_results.study_id', $studyId)
+            ->where('final_examination_results.academic_year', $academicYear)
+            // ->join('course_assessment_scores', 'course_assessments.id', '=', 'course_assessment_scores.course_assessment_id')
+            ->join('final_examinations', 'final_examinations.final_examinations_id', '=', 'final_examination_results.final_examinations_id')
+            ->select('final_examination_results.student_id', 'final_examination_results.cas_score as TotalMarks', 'final_examination_results.final_examination_results_id', 'final_examinations.course_code', 'final_examinations.cas_score as PercentageMark','final_examinations.academic_year', 'final_examinations.course_id','final_examinations.delivery_mode','final_examinations.study_id','final_examinations.basic_information_id','final_examinations.updated_at','final_examinations.created_at')
+            ->orderBy('final_examination_results.final_examination_results_id', 'asc')
+            ->get();
+
+        $resultsArrayStudentNumbers = $results->pluck('student_id')->toArray();
+
+        $resultsFromBasicInformation= EduroleBasicInformation::join('student-study-link', 'student-study-link.StudentID', '=', 'basic-information.ID')
+            ->join('study', 'study.ID', '=', 'student-study-link.StudyID')            
+            ->join('schools', 'schools.ID', '=', 'study.ParentID')
+            ->select('basic-information.ID', 'basic-information.FirstName','basic-information.StudyType', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.Name as Programme', 'schools.Name as School')
+            ->whereIn('basic-information.ID', $resultsArrayStudentNumbers)
+            ->get();
+
+            $results = $results->map(function ($result) use ($resultsFromBasicInformation) {
+                $result->basic_information = $resultsFromBasicInformation->firstWhere('ID', $result->student_id);
+                return $result;
+            });
+    
+        // return $results;     
+
+        return view('coordinator.viewAllExamInCourse', compact('studyId','delivery','results', 'courseId','courseDetails','basicInformationId'));
+    }
+
     private function setAssesmentType($statusId){
         $getAssesmntType = AssessmentTypes::where('id', $statusId)->first();
         return $getAssesmntType->assesment_type_name;
@@ -896,6 +938,58 @@ class CoordinatorController extends Controller
         }
     }
 
+    public function deleteStudentExamInCourse( Request $request)
+    {        
+        
+        DB::beginTransaction();
+        
+        // try {
+        //     // Fetch the course assessment record    
+        //     $courseAssessmenScoresId = $request->courseAssessmentScoresId;        
+        //     $getCourseAssessmentsScores = CourseAssessmentScores::where('course_assessment_scores_id', $courseAssessmenScoresId);
+        //     $courseAssessmentsScores = $getCourseAssessmentsScores->pluck('student_id')->toArray();
+        //     Log::info($courseAssessmentsScores);
+        //     $courseAssessmentId = $getCourseAssessmentsScores->first()->course_assessment_id;
+        //     // $courseId = $getCourseAssessmentsScores->first()->course_id;
+        //     $delivery = $getCourseAssessmentsScores->first()->delivery_mode;
+        //     $study_id = $getCourseAssessmentsScores->first()->study_id;
+        //     $component_id = $getCourseAssessmentsScores->first()->component_id;
+        //     $academicYear = 2024;
+        //     $caType = $request->caType;
+        //     $courseId = $request->courseId;
+        //     // $ca_type = $getCourseAssessmentsScores->first()->ca_type;   
+
+        //     // Update and renew the continuous assessments before deletion
+        //     foreach ($courseAssessmentsScores as $entry) {
+        //         $this->renewCABeforeDelete($courseId, $academicYear, $caType, trim($entry), $courseAssessmentId, $delivery, $study_id,$component_id);
+        //     }
+        //     CourseAssessmentScores::where('course_assessment_scores_id', $courseAssessmenScoresId)->delete();
+            
+        //     // Find and delete orphaned continuous assessments
+        //     // $assessmentsToDelete = StudentsContinousAssessment::leftJoin('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
+        //     //     ->whereNull('course_assessments.course_assessments_id')
+        //     //     ->select('students_continous_assessments.students_continous_assessment_id')
+        //     //     ->get();
+            
+        //     // foreach ($assessmentsToDelete as $assessment) {
+        //     //     $assessmentInstance = StudentsContinousAssessment::find($assessment->students_continous_assessment_id);
+        //     //     if ($assessmentInstance) {
+        //     //         $assessmentInstance->delete();
+        //     //     }
+        //     // }
+            
+        //     // Commit the transaction if everything is successful
+        //     DB::commit();
+
+        //     return redirect()->back()->with('success', 'Data deleted successfully');
+        // } catch (\Exception $e) {
+        //     // Rollback the transaction if there is an error
+        //     DB::rollBack();
+
+        //     return redirect()->back()->with('error', 'Data deletion failed: ' . $e->getMessage());
+        // }
+    }
+
     public function importCAFromExcelSheet(Request $request)
     {
         set_time_limit(0);
@@ -1126,7 +1220,7 @@ class CoordinatorController extends Controller
                                 'cas_score' => $entry['mark'],
                             ]
                         );
-                        $this->calculateAndSubmitFinalExam($request->course_id, $request->academicYear,  trim($entry['student_number']), $newExam->final_examinations_id, $request->delivery, $request->basicInformationId, $request->study_id, $entry['mark']);
+                        $this->calculateAndSubmitFinalExam($request->course_id, $request->academicYear,  trim($entry['student_number']), $newExam->final_examinations_id, $request->delivery, $request->study_id, $request->basicInformationId, $entry['mark']);
                     }
                     DB::commit();
                 } catch (\Exception $e) {

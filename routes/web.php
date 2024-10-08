@@ -103,6 +103,8 @@ Route::middleware(['auth','force.password.change'])->group(function () {
         
         Route::delete('/coordinator/deleteCaInCourse/{courseAssessmenId}/{courseId}',[CoordinatorController::class, 'deleteCaInCourse'])->name('coordinator.deleteCaInCourse');
         Route::delete('/coordinator/deleteStudentCaInCourse/',[CoordinatorController::class, 'deleteStudentCaInCourse'])->name('coordinator.deleteStudentCaInCourse');
+        Route::delete('/coordinator/deleteStudentExamInCourse/',[CoordinatorController::class, 'deleteStudentExamInCourse'])->name('coordinator.deleteStudentExamInCourse');
+
 
         Route::get('/coordinator/viewSpecificCaInCourse/{statusId}/{courseIdValue}/{assessmentNumber}',[CoordinatorController::class, 'viewSpecificCaInCourse'])->name('coordinator.viewSpecificCaInCourse');
         Route::get('/coordinator/courseCASetings/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'courseCASettings'])->name('coordinator.courseCASettings');
@@ -118,6 +120,8 @@ Route::middleware(['auth','force.password.change'])->group(function () {
         Route::get('/coordinator/viewTotalCaInComponentCourse/{statusId}/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'viewTotalCaInComponentCourse'])->name('coordinator.viewTotalCaInComponentCourse');
 
         Route::get('/coordinator/viewCa/{statusId}/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'viewAllCaInCourse'])->name('coordinator.viewAllCaInCourse');
+        Route::get('/coordinator/viewExamCaInCourse/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'viewAllExamInCourse'])->name('coordinator.viewExamCaInCourse');
+
     });
     
     Route::middleware('can:Dean')->group(function () { 

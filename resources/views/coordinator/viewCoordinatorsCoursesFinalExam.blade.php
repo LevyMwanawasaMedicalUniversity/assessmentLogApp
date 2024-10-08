@@ -106,9 +106,13 @@
                                                         </button>
                                                     </form>
                                                 {{-- @endif --}}
-                                                    <button type="button" class="btn btn-success font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#viewCourseModal{{ $result->ID }}{{ $result->Delivery }}{{$result->StudyID}}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
-                                                        View Exam
-                                                    </button>                                                        
+                                                    <form method="GET" action="{{ route('coordinator.viewExamCaInCourse', [ 'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery'=>encrypt($result->Delivery)]) }}">
+                                                        <input type="hidden" name="delivery" value="{{ $result->Delivery }}">
+                                                        <input type="hidden" name="studyId" value="{{$result->StudyID}}">
+                                                        <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
+                                                            View Exam
+                                                        </button>
+                                                    </form>                                                                                                          
                                                 </div>                                                 
                                                 
                                             </td>
