@@ -166,7 +166,7 @@
                                             <td>
                                                 @foreach ($assessmentDetails as $assessment)
                                                     <span style="color: {{ $assessment->total == 0 ? 'red' : 'blue' }}">
-                                                        <b>{{ $assessment->assesment_type_name }}: {{ $assessment->total }}</b>
+                                                        <b>{{ $assessment->assesment_type_name }}: {{ $assessment->total }} ,</b>
                                                     </span>
                                                     <br>
                                                 @endforeach
