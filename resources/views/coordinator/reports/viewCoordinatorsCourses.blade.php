@@ -20,7 +20,7 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="card-title">Your Courses</h5>
+                            <h5 class="card-title">Overall CA Report</h5>
                             <div class=""> 
                                 <button class="btn btn-info font-weight-bold py-2 px-4 rounded-0" id="exportBtn">Export to Excel</button>
                             </div>
@@ -37,7 +37,7 @@
 
                             </div> --}}
 
-                            @if(auth()->user()->hasPermissionTo('Administrator'))
+                            {{-- @if(auth()->user()->hasPermissionTo('Administrator'))
                             <form method="post" action="{{ route('admin.refreshCAInAprogram') }}">
                                 <input type="hidden" name="studyId" value="{{$studyId}}">
                                 @csrf
@@ -45,7 +45,7 @@
                                     Refresh CAs
                                 </button>
                             </form>
-                            @endif
+                            @endif --}}
                         </div>
 
                         <!-- Table with hoverable rows -->
