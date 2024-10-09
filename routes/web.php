@@ -92,6 +92,10 @@ Route::middleware(['auth','force.password.change'])->group(function () {
         Route::POST('/coordinator/updateCAFromExcelSheet',[CoordinatorController::class, 'updateCAFromExcelSheet'])->name('coordinator.updateCAFromExcelSheet'); 
 
         Route::POST('/coordinator/updateCAForSingleStudent',[CoordinatorController::class, 'updateCAForSingleStudent'])->name('coordinator.updateCAForSingleStudent'); 
+        Route::POST('/coordinator/updateExamForSingleStudent',[CoordinatorController::class, 'updateExamForSingleStudent'])->name('coordinator.updateExamForSingleStudent'); 
+        Route::GET('/exportBoardOfExaminersReport/{basicInformationId}',[CoordinatorController::class, 'exportBoardOfExaminersReport'])->name('coordinator.exportBoardOfExaminersReport'); 
+
+
         
         ///////////////////////////////////////////////////
         Route::get('/students/caResult/resultsViewCourses/', 'App\Http\Controllers\ContinousAssessmentController@studentsCAResults')->name('docket.studentsCAResults');

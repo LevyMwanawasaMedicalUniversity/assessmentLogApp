@@ -11,7 +11,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         <nav>
-            {{ Breadcrumbs::render() }}
+            {{-- {{ Breadcrumbs::render() }} --}}
         </nav>
     </div><!-- End Page Title -->
     <section class="section">
@@ -29,14 +29,13 @@
                             <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-1 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-9">
                         </div>
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <div class=""> 
+                            {{-- <div class=""> 
                                 <form action="{{ route('coordinator.exportBoardOfExaminersReport', ['basicInformationId' => encrypt($results->first()->basicInformationId)]) }}" method="GET">
                                     @csrf
-                                    {{-- <input type="hidden" name="componentId" value="{{ $results->first()->componentId }}"> --}}
                                     <button type="submit" class="btn btn-info font-weight-bold py-2 px-4 rounded-0">Overall CA Report</button>
                                 </form>
 
-                            </div>
+                            </div> --}}
 
                             @if(auth()->user()->hasPermissionTo('Administrator'))
                             <form method="post" action="{{ route('admin.refreshCAInAprogram') }}">
@@ -57,13 +56,19 @@
                                     <th scope="col">#</th>
                                     <th scope="col">Course Name</th>
                                     <th scope="col">Course Code</th>
-                                    <th scope="col">Programme Name</th>
+                                    {{-- <th scope="col">Programme Name</th> --}}
                                     <th scope="col">Delivery Mode</th>
                                     {{-- @if(!$results[0]->StudyID == 165) --}}
                                         <th scope="col">Year Of Study</th>
                                     {{-- @endif --}}
                                     <th scope="col">Number Of Uploads</th>
+                                    <th scope="col">Break Down Of Uploads</th>
                                     <th scope="col" class="text-right">Actions</th>
+                                    {{-- <th scope="col" class="text-right">Actions</th> --}}
+                                    @php
+
+
+                                    @endphp
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -88,13 +93,50 @@
                                             ->get();
                                         $totalAssessments = $assessmentDetails->sum('total');
 
+                                        $allocatedAssessments = \App\Models\CATypeMarksAllocation::select(
+                                                'c_a_type_marks_allocations.course_id',
+                                                'c_a_type_marks_allocations.assessment_type_id',
+                                                'c_a_type_marks_allocations.total_marks',
+                                                'c_a_type_marks_allocations.delivery_mode',
+                                                'c_a_type_marks_allocations.study_id',
+                                                'c_a_type_marks_allocations.component_id',
+                                                'assessment_types.assesment_type_name'
+                                            )
+                                            ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
+                                            ->where('c_a_type_marks_allocations.course_id', $result->ID)
+                                            ->where('c_a_type_marks_allocations.study_id', $result->StudyID)
+                                            ->where('c_a_type_marks_allocations.delivery_mode', $result->Delivery)
+                                            ->pluck('assessment_type_id')
+                                            ->toArray();
+
+                                        $assessmentDetails = \App\Models\AssessmentTypes::select(
+                                                'assessment_types.assesment_type_name',
+                                                'assessment_types.id as assessment_type_id',
+                                                'course_assessments.basic_information_id',
+                                                'course_assessments.delivery_mode',
+                                                DB::raw('count(course_assessments.course_assessments_id) as total')
+                                            )
+                                            ->leftJoin('course_assessments', function($join) use ($result) {
+                                                $join->on('assessment_types.id', '=', 'course_assessments.ca_type')
+                                                    ->where('course_assessments.course_id', $result->ID)
+                                                    ->where('course_assessments.study_id', $result->StudyID)
+                                                    ->where('course_assessments.delivery_mode', $result->Delivery);
+                                            })
+                                            ->whereIn('assessment_types.id', $allocatedAssessments)
+                                            ->groupBy(
+                                                'assessment_types.id', 
+                                                'assessment_types.assesment_type_name', 
+                                                'course_assessments.basic_information_id', 
+                                                'course_assessments.delivery_mode'
+                                            )
+                                            ->get();
                                         @endphp
                                         <tr>
                                             {{-- <th scope="row">1</th> --}}
                                             <td>{{$loop->iteration}}</td>
                                             <td>{{$result->CourseDescription}}</td>
                                             <td>{{$result->CourseName}} </td>
-                                            <td>{{$result->Name}}</td>
+                                            {{-- <td>{{$result->Name}}</td> --}}
                                             <td style="color: {{ $result->Delivery == 'Fulltime' ? 'blue' : ($result->Delivery == 'Distance' ? 'green' : 'black') }}">
                                                 <b>{{$result->Delivery}}</b>
                                             </td>
@@ -102,61 +144,56 @@
                                                 <td>Year {{$result->YearOfStudy}}</td>
                                             {{-- @endif --}}
                                             <td>
-                                                <form action="{{ route('coordinator.showCaWithin', encrypt($result->ID)) }}" method="GET">
-                                                    <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
-                                                    <input type="hidden" name="delivery" value="{{ $result->Delivery }}">
-                                                    <button type="submit" style="background:none;border:none;color:blue;text-decoration:underline;cursor:pointer;">
-                                                        {{ $totalAssessments ? $totalAssessments : 0 }} assessments
-                                                    </button>
-                                                </form>
-                                            </td>
-                                            <td class="text-right">
                                                 @if(in_array($result->CourseName, ['CAG201', 'GRA201']) || strtoupper($result->Name) != 'BASIC SCIENCES')
-                                                    <div class="btn-group float-end" role="group" aria-label="Button group">
-                                                        {{-- @if(auth()->user()->hasPermissionTo('Coordinator')) --}}
-                                                            <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#uploadCourseModal{{ $result->ID }}{{ $result->Delivery }}{{$result->StudyID}}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
-                                                                Upload
-                                                            </button>
-                                                        {{-- @endif --}}
-                                                            <button type="button" class="btn btn-success font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#viewCourseModal{{ $result->ID }}{{ $result->Delivery }}{{$result->StudyID}}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
-                                                                View
-                                                            </button>                                                        
-                                                        
-                                                        <form action="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID), 'basicInformationId' => encrypt($result->basicInformationId), 'delivery' => encrypt($result->Delivery)]) }}" method="GET" class="d-inline">
-                                                            <input type="hidden" name="studyId" value="{{ ($result->StudyID) }}">
-                                                            <input type="hidden" name="hasComponents" value="0">
-                                                            <input type="hidden" name="componentName" value="">
-                                                            <button type="submit" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
-                                                                Settings
-                                                            </button>
-                                                        </form>
-                                                    </div>                                                    
+                                                    <form action="{{ route('coordinator.showCaWithin', encrypt($result->ID)) }}" method="GET">
+                                                        <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
+                                                        <input type="hidden" name="delivery" value="{{ $result->Delivery }}">
+                                                        <button type="submit" style="background:none;border:none;color:blue;text-decoration:underline;cursor:pointer;">
+                                                            {{ $totalAssessments ? $totalAssessments : 0 }} assessments
+                                                        </button>
+                                                    </form>
                                                 @elseif(strtoupper($result->Name) == 'BASIC SCIENCES')
-                                                    <div class="btn-group float-end" role="group" aria-label="Button group">
-                                                        <form action="{{route('coordinator.viewTotalCaInComponentCourse',['statusId' => encrypt($result->caType),'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery'=>encrypt($result->Delivery)])}}" method="GET" class="d-inline">
-                                                            <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
-                                                            <input type="hidden" name="isSettings" value="0">
-                                                            <button type="submit" class="btn btn-secondary font-weight-bold py-2 px-4 rounded-0">
-                                                                Total-CA
-                                                            </button>
-                                                        </form> 
-                                                        <form action="{{ route('coordinator.viewCourseWithComponents', ['courseIdValue' => encrypt($result->ID), 'basicInformationId' => encrypt($result->basicInformationId), 'delivery' => encrypt($result->Delivery)]) }}" method="GET" class="d-inline">
-                                                            <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
-                                                            <input type="hidden" name="isSettings" value="0">
-                                                            <button type="submit" class="btn btn-info font-weight-bold py-2 px-4 rounded-0">
-                                                                Proceed
-                                                            </button>
-                                                        </form>                                            
-                                                        <form action="{{ route('coordinator.viewCourseWithComponents', ['courseIdValue' => encrypt($result->ID), 'basicInformationId' => encrypt($result->basicInformationId), 'delivery' => encrypt($result->Delivery)]) }}" method="GET" class="d-inline">
-                                                            <input type="hidden" name="studyId" value="{{ ($result->StudyID) }}">
-                                                            <input type="hidden" name="isSettings" value="1">
-                                                            <button type="submit" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
-                                                                Components
-                                                            </button>
-                                                        </form>
-                                                    </div>
+                                                    <form action="{{ route('coordinator.showCaWithin', encrypt($result->ID)) }}" method="GET">
+                                                        <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
+                                                        <input type="hidden" name="delivery" value="{{ $result->Delivery }}">
+                                                        <button type="submit" style="background:none;border:none;color:blue;text-decoration:underline;cursor:pointer;">
+                                                            {{ $totalAssessments ? $totalAssessments : 0 }} assessments
+                                                        </button>
+                                                    </form>
+
                                                 @endif
                                             </td>
+                                            <td>
+                                                @foreach ($assessmentDetails as $assessment)
+                                                    <span style="color: {{ $assessment->total == 0 ? 'red' : 'blue' }}">
+                                                        <b>{{ $assessment->assesment_type_name }}: {{ $assessment->total }}</b>
+                                                    </span>
+                                                    <br>
+                                                @endforeach
+                                            </td> 
+                                            <td class="text-right">
+                                                @if(in_array($result->CourseName, ['CAG201', 'GRA201']) || strtoupper($result->Name) != 'BASIC SCIENCES')
+                                                <form method="GET" action="{{ route('coordinator.viewTotalCaInCourse', ['statusId' => encrypt($result->caType),'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery'=>encrypt($result->Delivery)]) }}">
+                                                    {{-- <input type="hidden" name="componentId" value="{{$componentId}}">
+                                                    <input type="hidden" name="hasComponents" value="{{ ($component_name) }}"> --}}
+                                                    <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
+                                                        <div class="p-3 text-dark">
+                                                            {{ __("Total CA") }}
+                                                        </div>
+                                                    </button>
+                                                </form>
+                                                @elseif(strtoupper($result->Name) == 'BASIC SCIENCES')
+                                                <form action="{{route('coordinator.viewTotalCaInComponentCourse',['statusId' => encrypt($result->caType),'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery'=>encrypt($result->Delivery)])}}" method="GET" class="d-inline">
+                                                    <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
+                                                    <input type="hidden" name="isSettings" value="0">
+                                                    <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
+                                                        <div class="p-3 text-dark">
+                                                            {{ __("Total CA") }}
+                                                        </div>
+                                                    </button>
+                                                </form> 
+                                                @endif
+                                            </td>                                           
                                         </tr>                            
                                     @endforeach
                                 </tbody>

@@ -21,6 +21,15 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="card-title">Your Courses</h5>
+
+                            <div class=""> 
+                                <form action="{{ route('coordinator.exportBoardOfExaminersReport', ['basicInformationId' => encrypt($basicInformationId)]) }}" method="GET">
+                                    @csrf
+                                    {{-- <input type="hidden" name="componentId" value="{{ $results->first()->componentId }}"> --}}
+                                    <button type="submit" class="btn btn-info font-weight-bold py-2 px-4 rounded-0">Overall CA Report</button>
+                                </form>
+
+                            </div>s
                             <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-1 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-9">
                         </div>
 
@@ -93,8 +102,7 @@
                                                     @endif
                                                         <button type="button" class="btn btn-success font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#viewCourseModal{{ $result->course_components_id }}{{ $result->delivery_mode }}{{$result->study_id}}" data-courseid="{{ $result->course_id }}" data-delivery="{{ $result->delivery_mode }}">
                                                             View
-                                                        </button>
-                                                    
+                                                        </button>                                             
                                                     
                                                     <form action="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->course_id), 'basicInformationId' => encrypt($basicInformationId), 'delivery' => encrypt($result->delivery_mode)]) }}" method="GET" class="d-inline">                                                        
                                                         {{-- <input type="hidden" name="delivery" value="{{ $result->delivery_mode }}"> --}}

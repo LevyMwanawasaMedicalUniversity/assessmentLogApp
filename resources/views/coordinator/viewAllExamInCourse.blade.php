@@ -7,10 +7,21 @@
             </span>
         </h1>
         @include('layouts.alerts')
+        @php
+            
+            $courseId = $results->first()->course_id;
+            $courseCode = $results->first()->course_code;
+            $basicInformationId = $results->first()->basic_information_id;
+            $studyId = $results->first()->study_id;
+            $delivery = $results->first()->delivery_mode;
+            
+
+        @endphp
         {{-- <nav>
             {{ Breadcrumbs::render() }}
         </nav> --}}
     </div><!-- End Page Title -->
+    @include('coordinator.components.addNewStudentToExamModal')
     <section class="section">
         <div class="row">
             <div class="col-lg-12">
@@ -33,11 +44,11 @@
                                         <th class="px-4 py-2">First Name</th>
                                         <th class="px-4 py-2">Last Name</th>
                                         <th class="px-4 py-2">Study Type</th>
-                                        <th class="px-4 py-2">Programme</th>
+                                        {{-- <th class="px-4 py-2">Programme</th> --}}
                                         <th class="px-4 py-2">School</th>
-                                        <th class="px-4 py-2">Course Code</th> 
-                                        <th class="px-4 py-2">Date Uploaded</th>
-                                        <th class="px-4 py-2">Date Updated</th>
+                                        {{-- <th class="px-4 py-2">Course Code</th>  --}}
+                                        {{-- <th class="px-4 py-2">Date Uploaded</th>
+                                        <th class="px-4 py-2">Date Updated</th> --}}
                                         <th class="px-4 py-2">Academic Year</th>                                      
                                         <th class="px-4 py-2">Percentage Marks</th>
                                         <th class="px-4 py-2">Total Marks</th>
@@ -46,27 +57,25 @@
                                 </thead>
                                 <tbody>
                                     @foreach($results as $result)
+                                    @include('coordinator.components.editStudentExamResultsModal')
                                         <tr class="border-t border-b hover:bg-gray-100">
                                             <td class="px-4 py-2">{{ $loop->iteration }}</td>
                                             <td class="px-4 py-2">{{ $result->student_id }}</td>
                                             <td class="px-4 py-2" style="color: {{ isset($result->basic_information->FirstName) ? 'black' : 'red' }}; font-weight: {{ isset($result->basic_information->FirstName) ? 'normal' : 'bold' }};">
-                                                    {{ $result->basic_information->FirstName ?? 'No Edurole' }}
-                                                </td>
-                                                <td class="px-4 py-2" style="color: {{ isset($result->basic_information->Surname) ? 'black' : 'red' }}; font-weight: {{ isset($result->basic_information->Surname) ? 'normal' : 'bold' }};">
-                                                    {{$result->basic_information->Surname ?? 'account found'}}
-                                                </td>
-                                                <td class="px-4 py-2" style="color: {{ !isset($result->basic_information) || $result->basic_information->StudyType != $delivery ? 'red' : 'black' }}; font-weight: {{ !isset($result->basic_information) || $result->basic_information->StudyType != $delivery ? 'bold' : 'normal' }};">
-                                                    {{ $result->basic_information->StudyType ?? 'for the' }}
-                                                </td>
-                                                <td class="px-4 py-2" style="color: {{ isset($result->basic_information->Programme) ? 'black' : 'red' }}; font-weight: {{ isset($result->basic_information->Programme) ? 'normal' : 'bold' }};">
-                                                    {{$result->basic_information->Programme ?? 'student id'}}
-                                                </td>                                                
-                                                <td class="px-4 py-2" style="color: {{ isset($result->basic_information->School) ? 'black' : 'red' }}; font-weight: {{ isset($result->basic_information->School) ? 'normal' : 'bold' }};">
-                                                    {{$result->basic_information->School ?? $result->student_id}}
-                                                </td>  
-                                            <td class="px-4 py-2">{{ $result->course_code }}</td>
-                                            <td class="px-4 py-2">{{ $result->created_at}}</td>
-                                            <td class="px-4 py-2">{{ $result->updated_at}}</td>
+                                                {{ $result->basic_information->FirstName ?? 'No Edurole' }}
+                                            </td>
+                                            <td class="px-4 py-2" style="color: {{ isset($result->basic_information->Surname) ? 'black' : 'red' }}; font-weight: {{ isset($result->basic_information->Surname) ? 'normal' : 'bold' }};">
+                                                {{$result->basic_information->Surname ?? 'account found'}}
+                                            </td>
+                                            <td class="px-4 py-2" style="color: {{ !isset($result->basic_information) || $result->basic_information->StudyType != $delivery ? 'red' : 'black' }}; font-weight: {{ !isset($result->basic_information) || $result->basic_information->StudyType != $delivery ? 'bold' : 'normal' }};">
+                                                {{ $result->basic_information->StudyType ?? 'for the' }}
+                                            </td>
+                                            {{-- <td class="px-4 py-2" style="color: {{ isset($result->basic_information->Programme) ? 'black' : 'red' }}; font-weight: {{ isset($result->basic_information->Programme) ? 'normal' : 'bold' }};">
+                                                {{$result->basic_information->Programme ?? 'student id'}}
+                                            </td>                                                 --}}
+                                            <td class="px-4 py-2" style="color: {{ isset($result->basic_information->School) ? 'black' : 'red' }}; font-weight: {{ isset($result->basic_information->School) ? 'normal' : 'bold' }};">
+                                                {{$result->basic_information->School ?? $result->student_id}}
+                                            </td> 
                                             <td class="px-4 py-2">{{ $result->academic_year }}</td>
                                             <td class="px-4 py-2">{{ $result->PercentageMark }}</td> 
                                             <td class="px-4 py-2">{{ $result->TotalMarks }}</td>
@@ -81,24 +90,12 @@
                                                                 View 
                                                             </button>
                                                         </form>
-                                                        {{-- @if (auth()->user()->hasPermissionTo('Dean')) --}}
-                                                        {{-- <a href="{{ route('coordinator.editCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId)]) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
-                                                            Edit
-                                                        </a>  --}}
-                                                        {{-- <form action="{{route('coordinator.editAStudentsCaInCourse',['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId), 'basicInformationId' => encrypt($result->basic_information_id)])}}" method="GET" class="d-inline">
-                                                            <input type="hidden" name="hasComponents" value="{{($hasComponents) }}">
-                                                            <input type="hidden" name="studentId" value="{{($result->student_id)}}">
-                                                            <input type="hidden" name="componentId" value="{{($result->component_id)}}">
-                                                            <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
-                                                                Edit
-                                                            </button>
-                                                        </form> --}}
-
+                                                        
                                                         <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" 
-                                                            data-bs-toggle="modal" data-bs-target="#editStudentResults{{$result->student_id}}{{$result->course_assessments_id }}{{ $courseId }}{{$result->basic_information_id}}"
+                                                            data-bs-toggle="modal" data-bs-target="#editStudentResults{{$result->student_id}}{{ $courseId }}{{$result->basic_information_id}}"
                                                             data-studentId="{{ $result->student_id }}" 
-                                                            data-courseAssessmentsId="{{ $result->course_assessments_id }}" 
-                                                            data-componentId = "{{ $result->component_id }}"
+                                                            {{-- data-courseAssessmentsId="{{ $result->course_assessments_id }}"  --}}
+                                                            {{-- data-componentId = "{{ $result->component_id }}" --}}
                                                             data-basicInformationId = "{{ $result->basic_information_id }}"
                                                             data-casScore = "{{ $result->cas_score }}"
                                                             data-courseId = "{{ $courseId }}"                                                            

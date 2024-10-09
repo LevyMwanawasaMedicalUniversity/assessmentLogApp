@@ -9,12 +9,14 @@ use App\Models\CourseAssessmentScores;
 use App\Models\CourseComponent;
 use App\Models\CourseComponentAllocation;
 use App\Models\EduroleBasicInformation;
+use App\Models\EduroleCourseElective;
 use App\Models\EduroleCourses;
 use App\Models\EduroleStudy;
 use App\Models\FinalExamination;
 use App\Models\FinalExaminationResults;
 use App\Models\StudentsContinousAssessment;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
+use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 use Exception;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\QueryException;
@@ -92,6 +94,9 @@ class CoordinatorController extends Controller
     public function showCaWithin(Request $request,$courseId){
         $courseId = Crypt::decrypt($courseId);
         $studyId = $request->studyId;
+        $delivery = $request->delivery;
+
+        // return $delivery;
 
         if($request->componentId){
             $componentId = $request->componentId;
@@ -107,10 +112,13 @@ class CoordinatorController extends Controller
         )
         ->where('course_assessments.course_id', $courseId)
         ->where('course_assessments.study_id', $studyId)
+        ->where('course_assessments.delivery_mode', $delivery)
         ->where('course_assessments.component_id', $componentId)
         ->join('assessment_types', 'assessment_types.id', '=', 'course_assessments.ca_type')
         ->groupBy('assessment_types.id','course_assessments.basic_information_id', 'assessment_types.assesment_type_name','course_assessments.delivery_mode')
         ->get();
+
+        // return $assessmentDetails;
 
         $courseInfo = EduroleCourses::where('ID', $courseId)->first();
         
@@ -631,7 +639,7 @@ class CoordinatorController extends Controller
             ->where('final_examination_results.academic_year', $academicYear)
             // ->join('course_assessment_scores', 'course_assessments.id', '=', 'course_assessment_scores.course_assessment_id')
             ->join('final_examinations', 'final_examinations.final_examinations_id', '=', 'final_examination_results.final_examinations_id')
-            ->select('final_examination_results.student_id', 'final_examination_results.cas_score as TotalMarks', 'final_examination_results.final_examination_results_id', 'final_examinations.course_code', 'final_examinations.cas_score as PercentageMark','final_examinations.academic_year', 'final_examinations.course_id','final_examinations.delivery_mode','final_examinations.study_id','final_examinations.basic_information_id','final_examinations.updated_at','final_examinations.created_at')
+            ->select('final_examination_results.student_id', 'final_examination_results.cas_score as TotalMarks', 'final_examination_results.final_examination_results_id', 'final_examinations.course_code', 'final_examinations.cas_score as PercentageMark','final_examinations.academic_year', 'final_examinations.course_id','final_examinations.delivery_mode','final_examinations.study_id','final_examinations.basic_information_id','final_examinations.updated_at','final_examinations.created_at','final_examination_results.final_examination_results_id')
             ->orderBy('final_examination_results.final_examination_results_id', 'asc')
             ->get();
 
@@ -1465,6 +1473,146 @@ class CoordinatorController extends Controller
         }
     }
 
+    public function exportBoardOfExaminersReport($basicInformationId){
+
+        $basicInformationId = Crypt::decrypt($basicInformationId);
+        // return $basicInformationId;
+        $getStudyId = EduroleStudy::where('ProgrammesAvailable', '=', $basicInformationId)->first();
+        // return $getStudyId;
+        $studyId = $getStudyId->ID;
+        // return $coursesFromCourseElectives;
+
+        
+        // $naturalScienceCourses = $this->getNSAttachedCourses();
+        if($studyId == 163 || $studyId == 165){
+            $results = $this->getCoursesFromEdurole()
+            ->where('basic-information.ID', $basicInformationId)            
+            ->orderBy('programmes.Year')
+            ->orderBy('courses.Name')
+            ->orderBy('study.Delivery')            
+            ->get();
+        }else{
+            $coursesFromCourseElectives = EduroleCourseElective::select('course-electives.CourseID')
+                ->join('courses', 'courses.ID','=','course-electives.CourseID')
+                ->join('program-course-link', 'program-course-link.CourseID','=','courses.ID')
+                ->join('student-study-link','student-study-link.StudentID','=','course-electives.StudentID')
+                ->join('study','study.ID','=','student-study-link.StudyID')
+                ->where('course-electives.Year', 2024)
+                ->where('course-electives.Approved', 1)
+                ->where('study.ProgrammesAvailable', $basicInformationId)
+                ->distinct()
+                ->pluck('course-electives.CourseID')
+                ->toArray();
+            $results = $this->getCoursesFromEdurole()
+                ->where('basic-information.ID', $basicInformationId)
+                ->whereIn('courses.ID', $coursesFromCourseElectives)
+                ->orderBy('programmes.Year')
+                ->orderBy('courses.Name')
+                ->orderBy('study.Delivery')            
+                ->get();
+        }
+        
+        
+        return view('coordinator.reports.viewCoordinatorsCourses', compact('results','studyId'));
+    }
+
+    public function getCoursesWithResults(){
+        // $results = $this->queryCoursesWithResults();
+        $results = "here";
+        return $results;
+    }
+
+    public function exportData($headers, $rowData, $results, $filename)
+    {
+        $filePath = storage_path('app/' . $filename);
+
+        $writer = WriterEntityFactory::createXLSXWriter();
+        $writer->openToFile($filePath);
+
+        $headerRow = WriterEntityFactory::createRowFromArray($headers);
+        $writer->addRow($headerRow);
+
+        foreach ($results as $result) {
+            $data = [];
+            foreach ($rowData as $field) {
+                $data[] = $result->$field;
+            }
+
+            $dataRow = WriterEntityFactory::createRowFromArray($data);
+            $writer->addRow($dataRow);
+        }
+        $writer->close();
+        return response()->download($filePath, $filename . '.xlsx')->deleteFileAfterSend();
+    }
+
+    public function updateExamForSingleStudent(Request $request)
+    {
+        set_time_limit(1200000);
+
+        // Validate the form data
+        $request->validate([
+            'studentNumber' => 'required',
+            'oldStudentNumber' => 'required',
+            'mark' => 'required',
+            'academicYear' => 'required',
+            'course_id' => 'required',
+            'course_code' => 'required',
+            'basicInformationId' => 'required',
+            'delivery' => 'required',
+            'study_id' => 'required',
+            'final_examination_results_id' => 'required',
+            // 'component_id' => 'required',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            
+            $getCaType = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)->first();
+            $caType = $request->ca_type;
+            $studyId = $request->study_id;
+            if($request->component_id){
+                $componentId = $request->component_id;
+            }else{
+                $componentId =  null;
+            }
+            // $courseAssessmentScoresStudentNumber = CourseAssessmentScores::where('course_assessment_scores_id', $request->course_assessment_scores_id)->first()->student_id;
+            
+            CourseAssessmentScores::updateOrCreate([
+                'course_assessment_id' => $request->course_assessment_id,
+                'student_id' => trim($request->studentNumber),
+                'component_id' => $componentId,
+                'course_code' => $request->course_code,
+                'delivery_mode' => $request->delivery,
+                'study_id' => $studyId,
+            ],[
+                'cas_score' => trim($request->mark),
+            ]);
+            $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $caType, trim($request->studentNumber), $request->course_assessment_id, $request->delivery, $studyId,$componentId);
+            
+            if(trim($request->studentNumber) != trim($request->oldStudentNumber)){
+                $studentNumber = $request->studentNumber;
+                $deletionData = [
+                    'courseAssessmentScoresId' => $request->course_assessment_scores_id,
+                    'caType' => $caType,
+                    'courseId' => $request->course_id,
+                ];
+                // Create a new request instance with the custom data
+                $deletionRequest = Request::create('', 'POST', $deletionData);
+                
+                // Call the method with the new request object
+                $this->deleteStudentCaInCourse($deletionRequest);
+            }          
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Student Updated successfully');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to import data: ' . $e->getMessage());
+            return back()->with('error', 'An error occurred while importing the data. Please try again.');
+        }
+    }
     
     private function calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId,$componentId, $excludeCurrent = false)
     {
