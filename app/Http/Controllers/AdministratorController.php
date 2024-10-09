@@ -411,6 +411,7 @@ class AdministratorController extends Controller
     public function viewCoordinatorsCourses($basicInformationId){
         $basicInformationId = Crypt::decrypt($basicInformationId);
         
+        
         $getStudyId = EduroleStudy::where('ProgrammesAvailable', '=', $basicInformationId)->first();
         // return $getStudyId;
         $studyId = $getStudyId->ID;
@@ -439,14 +440,15 @@ class AdministratorController extends Controller
                 ->toArray();
             $results = $this->getCoursesFromEdurole()
                 ->where('basic-information.ID', $basicInformationId)
-                ->whereIn('courses.ID', $coursesFromCourseElectives)
+                // ->whereIn('courses.ID', $coursesFromCourseElectives)
                 ->orderBy('programmes.Year')
                 ->orderBy('courses.Name')
                 ->orderBy('study.Delivery')            
                 ->get();
         }
         
-        return view('coordinator.viewCoordinatorsCourses', compact('results','studyId'));
+        
+        return view('coordinator.viewCoordinatorsCourses', compact('basicInformationId','results','studyId'));
 
     }
 
