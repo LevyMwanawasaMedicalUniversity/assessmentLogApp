@@ -1721,37 +1721,37 @@ class CoordinatorController extends Controller
     }
 
     //Old Function
-    // private function saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId, $componentId){
-    //     $studentCA = StudentsContinousAssessment::firstOrNew(['student_id' => $studentNumber,
-    //                     'course_id' => $courseId,
-    //                     'academic_year' => $academicYear, 
-    //                     'ca_type' => $caType, 
-    //                     'delivery_mode' => $delivery, 
-    //                     'study_id' => $studyId,
-    //                     'component_id' => $componentId
-    //                 ]);
-    //     $studentCA->course_assessment_id = $courseAssessmentId;
-    //     $studentCA->sca_score = $adjustedAverage;
-    //     $studentCA->save();
-    // }
-    
-    private function saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId, $componentId) {
-        StudentsContinousAssessment::updateOrCreate(
-            [
-                'student_id' => $studentNumber,
-                'course_id' => $courseId,
-                'academic_year' => $academicYear,
-                'ca_type' => $caType,
-                'delivery_mode' => $delivery,
-                'study_id' => $studyId,
-                'component_id' => $componentId,
-                'course_assessment_id' => $courseAssessmentId,
-            ],
-            [
-                'sca_score' => $adjustedAverage,
-            ]
-        );
+    private function saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId, $componentId){
+        $studentCA = StudentsContinousAssessment::firstOrNew(['student_id' => $studentNumber,
+                        'course_id' => $courseId,
+                        'academic_year' => $academicYear, 
+                        'ca_type' => $caType, 
+                        'delivery_mode' => $delivery, 
+                        'study_id' => $studyId,
+                        'component_id' => $componentId
+                    ]);
+        $studentCA->course_assessment_id = $courseAssessmentId;
+        $studentCA->sca_score = $adjustedAverage;
+        $studentCA->save();
     }
+    
+    // private function saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId, $componentId) {
+    //     StudentsContinousAssessment::updateOrCreate(
+    //         [
+    //             'student_id' => $studentNumber,
+    //             'course_id' => $courseId,
+    //             'academic_year' => $academicYear,
+    //             'ca_type' => $caType,
+    //             'delivery_mode' => $delivery,
+    //             'study_id' => $studyId,
+    //             'component_id' => $componentId,
+    //             'course_assessment_id' => $courseAssessmentId,
+    //         ],
+    //         [
+    //             'sca_score' => $adjustedAverage,
+    //         ]
+    //     );
+    // }
 
     private function calculateAndSubmitFinalExam($courseId, $academicYear,  $studentNumber, $finalExamId, $delivery, $studyId, $basicInformationId, $mark){
         $this->calculateFinalExamScores($courseId, $academicYear,  $studentNumber, $finalExamId, $delivery, $studyId,$basicInformationId, $mark);
