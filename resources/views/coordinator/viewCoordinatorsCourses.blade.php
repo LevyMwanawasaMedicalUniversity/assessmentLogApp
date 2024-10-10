@@ -30,7 +30,7 @@
                         </div>
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div class=""> 
-                                <form action="{{ route('coordinator.exportBoardOfExaminersReport', ['basicInformationId' => encrypt($basicInformationId)]) }}" method="GET">
+                                <form action="{{ route('coordinator.exportBoardOfExaminersReport', ['basicInformationId' => encrypt($results->first()->basicInformationId)]) }}" method="GET">
                                     @csrf
                                     {{-- <input type="hidden" name="componentId" value="{{ $results->first()->componentId }}"> --}}
                                     <button type="submit" class="btn btn-info font-weight-bold py-2 px-4 rounded-0">Overall CA Report</button>
