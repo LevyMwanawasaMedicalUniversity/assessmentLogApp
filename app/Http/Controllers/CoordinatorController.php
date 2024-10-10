@@ -1484,7 +1484,7 @@ class CoordinatorController extends Controller
 
         
         // $naturalScienceCourses = $this->getNSAttachedCourses();
-        if($studyId == 163 || $studyId == 165 || $studyId == 166 || $studyId == 167 || $studyId == 168){
+        if($studyId == 163 || $studyId == 165 || $studyId == 166 || $studyId == 167 || $studyId == 168 || $studyId == 169 || $studyId == 170 || $studyId == 171 || $studyId == 172 || $studyId == 173 || $studyId == 174){
             $results = $this->getCoursesFromEdurole()
             ->where('basic-information.ID', $basicInformationId)            
             ->orderBy('programmes.Year')

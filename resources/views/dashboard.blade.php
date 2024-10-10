@@ -131,7 +131,7 @@
                                     $coursesWithCAProgrammeCountsArray[] = $coursesWithCA->where('ProgrammeCode', $code)->count();
 
                                     // Count courses from Edurole for the current ProgrammeCode
-                                    if (in_array($code, ['BBS', 'NS','TP1','TP2'])) {
+                                    if (in_array($code, ['BBS', 'NS','TP1','TP2','TP3','TP4','TP5','TP6','TP7'])) {
                                         $coursesFromEduroleProgrammeCountsArray[] = $coursesFromEdurole->where('ProgrammeCode', $code)->count();
                                     } else {
                                         // Clone the query for each iteration to avoid modifying the original query
