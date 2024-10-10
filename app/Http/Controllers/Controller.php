@@ -12,8 +12,7 @@ use App\Models\StudentsContinousAssessment;
 abstract class Controller
 {
     //
-    public function getCoursesFromLMMAX()
-    {
+    public function getCoursesFromLMMAX(){
         return CourseAssessment::select('course_assessment_scores.course_code','course_assessments.study_id','course_assessments.course_id','course_assessment_scores.study_id','course_assessments.delivery_mode','course_assessments.basic_information_id')
             // ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id') 
             ->join('course_assessment_scores', 'course_assessment_scores.course_assessment_id', '=', 'course_assessments.course_assessments_id')
@@ -61,6 +60,32 @@ abstract class Controller
             ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
             ->where('study.Name', '=', 'Basic Sciences')
             ->whereIn('courses.Name', ['BAB201', 'CAG201', 'CVS301', 'GIT301','GRA201','IHD201','MCT201','NER301','PEB201','REN301','RES301'])
+            ->select('study.ID')
+            ->pluck('study.ID')
+            ->toArray();
+        return $naturalScienceCourses;
+    }
+
+    public function getTempProgramme1(){
+        $naturalScienceCourses = EduroleStudy::join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
+            ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
+            ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
+            ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
+            ->where('study.Name', '=', 'Temp Programme 1')
+            ->whereIn('courses.Name', ['HOA2210','HOP2210','PHO2210'])
+            ->select('study.ID')
+            ->pluck('study.ID')
+            ->toArray();
+        return $naturalScienceCourses;
+    }
+
+    public function getTempProgramme2(){
+        $naturalScienceCourses = EduroleStudy::join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
+            ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
+            ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
+            ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
+            ->where('study.Name', '=', 'Temp Programme 2')
+            ->whereIn('courses.Name', ['ANP101'])
             ->select('study.ID')
             ->pluck('study.ID')
             ->toArray();
@@ -115,6 +140,8 @@ abstract class Controller
     {        
         $naturalScienceCourses = $this->getNSAttachedCourses();
         $getBasicSciencesCourses = $this->getBasicSciencesCourses();
+        $tempProgramme1 = $this->getTempProgramme1();
+        $tempProgramme2 = $this->getTempProgramme2();
         return $this->queryCourseFromEdurole()
         ->where(function($query) use ($naturalScienceCourses) {
             $query->whereNotIn('courses.Name', ['MAT101', 'PHY101', 'CHM101', 'BIO101'])
@@ -123,6 +150,14 @@ abstract class Controller
         ->where(function($query) use ($getBasicSciencesCourses) {
             $query->whereNotIn('courses.Name', ['BAB201', 'CAG201', 'CVS301', 'GIT301','GRA201','IHD201','MCT201','NER301','PEB201','REN301','RES301'])
                 ->orWhereIn('study.ID', $getBasicSciencesCourses);
+        })
+        ->where(function($query) use ($tempProgramme1) {
+            $query->whereNotIn('courses.Name', ['HOA2210','HOP2210','PHO2210'])
+                ->orWhereIn('study.ID', $tempProgramme1);
+        })
+        ->where(function($query) use ($tempProgramme2) {
+            $query->whereNotIn('courses.Name', ['ANP101'])
+                ->orWhereIn('study.ID', $tempProgramme2);
         })
         ->where(function($query) {
             $query->where('programmes.ProgramName', 'NOT LIKE', '%BSCBMS-DE-2023-Y2%');

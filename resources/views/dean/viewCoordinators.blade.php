@@ -126,7 +126,7 @@
                                             <td style="color: {{ $user && $user->last_login_at ? 'blue' : 'red' }};">
                                                 {{ $user && $user->last_login_at ? $user->last_login_at : 'NEVER' }}
                                             </td>
-                                            @if(($result->StudyID == 163) || ($result->StudyID == 165))
+                                            @if(($result->StudyID == 163) || ($result->StudyID == 165) || ($result->StudyID == 166) || ($result->StudyID == 167) || ($result->StudyID == 168))
                                                 <td>{{ $counts[$result->StudyID] ?? '0' }} Courses</td>
                                             @else
                                                 <td>{{$numberOfCourses}} Courses</td>

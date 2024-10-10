@@ -419,7 +419,7 @@ class AdministratorController extends Controller
 
         
         // $naturalScienceCourses = $this->getNSAttachedCourses();
-        if($studyId == 163 || $studyId == 165){
+        if($studyId == 163 || $studyId == 165 || $studyId == 166 || $studyId == 167 || $studyId == 168){
             $results = $this->getCoursesFromEdurole()
             ->where('basic-information.ID', $basicInformationId)            
             ->orderBy('programmes.Year')
@@ -440,7 +440,7 @@ class AdministratorController extends Controller
                 ->toArray();
             $results = $this->getCoursesFromEdurole()
                 ->where('basic-information.ID', $basicInformationId)
-                // ->whereIn('courses.ID', $coursesFromCourseElectives)
+                ->whereIn('courses.ID', $coursesFromCourseElectives)
                 ->orderBy('programmes.Year')
                 ->orderBy('courses.Name')
                 ->orderBy('study.Delivery')            
