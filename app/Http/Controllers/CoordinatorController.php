@@ -754,11 +754,18 @@ class CoordinatorController extends Controller
         // }
 
         $resultsArrayStudentNumbers = $results->pluck('student_id')->toArray();
+        $arrayOfProgrammes = $this->arrayOfValidProgrammes($coursesInEdurole->StudyID);
+
+        // return $arrayOfProgrammes;
+
+        // ??TO DO: Add the study ID to the query below
+
         $resultsFromBasicInformation= EduroleBasicInformation::join('student-study-link', 'student-study-link.StudentID', '=', 'basic-information.ID')
             ->join('study', 'study.ID', '=', 'student-study-link.StudyID')            
             ->join('schools', 'schools.ID', '=', 'study.ParentID')
-            ->select('basic-information.ID', 'basic-information.FirstName', 'basic-information.Surname','basic-information.StudyType', 'basic-information.PrivateEmail', 'study.Name as Programme', 'schools.Name as School')
+            ->select('basic-information.ID', 'basic-information.FirstName', 'basic-information.Surname','basic-information.StudyType', 'basic-information.PrivateEmail', 'study.Name as Programme', 'schools.Name as School', 'study.ID as StudyID')
             ->whereIn('basic-information.ID', $resultsArrayStudentNumbers)
+            // ->whereIn('study.ID', $arrayOfProgrammes)
             ->get();
         // return $resultsFromBasicInformation;
         $results = $results->map(function ($result) use ($resultsFromBasicInformation) {
