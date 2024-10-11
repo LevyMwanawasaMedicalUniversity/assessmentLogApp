@@ -272,4 +272,9 @@ abstract class Controller
             ->where('basic-information.ID', $studentId);
         return $resultsFromBasicInformation;
     }
+
+    public function arrayOfValidProgrammes($studyId){
+
+        return [$studyId, 163, 165,166, 167,168,169,170,171,172,173,174];
+    }
 }
