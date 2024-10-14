@@ -246,7 +246,7 @@ abstract class Controller
         //     $query->whereNotIn('courses.Name', ['NBC201'])
         //         ->orWhereIn('study.ID', $tempProgramme6);
         // })
-        // ->where(function($query) use ($tempProgramme7) {
+        // ->where(function($query) use ($tempProgramme7) { 
         //     $query->whereNotIn('courses.Name', ['MBP201'])
         //         ->orWhereIn('study.ID', $tempProgramme7);
         // })
