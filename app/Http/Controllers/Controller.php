@@ -206,13 +206,13 @@ abstract class Controller
     {        
         $naturalScienceCourses = $this->getNSAttachedCourses();
         $getBasicSciencesCourses = $this->getBasicSciencesCourses();
-        $tempProgramme1 = $this->getTempProgramme1();
-        $tempProgramme2 = $this->getTempProgramme2();
-        $tempProgramme3 = $this->getTempProgramme3();
-        $tempProgramme4 = $this->getTempProgramme4();
-        $tempProgramme5 = $this->getTempProgramme5();
-        $tempProgramme6 = $this->getTempProgramme6();
-        $tempProgramme7 = $this->getTempProgramme7();   
+        // $tempProgramme1 = $this->getTempProgramme1();
+        // $tempProgramme2 = $this->getTempProgramme2();
+        // $tempProgramme3 = $this->getTempProgramme3();
+        // $tempProgramme4 = $this->getTempProgramme4();
+        // $tempProgramme5 = $this->getTempProgramme5();
+        // $tempProgramme6 = $this->getTempProgramme6();
+        // $tempProgramme7 = $this->getTempProgramme7();   
         return $this->queryCourseFromEdurole()
         ->where(function($query) use ($naturalScienceCourses) {
             $query->whereNotIn('courses.Name', ['MAT101', 'PHY101', 'CHM101', 'BIO101','OGC201'])
@@ -222,34 +222,34 @@ abstract class Controller
             $query->whereNotIn('courses.Name', ['BAB201', 'CAG201', 'CVS301', 'GIT301','GRA201','IHD201','MCT201','NER301','PEB201','REN301','RES301','BCH2015','BCH2060','CBP2020','HAN2040','HAN2050','PGY2040','PHR3030','PHR3060','PTH2020','PTH2040','PTH2070'])
                 ->orWhereIn('study.ID', $getBasicSciencesCourses);
         })
-        ->where(function($query) use ($tempProgramme1) {
-            $query->whereNotIn('courses.Name', ['HOA2210','HOP2210','PHO2210'])
-                ->orWhereIn('study.ID', $tempProgramme1);
-        })
-        ->where(function($query) use ($tempProgramme2) {
-            $query->whereNotIn('courses.Name', ['ANP101','HAP201'])
-                ->orWhereIn('study.ID', $tempProgramme2);
-        })
-        ->where(function($query) use ($tempProgramme3) {
-            $query->whereNotIn('courses.Name', ['BMM301','IPM3110'])
-                ->orWhereIn('study.ID', $tempProgramme3);
-        })
-        ->where(function($query) use ($tempProgramme4) {
-            $query->whereNotIn('courses.Name', ['BBC302','BEM201','BGB301','BHT201','BHT301','BIM201','BIM301','BME302','BPR301','BSE101','MPP201'])
-                ->orWhereIn('study.ID', $tempProgramme4);
-        })
-        ->where(function($query) use ($tempProgramme5) {
-            $query->whereNotIn('courses.Name', ['BMS101'])
-                ->orWhereIn('study.ID', $tempProgramme5);
-        })
-        ->where(function($query) use ($tempProgramme6) {
-            $query->whereNotIn('courses.Name', ['NBC201'])
-                ->orWhereIn('study.ID', $tempProgramme6);
-        })
-        ->where(function($query) use ($tempProgramme7) {
-            $query->whereNotIn('courses.Name', ['MBP201'])
-                ->orWhereIn('study.ID', $tempProgramme7);
-        })
+        // ->where(function($query) use ($tempProgramme1) {
+        //     $query->whereNotIn('courses.Name', ['HOA2210','HOP2210','PHO2210'])
+        //         ->orWhereIn('study.ID', $tempProgramme1);
+        // })
+        // ->where(function($query) use ($tempProgramme2) {
+        //     $query->whereNotIn('courses.Name', ['ANP101','HAP201'])
+        //         ->orWhereIn('study.ID', $tempProgramme2);
+        // })
+        // ->where(function($query) use ($tempProgramme3) {
+        //     $query->whereNotIn('courses.Name', ['BMM301','IPM3110'])
+        //         ->orWhereIn('study.ID', $tempProgramme3);
+        // })
+        // ->where(function($query) use ($tempProgramme4) {
+        //     $query->whereNotIn('courses.Name', ['BBC302','BEM201','BGB301','BHT201','BHT301','BIM201','BIM301','BME302','BPR301','BSE101','MPP201'])
+        //         ->orWhereIn('study.ID', $tempProgramme4);
+        // })
+        // ->where(function($query) use ($tempProgramme5) {
+        //     $query->whereNotIn('courses.Name', ['BMS101'])
+        //         ->orWhereIn('study.ID', $tempProgramme5);
+        // })
+        // ->where(function($query) use ($tempProgramme6) {
+        //     $query->whereNotIn('courses.Name', ['NBC201'])
+        //         ->orWhereIn('study.ID', $tempProgramme6);
+        // })
+        // ->where(function($query) use ($tempProgramme7) {
+        //     $query->whereNotIn('courses.Name', ['MBP201'])
+        //         ->orWhereIn('study.ID', $tempProgramme7);
+        // })
         ->where(function($query) {
             $query->where('programmes.ProgramName', 'NOT LIKE', '%BSCBMS-DE-2023-Y2%');
                 // ->where('courses.CourseDescription', 'NOT LIKE', '%Practical%')
