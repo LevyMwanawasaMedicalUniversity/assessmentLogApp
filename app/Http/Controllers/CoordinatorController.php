@@ -210,6 +210,7 @@ class CoordinatorController extends Controller
     // }
 
     public function courseCASettings(Request $request,$courseIdValue, $basicInformationId, $delivery){ 
+        set_time_limit(200000000000);
         $courseId = Crypt::decrypt($courseIdValue);
         $delivery = Crypt::decrypt($delivery);
         $basicInformationId = Crypt::decrypt($basicInformationId);
@@ -291,6 +292,7 @@ class CoordinatorController extends Controller
     public function updateCourseCASetings(Request $request)
     {
 
+        set_time_limit(200000000000);
         // return "here";
         DB::beginTransaction();
 

@@ -97,7 +97,8 @@
                                                             $courseName = $course->CourseDescription;
                                                             $courseCode = $course->Name;
 
-                                                            $totalMarks = \App\Models\AssessmentTypes::join('c_a_type_marks_allocations', 'c_a_type_marks_allocations.assessment_type_id', '=', 'assessment_types.id')
+                                                            // Fetch the total marks with a query
+                                                            $totalMarksQuery = \App\Models\AssessmentTypes::join('c_a_type_marks_allocations', 'c_a_type_marks_allocations.assessment_type_id', '=', 'assessment_types.id')
                                                                 ->join('students_continous_assessments','students_continous_assessments.ca_type', '=', 'assessment_types.id')
                                                                 ->where('students_continous_assessments.students_continous_assessment_id', $result->students_continous_assessment_id)
                                                                 ->where('students_continous_assessments.student_id', $studentNumber)
@@ -109,14 +110,15 @@
                                                                 ->select('c_a_type_marks_allocations.total_marks')
                                                                 ->first();
 
-                                                            $totalMarks = $totalMarks->total_marks;
+                                                            // Handle null value case
+                                                            $totalMarks = $totalMarksQuery ? $totalMarksQuery->total_marks : 'N/A';  // Set default value if null
                                                         @endphp
                                                         <tr>
-                                                            <td>{{$result->assesment_type_name}}</td>
+                                                            <td>{{ $result->assesment_type_name }}</td>
                                                             <td>
-                                                                <span class="badge bg-primary">{{$result->total_marks}}</span> 
+                                                                <span class="badge bg-primary">{{ $result->total_marks }}</span> 
                                                                 <b>/</b> 
-                                                                <span class="badge bg-secondary">{{$totalMarks}}</span>
+                                                                <span class="badge bg-secondary">{{ $totalMarks }}</span>  <!-- Display 'N/A' if total_marks is null -->
                                                             </td>
                                                             <td class="text-end">
                                                                 <form action="{{ route('docket.viewInSpecificCaComponent', ['courseId' => $result->course_id, 'caType' => $result->ca_type]) }}" method="GET">
@@ -127,7 +129,7 @@
                                                                 </form>
                                                             </td>
                                                         </tr>
-                                                    @endforeach                  
+                                                    @endforeach                 
                                                 </tbody>
                                             </table>
                                         </div>
