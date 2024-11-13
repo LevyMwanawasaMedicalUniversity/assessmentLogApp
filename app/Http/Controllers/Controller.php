@@ -251,8 +251,8 @@ abstract class Controller
         //         ->orWhereIn('study.ID', $tempProgramme7);
         // })
         ->where(function($query) {
-            $query->where('programmes.ProgramName', 'NOT LIKE', '%BSCBMS-DE-2023-Y2%');
-                // ->where('courses.CourseDescription', 'NOT LIKE', '%Practical%')
+            $query->where('programmes.ProgramName', 'NOT LIKE', '%BSCBMS-DE-2023-Y2%')
+                ->where('programmes.ProgramName', 'NOT LIKE', '%BSCPHNUR-DE-2023-Y2%');
                 // ->where('courses.CourseDescription', 'NOT LIKE', '%Research%')                
                 // ->where('courses.CourseDescription', 'NOT LIKE', '%Attachment%')
                 // ->where('courses.CourseDescription', 'NOT LIKE', '%Clinical Practice%')
