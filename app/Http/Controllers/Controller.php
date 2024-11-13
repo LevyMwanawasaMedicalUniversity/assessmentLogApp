@@ -215,7 +215,7 @@ abstract class Controller
         // $tempProgramme7 = $this->getTempProgramme7();   
         return $this->queryCourseFromEdurole()
         ->where(function($query) use ($naturalScienceCourses) {
-            $query->whereNotIn('courses.Name', ['MAT101', 'PHY101', 'CHM101', 'BIO101','OGC201'])
+            $query->whereNotIn('courses.Name', ['MAT101', 'PHY101', 'CHM101', 'BIO101'])
                 ->orWhereIn('study.ID', $naturalScienceCourses);
         })
         ->where(function($query) use ($getBasicSciencesCourses) {
