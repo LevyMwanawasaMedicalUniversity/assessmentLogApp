@@ -212,6 +212,7 @@ abstract class Controller
         // $tempProgramme4 = $this->getTempProgramme4();
         // $tempProgramme5 = $this->getTempProgramme5();
         // $tempProgramme6 = $this->getTempProgramme6();
+        
         // $tempProgramme7 = $this->getTempProgramme7();   
         return $this->queryCourseFromEdurole()
         ->where(function($query) use ($naturalScienceCourses) {
