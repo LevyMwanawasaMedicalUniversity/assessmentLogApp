@@ -212,7 +212,7 @@ abstract class Controller
         // $tempProgramme4 = $this->getTempProgramme4();
         // $tempProgramme5 = $this->getTempProgramme5();
         // $tempProgramme6 = $this->getTempProgramme6();
-        
+
         // $tempProgramme7 = $this->getTempProgramme7();   
         return $this->queryCourseFromEdurole()
         ->where(function($query) use ($naturalScienceCourses) {
@@ -253,7 +253,15 @@ abstract class Controller
         // })
         ->where(function($query) {
             $query->where('programmes.ProgramName', 'NOT LIKE', '%BSCBMS-DE-2023-Y2%')
-                ->where('programmes.ProgramName', 'NOT LIKE', '%BSCPHNUR-DE-2023-Y2%');
+                ->where('programmes.ProgramName', 'NOT LIKE', '%BSCPHNUR-DE-2023-Y2%')
+                ->where('programmes.ProgramName', 'NOT LIKE', '%BAGC-FT-2019-Y1%')
+                ->where('programmes.ProgramName', 'NOT LIKE', '%BAGC-FT-2019-Y2%')
+                ->where('programmes.ProgramName', 'NOT LIKE', '%BAGC-FT-2019-Y3%')
+                ->where('programmes.ProgramName', 'NOT LIKE', '%BAGC-FT-2019-Y4%')
+                ->where('programmes.ProgramName', 'NOT LIKE', '%BAGC-FT-2023-Y1%')
+                ->where('programmes.ProgramName', 'NOT LIKE', '%BAGC-FT-2023-Y2%')
+                ->where('programmes.ProgramName', 'NOT LIKE', '%BAGC-FT-2023-Y3%')
+                ->where('programmes.ProgramName', 'NOT LIKE', '%BAGC-FT-2023-Y4%');
                 // ->where('courses.CourseDescription', 'NOT LIKE', '%Research%')                
                 // ->where('courses.CourseDescription', 'NOT LIKE', '%Attachment%')
                 // ->where('courses.CourseDescription', 'NOT LIKE', '%Clinical Practice%')
