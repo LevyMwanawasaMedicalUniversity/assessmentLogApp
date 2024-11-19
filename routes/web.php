@@ -93,7 +93,8 @@ Route::middleware(['auth','force.password.change'])->group(function () {
 
         Route::POST('/coordinator/updateCAForSingleStudent',[CoordinatorController::class, 'updateCAForSingleStudent'])->name('coordinator.updateCAForSingleStudent'); 
         Route::POST('/coordinator/updateExamForSingleStudent',[CoordinatorController::class, 'updateExamForSingleStudent'])->name('coordinator.updateExamForSingleStudent'); 
-        Route::GET('/exportBoardOfExaminersReport/{basicInformationId}',[CoordinatorController::class, 'exportBoardOfExaminersReport'])->name('coordinator.exportBoardOfExaminersReport'); 
+        Route::GET('/exportBoardOfExaminersReport/{basicInformationId}',[CoordinatorController::class, 'exportBoardOfExaminersReport'])->name('coordinator.exportBoardOfExaminersReport');
+        Route::GET('/exportBoardOfExaminersReportFinalExam/{basicInformationId}',[CoordinatorController::class, 'exportBoardOfExaminersReportFinalExam'])->name('coordinator.exportBoardOfExaminersReportFinalExam');  
 
 
         
@@ -120,9 +121,13 @@ Route::middleware(['auth','force.password.change'])->group(function () {
         Route::get('viewOnlyProgrammesWithCa',[CoordinatorController::class, 'viewOnlyProgrammesWithCa'])->name('coordinator.viewOnlyProgrammesWithCa');
         Route::get('viewOnlyProgrammesWithCaForCoordinator/{coordinator}',[CoordinatorController::class, 'viewOnlyProgrammesWithCaForCoordinator'])->name('coordinator.viewOnlyProgrammesWithCaForCoordinator');
         Route::get('showCaWithin/{courseId}',[CoordinatorController::class, 'showCaWithin'])->name('coordinator.showCaWithin');
+        
         Route::get('/coordinator/viewTotalCaInCourse/{statusId}/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'viewTotalCaInCourse'])->name('coordinator.viewTotalCaInCourse');
+        Route::get('/coordinator/viewTotalCaInCourseAndFinalExam/{statusId}/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'viewTotalCaInCourseAndFinalExam'])->name('coordinator.viewTotalCaInCourseAndFinalExam');
+        
         Route::get('/coordinator/viewTotalCaInComponentCourse/{statusId}/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'viewTotalCaInComponentCourse'])->name('coordinator.viewTotalCaInComponentCourse');
-
+        Route::get('/coordinator/viewTotalCaInComponentCourseAndFinalExam/{statusId}/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'viewTotalCaInComponentCourseAndFinalExam'])->name('coordinator.viewTotalCaInComponentCourseAndFinalExam');
+        
         Route::get('/coordinator/viewCa/{statusId}/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'viewAllCaInCourse'])->name('coordinator.viewAllCaInCourse');
         Route::get('/coordinator/viewExamCaInCourse/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'viewAllExamInCourse'])->name('coordinator.viewExamCaInCourse');
 

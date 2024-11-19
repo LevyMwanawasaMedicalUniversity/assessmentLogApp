@@ -34,6 +34,17 @@
                             <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-1 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-9">
                         </div>
 
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class=""> 
+                                <form action="{{ route('coordinator.exportBoardOfExaminersReportFinalExam', ['basicInformationId' => encrypt($results->first()->basicInformationId)]) }}" method="GET">
+                                    @csrf
+                                    {{-- <input type="hidden" name="componentId" value="{{ $results->first()->componentId }}"> --}}
+                                    <button type="submit" class="btn btn-info font-weight-bold py-2 px-4 rounded-0">Final Exam Report</button>
+                                </form>
+
+                            </div>
+                        </div>
+
                         <!-- Table with hoverable rows -->
                         <div style="overflow-x:auto;">
                             <table id="myTable" class="table table-hover">                        

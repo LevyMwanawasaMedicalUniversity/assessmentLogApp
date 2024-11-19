@@ -39,7 +39,7 @@ class PagesController extends Controller
         return view('coordinator.viewCoordinatorsCourses', compact('results','studyId'));
     }
 
-    public function uploadFinalExam()
+    public function uploadFinalExam(Request $request)
     {
         $user = auth()->user();
         try {
@@ -47,7 +47,11 @@ class PagesController extends Controller
         } catch (\Exception $e) {
             return redirect()->route('dashboard');
         }
-        $userBasicInformation = $user->basic_information_id;
+        if($request->basicInformationId){
+            $userBasicInformation = decrypt($request->basicInformationId);
+        }else{
+            $userBasicInformation = $user->basic_information_id;
+        }
 
         $results = $this->getCoursesFromEdurole()
             ->where('basic-information.ID', $userBasicInformation)

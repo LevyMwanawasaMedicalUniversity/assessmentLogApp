@@ -659,7 +659,10 @@ class CoordinatorController extends Controller
                 return $result;
             });
     
-        // return $results;     
+        // return $results; 
+        if($results->isEmpty()){
+            return redirect()->back()->with('error', 'No results found for the selected course');
+        }
 
         return view('coordinator.viewAllExamInCourse', compact('studyId','delivery','results', 'courseId','courseDetails','basicInformationId'));
     }
@@ -778,6 +781,110 @@ class CoordinatorController extends Controller
         return view('coordinator.viewTotalCaInCourse', compact('componentId','delivery','results', 'statusId', 'courseId','courseDetails','hasComponents')); 
     }
 
+    public function viewTotalCaInCourseAndFinalExam(Request $request ,$statusId, $courseIdValue, $basicInformationId,$delivery){
+        $courseId = Crypt::decrypt($courseIdValue);
+        // $caType = Crypt::decrypt($statusId);
+        $basicInformationId = Crypt::decrypt($basicInformationId);
+        $delivery = Crypt::decrypt($delivery);
+        $componentId = $request->componentId;
+        $hasComponents = $request->hasComponents;
+        $courseDetails = EduroleCourses::where('ID', $courseId)->first();
+        $coursesInEdurole = $this->getCoursesFromEdurole()
+                ->where('courses.ID', $courseId)
+                ->where('study.ProgrammesAvailable', $basicInformationId)
+                ->where('study.Delivery', $delivery)
+                ->first();
+        // return $courseDetails;
+
+        $academicYear = 2024;
+        // if($caType != 4){            
+        // $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
+        //     ->where('students_continous_assessments.delivery_mode', $delivery)
+        //     ->where('students_continous_assessments.study_id', $coursesInEdurole->StudyID)
+        //     ->where('students_continous_assessments.component_id', $componentId)
+        //     // ->whereIn('ca_type', [1,2,3]) 
+        //     ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id')
+        //     ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
+        //     ->groupBy('students_continous_assessments.student_id')
+        //     ->get();
+
+        $results = FinalExaminationResults::leftJoin('students_continous_assessments', function($join) use ($courseId, $delivery, $coursesInEdurole, $componentId) {
+        $join->on('final_examination_results.student_id', '=', 'students_continous_assessments.student_id')
+             ->where('students_continous_assessments.course_id', $courseId)
+             ->where('students_continous_assessments.delivery_mode', $delivery)
+             ->where('students_continous_assessments.study_id',$coursesInEdurole->StudyID)
+             ->where('students_continous_assessments.component_id', $componentId);
+    })
+    ->join('final_examinations', 'final_examinations.final_examinations_id', '=', 'final_examination_results.final_examinations_id')
+    ->select(
+        'final_examination_results.student_id',
+        'final_examination_results.cas_score as TotalMarks',
+        'final_examination_results.final_examination_results_id',
+        'final_examinations.course_code',
+        'final_examinations.cas_score as PercentageMark',
+        'final_examinations.academic_year',
+        'final_examinations.course_id',
+        'final_examinations.delivery_mode',
+        'final_examinations.study_id',
+        'final_examinations.basic_information_id',
+        'final_examinations.updated_at',
+        'final_examinations.created_at',
+        DB::raw('SUM(students_continous_assessments.sca_score) as total_marks')
+    )
+    ->where('final_examination_results.course_id', $courseId)
+    ->where('final_examination_results.delivery_mode', $delivery)
+    ->where('final_examination_results.study_id', $coursesInEdurole->StudyID)
+    ->where('final_examination_results.academic_year', $academicYear)
+    ->groupBy(
+        'final_examination_results.student_id',
+        'final_examination_results.cas_score',
+        'final_examination_results.final_examination_results_id',
+        'final_examinations.course_code',
+        'final_examinations.cas_score',
+        'final_examinations.academic_year',
+        'final_examinations.course_id',
+        'final_examinations.delivery_mode',
+        'final_examinations.study_id',
+        'final_examinations.basic_information_id',
+        'final_examinations.updated_at',
+        'final_examinations.created_at'
+    )
+    ->orderBy('final_examination_results.final_examination_results_id', 'asc')
+    ->get();
+
+    // return $results;
+            
+        // }else{
+        //     $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
+        //         ->where('ca_type', 4) 
+        //         ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
+        //         ->groupBy('students_continous_assessments.student_id')
+        //         ->get();
+        // }
+
+        $resultsArrayStudentNumbers = $results->pluck('student_id')->toArray();
+        $arrayOfProgrammes = $this->arrayOfValidProgrammes($coursesInEdurole->StudyID);
+
+        // return $arrayOfProgrammes;
+
+        // ??TO DO: Add the study ID to the query below
+
+        $resultsFromBasicInformation= EduroleBasicInformation::join('student-study-link', 'student-study-link.StudentID', '=', 'basic-information.ID')
+            ->join('study', 'study.ID', '=', 'student-study-link.StudyID')            
+            ->join('schools', 'schools.ID', '=', 'study.ParentID')
+            ->select('basic-information.ID', 'basic-information.FirstName', 'basic-information.Surname','basic-information.StudyType', 'basic-information.PrivateEmail', 'study.Name as Programme', 'schools.Name as School', 'study.ID as StudyID')
+            ->whereIn('basic-information.ID', $resultsArrayStudentNumbers)
+            // ->whereIn('study.ID', $arrayOfProgrammes)
+            ->get();
+        // return $resultsFromBasicInformation;
+        $results = $results->map(function ($result) use ($resultsFromBasicInformation) {
+            $result->basic_information = $resultsFromBasicInformation->firstWhere('ID', $result->student_id);
+            return $result;
+        });
+        // return $results;
+        return view('coordinator.viewTotalCaAndExam', compact('componentId','delivery','results', 'statusId', 'courseId','courseDetails','hasComponents')); 
+    }
+
     public function viewTotalCaInComponentCourse(Request $request ,$statusId, $courseIdValue, $basicInformationId,$delivery){
         $courseId = Crypt::decrypt($courseIdValue);
         // $caType = Crypt::decrypt($statusId);
@@ -840,6 +947,70 @@ class CoordinatorController extends Controller
         });
         // return $results;
         return view('coordinator.viewTotalCaInCourse', compact('delivery','results', 'statusId', 'courseId','courseDetails','hasComponents')); 
+    }
+
+    public function viewTotalCaInComponentCourseAndFinalExam(Request $request ,$statusId, $courseIdValue, $basicInformationId,$delivery){
+        $courseId = Crypt::decrypt($courseIdValue);
+        // $caType = Crypt::decrypt($statusId);
+        $basicInformationId = Crypt::decrypt($basicInformationId);
+        $delivery = Crypt::decrypt($delivery);
+        $componentId = $request->componentId;
+        $hasComponents = $request->hasComponents;
+
+        // return $courseId . ' ' . $basicInformationId . ' ' . $delivery . ' ' . $componentId . ' ' . $hasComponents;
+        $courseDetails = EduroleCourses::where('ID', $courseId)->first();
+        $coursesInEdurole = $this->getCoursesFromEdurole()
+                ->where('courses.ID', $courseId)
+                ->where('study.ProgrammesAvailable', $basicInformationId)
+                ->where('study.Delivery', $delivery)
+                ->first();
+        // return $courseDetails;
+        // if($caType != 4){            
+        $resultsGetAllInstances = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
+            ->where('students_continous_assessments.delivery_mode', $delivery)
+            ->where('students_continous_assessments.study_id', $coursesInEdurole->StudyID)
+            ->whereNotNull('students_continous_assessments.component_id');
+        
+        // Count the number of unique instances based on component_id
+        $numberOfUniqueInstances = $resultsGetAllInstances->distinct('students_continous_assessments.component_id')->count('students_continous_assessments.component_id');
+        
+        // Calculate the total marks for each student
+        $results = $resultsGetAllInstances
+            ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id')
+            ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
+            ->groupBy('students_continous_assessments.student_id')
+            ->get();
+        
+        // Divide the total marks by the number of unique instances
+        $results->transform(function ($item) use ($numberOfUniqueInstances) {
+            $item->total_marks = round($item->total_marks / $numberOfUniqueInstances, 2);
+            return $item;
+        });
+
+        // return $results;
+            
+        // }else{
+        //     $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
+        //         ->where('ca_type', 4) 
+        //         ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
+        //         ->groupBy('students_continous_assessments.student_id')
+        //         ->get();
+        // }
+
+        $resultsArrayStudentNumbers = $results->pluck('student_id')->toArray();
+        $resultsFromBasicInformation= EduroleBasicInformation::join('student-study-link', 'student-study-link.StudentID', '=', 'basic-information.ID')
+            ->join('study', 'study.ID', '=', 'student-study-link.StudyID')            
+            ->join('schools', 'schools.ID', '=', 'study.ParentID')
+            ->select('basic-information.ID', 'basic-information.FirstName', 'basic-information.Surname','basic-information.StudyType', 'basic-information.PrivateEmail', 'study.Name as Programme', 'schools.Name as School')
+            ->whereIn('basic-information.ID', $resultsArrayStudentNumbers)
+            ->get();
+        // return $resultsFromBasicInformation;
+        $results = $results->map(function ($result) use ($resultsFromBasicInformation) {
+            $result->basic_information = $resultsFromBasicInformation->firstWhere('ID', $result->student_id);
+            return $result;
+        });
+        // return $results;
+        return view('coordinator.viewTotalCaAndExam', compact('delivery','results', 'statusId', 'courseId','courseDetails','hasComponents')); 
     }
 
     public function deleteCaInCourse(Request $request, $courseAssessmentId, $courseId)
@@ -1480,6 +1651,49 @@ class CoordinatorController extends Controller
             Log::error('Failed to import data: ' . $e->getMessage());
             return back()->with('error', 'An error occurred while importing the data. Please try again.');
         }
+    }
+
+    public function exportBoardOfExaminersReportFinalExam($basicInformationId){
+
+        $basicInformationId = Crypt::decrypt($basicInformationId);
+        // return $basicInformationId;
+        $getStudyId = EduroleStudy::where('ProgrammesAvailable', '=', $basicInformationId)->first();
+        // return $getStudyId;
+        $studyId = $getStudyId->ID;
+        // return $coursesFromCourseElectives;
+
+        
+        // $naturalScienceCourses = $this->getNSAttachedCourses();
+        if($studyId == 163 || $studyId == 165 || $studyId == 166 || $studyId == 167 || $studyId == 168 || $studyId == 169 || $studyId == 170 || $studyId == 171 || $studyId == 172 || $studyId == 173 || $studyId == 174){
+            $results = $this->getCoursesFromEdurole()
+            ->where('basic-information.ID', $basicInformationId)            
+            ->orderBy('programmes.Year')
+            ->orderBy('courses.Name')
+            ->orderBy('study.Delivery')            
+            ->get();
+        }else{
+            $coursesFromCourseElectives = EduroleCourseElective::select('course-electives.CourseID')
+                ->join('courses', 'courses.ID','=','course-electives.CourseID')
+                ->join('program-course-link', 'program-course-link.CourseID','=','courses.ID')
+                ->join('student-study-link','student-study-link.StudentID','=','course-electives.StudentID')
+                ->join('study','study.ID','=','student-study-link.StudyID')
+                ->where('course-electives.Year', 2024)  
+                ->where('course-electives.Approved', 1)
+                ->where('study.ProgrammesAvailable', $basicInformationId)
+                ->distinct()
+                ->pluck('course-electives.CourseID')
+                ->toArray();
+            $results = $this->getCoursesFromEdurole()
+                ->where('basic-information.ID', $basicInformationId)
+                ->whereIn('courses.ID', $coursesFromCourseElectives)
+                ->orderBy('programmes.Year')
+                ->orderBy('courses.Name')
+                ->orderBy('study.Delivery')            
+                ->get();
+        }
+        
+        
+        return view('coordinator.reports.viewCoordinatorsExamReport', compact('results','studyId'));
     }
 
     public function exportBoardOfExaminersReport($basicInformationId){

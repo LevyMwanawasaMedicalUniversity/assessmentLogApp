@@ -252,8 +252,8 @@
             </a>
         </li><!-- End Profile Page Nav -->
         @endif
-
-        @if (auth()->user()->hasPermissionTo('Administrator'))
+    
+        @if (auth()->user()->hasPermissionTo('Coordinator'))
         <li class="nav-item">
             <a class="nav-link collapsed" href="{{route('pages.uploadFinalExam')}}">
                 <i class="bi bi-file-earmark-richtext-fill"></i>

@@ -141,11 +141,19 @@
                                                 </form>
                                             </td>
                                             <td>
-                                                <form method="GET" action="{{ route('admin.viewCoordinatorsCourses', ['basicInformationId' => encrypt($result->basicInformationId)]) }}">
-                                                    <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
-                                                        View
-                                                    </button>
-                                                </form>
+                                                <div class="d-flex">
+                                                    <form method="GET" action="{{ route('pages.uploadFinalExam') }}">
+                                                        <input type="hidden" name="basicInformationId" value="{{ encrypt($result->basicInformationId) }}">
+                                                        <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0 me-2">
+                                                            Final Exam
+                                                        </button>
+                                                    </form>
+                                                    <form method="GET" action="{{ route('admin.viewCoordinatorsCourses', ['basicInformationId' => encrypt($result->basicInformationId)]) }}">
+                                                        <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
+                                                            Continuous Assessment
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </td>
                                             
                                         </tr>                            
