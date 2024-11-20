@@ -27,6 +27,7 @@
                 $totalMarks = \App\Models\CATypeMarksAllocation::where('course_id', $result->ID)
                     ->where('study_id', $result->StudyID)
                     ->where('delivery_mode', $result->Delivery)
+                    ->where('component_id', $componentId)
                     ->sum('total_marks');
 
                 @endphp
