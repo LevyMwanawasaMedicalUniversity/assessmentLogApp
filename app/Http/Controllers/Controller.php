@@ -254,6 +254,7 @@ abstract class Controller
         ->where(function($query) {
             $query->where('programmes.ProgramName', 'NOT LIKE', '%BSCBMS-DE-2023-Y2%')
                 ->where('programmes.ProgramName', 'NOT LIKE', '%BSCPHNUR-DE-2023-Y2%')
+                ->where('programmes.ProgramName', 'NOT LIKE', '%BSCMHN-DE-2023-Y2%')
                 ->where('programmes.ProgramName', 'NOT LIKE', '%BAGC-FT-2023-Y1%')
                 ->where('programmes.ProgramName', 'NOT LIKE', '%BAGC-FT-2023-Y2%')
                 ->where('programmes.ProgramName', 'NOT LIKE', '%BAGC-FT-2023-Y3%')

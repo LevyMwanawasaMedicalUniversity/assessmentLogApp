@@ -93,13 +93,23 @@
                                                                         <span class="badge bg-secondary">40</span>
                                                                     </td>
                                                                     <td class="text-end">
-                                                                        <form action="{{ route('docket.viewCaComponents', encrypt($result->course_id)) }}" method="GET">
-                                                                            <input type="hidden" name="student_id" value="{{encrypt($studentNumber)}}">
-                                                                            <input type="hidden" name="study_id" value="{{encrypt($result->study_id)}}">
-                                                                            <input type="hidden" name="delivery_mode" value="{{encrypt($result->delivery_mode)}}">
-                                                                            <input type="hidden" name="course_id" value="{{encrypt($result->course_id)}}">
-                                                                            <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">CLICK HERE</button>
-                                                                        </form>
+                                                                        <div class="btn-group" role="group">
+                                                                            <form action="{{ route('docket.viewCaComponents', encrypt($result->course_id)) }}" method="GET">
+                                                                                <input type="hidden" name="student_id" value="{{encrypt($studentNumber)}}">
+                                                                                <input type="hidden" name="study_id" value="{{encrypt($result->study_id)}}">
+                                                                                <input type="hidden" name="delivery_mode" value="{{encrypt($result->delivery_mode)}}">
+                                                                                <input type="hidden" name="course_id" value="{{encrypt($result->course_id)}}">
+                                                                                <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">VIEW</button>
+                                                                            </form>
+                                                                            <form action="{{ route('docket.deleteStudentCourseAssements', encrypt($result->course_id)) }}" method="POST" onsubmit="return confirmDelete()">
+                                                                                @csrf
+                                                                                <input type="hidden" name="study_id" value="{{encrypt($result->study_id)}}">
+                                                                                <input type="hidden" name="student_id" value="{{encrypt($studentNumber)}}">
+                                                                                <input type="hidden" name="delivery_mode" value="{{encrypt($result->delivery_mode)}}">
+                                                                                <input type="hidden" name="course_id" value="{{encrypt($result->course_id)}}">
+                                                                                <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-0">DELETE</button>
+                                                                            </form>
+                                                                        </div>
                                                                     </td>
                                                                 </tr>
                                                             @else
@@ -123,13 +133,23 @@
                                                                         </td>
 
                                                                     <td class="text-end">
-                                                                        <form action="{{ route('docket.viewCaComponentsWithComponent', encrypt($result->course_id)) }}" method="GET">
-                                                                            <input type="hidden" name="study_id" value="{{encrypt($result->study_id)}}">
-                                                                            <input type="hidden" name="student_id" value="{{encrypt($studentNumber)}}">
-                                                                            <input type="hidden" name="delivery_mode" value="{{encrypt($result->delivery_mode)}}">
-                                                                            <input type="hidden" name="course_id" value="{{encrypt($result->course_id)}}">
-                                                                            <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">CLICK HERE</button>
-                                                                        </form>
+                                                                        <div class="btn-group" role="group">
+                                                                            <form action="{{ route('docket.viewCaComponentsWithComponent', encrypt($result->course_id)) }}" method="GET">
+                                                                                <input type="hidden" name="study_id" value="{{encrypt($result->study_id)}}">
+                                                                                <input type="hidden" name="student_id" value="{{encrypt($studentNumber)}}">
+                                                                                <input type="hidden" name="delivery_mode" value="{{encrypt($result->delivery_mode)}}">
+                                                                                <input type="hidden" name="course_id" value="{{encrypt($result->course_id)}}">
+                                                                                <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">VIEW</button>
+                                                                            </form>
+                                                                            <form action="{{ route('docket.deleteStudentCourseAssements', encrypt($result->course_id)) }}" method="POST" onsubmit="return confirmDelete()">
+                                                                                @csrf
+                                                                                <input type="hidden" name="study_id" value="{{encrypt($result->study_id)}}">
+                                                                                <input type="hidden" name="student_id" value="{{encrypt($studentNumber)}}">
+                                                                                <input type="hidden" name="delivery_mode" value="{{encrypt($result->delivery_mode)}}">
+                                                                                <input type="hidden" name="course_id" value="{{encrypt($result->course_id)}}">
+                                                                                <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-0">DELETE</button>
+                                                                            </form>
+                                                                        </div>
                                                                     </td>
                                                                 </tr>
                                                             @endif
@@ -149,6 +169,10 @@
     </main><!-- End #main -->
 
     <script>
+
+        function confirmDelete() {
+            return confirm('Are you sure you want to delete?');
+        }
         document.getElementById('exportBtn').addEventListener('click', function() {
             var table = document.getElementById('myTable');
             var wb = XLSX.utils.table_to_book(table, {sheet: "Sheet JS"});

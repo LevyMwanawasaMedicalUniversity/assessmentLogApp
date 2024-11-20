@@ -1654,14 +1654,12 @@ class CoordinatorController extends Controller
     }
 
     public function exportBoardOfExaminersReportFinalExam($basicInformationId){
-
         $basicInformationId = Crypt::decrypt($basicInformationId);
         // return $basicInformationId;
         $getStudyId = EduroleStudy::where('ProgrammesAvailable', '=', $basicInformationId)->first();
         // return $getStudyId;
         $studyId = $getStudyId->ID;
         // return $coursesFromCourseElectives;
-
         
         // $naturalScienceCourses = $this->getNSAttachedCourses();
         if($studyId == 163 || $studyId == 165 || $studyId == 166 || $studyId == 167 || $studyId == 168 || $studyId == 169 || $studyId == 170 || $studyId == 171 || $studyId == 172 || $studyId == 173 || $studyId == 174){
@@ -1690,8 +1688,7 @@ class CoordinatorController extends Controller
                 ->orderBy('courses.Name')
                 ->orderBy('study.Delivery')            
                 ->get();
-        }
-        
+        }        
         
         return view('coordinator.reports.viewCoordinatorsExamReport', compact('results','studyId'));
     }

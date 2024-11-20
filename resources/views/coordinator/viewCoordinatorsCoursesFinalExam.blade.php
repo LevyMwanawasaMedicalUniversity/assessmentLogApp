@@ -34,16 +34,15 @@
                             <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-1 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-9">
                         </div>
 
-                        <div class="d-flex justify-content-between align-items-center mb-4">
+                        {{-- <div class="d-flex justify-content-between align-items-center mb-4">
                             <div class=""> 
                                 <form action="{{ route('coordinator.exportBoardOfExaminersReportFinalExam', ['basicInformationId' => encrypt($results->first()->basicInformationId)]) }}" method="GET">
                                     @csrf
-                                    {{-- <input type="hidden" name="componentId" value="{{ $results->first()->componentId }}"> --}}
                                     <button type="submit" class="btn btn-info font-weight-bold py-2 px-4 rounded-0">Final Exam Report</button>
                                 </form>
 
                             </div>
-                        </div>
+                        </div> --}}
 
                         <!-- Table with hoverable rows -->
                         <div style="overflow-x:auto;">
@@ -58,7 +57,7 @@
                                     {{-- @if(!$results[0]->StudyID == 165) --}}
                                         <th scope="col">Year Of Study</th>
                                     {{-- @endif --}}
-                                    <th scope="col">Number Of Uploads</th>
+                                    <th scope="col">Number Of CA Uploads</th>
                                     <th scope="col" class="text-right">Actions</th>
                                     </tr>
                                 </thead>
@@ -107,16 +106,32 @@
                                             </td>
                                             <td class="text-right">
                                                 <div class="btn-group float-end" role="group" aria-label="Button group">
-                                                {{-- @if(auth()->user()->hasPermissionTo('Coordinator')) --}}
+                                                    {{-- @if(auth()->user()->hasPermissionTo('Coordinator')) --}}
+                                                    @if(in_array($result->CourseName, ['CAG201', 'GRA201']) || strtoupper($result->Name) != 'BASIC SCIENCES')
+                                                    <form method="GET" action="{{ route('coordinator.viewTotalCaInCourseAndFinalExam', ['statusId' => encrypt($result->caType),'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery'=>encrypt($result->Delivery)]) }}">
+                                                        {{-- <input type="hidden" name="componentId" value="{{$componentId}}">
+                                                        <input type="hidden" name="hasComponents" value="{{ ($component_name) }}"> --}}
+                                                        <button type="submit" class="btn btn-info font-weight-bold py-2 px-4 rounded-0">
+                                                            {{ __("Results Report") }}
+                                                        </button>
+                                                    </form>
+                                                    @elseif(strtoupper($result->Name) == 'BASIC SCIENCES')
+                                                    <form action="{{route('coordinator.viewTotalCaInComponentCourseAndFinalExam',['statusId' => encrypt($result->caType),'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery'=>encrypt($result->Delivery)])}}" method="GET" class="d-inline">
+                                                        <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
+                                                        <input type="hidden" name="isSettings" value="0">
+                                                        <button type="submit" class="btn btn-info font-weight-bold py-2 px-4 rounded-0">
+                                                            {{ __("Results Report") }}
+                                                        </button>
+                                                    </form> 
+                                                    @endif
                                                     <form method="GET" action="{{ route('coordinator.uploadCaFinalExam', ['courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId)]) }}">
                                                         <input type="hidden" name="delivery" value="{{ $result->Delivery }}">
                                                         <input type="hidden" name="studyId" value="{{$result->StudyID}}">
-
                                                         <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
                                                             Upload Exam
                                                         </button>
                                                     </form>
-                                                {{-- @endif --}}
+                                                    {{-- @endif --}}
                                                     <form method="GET" action="{{ route('coordinator.viewExamCaInCourse', [ 'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery'=>encrypt($result->Delivery)]) }}">
                                                         <input type="hidden" name="delivery" value="{{ $result->Delivery }}">
                                                         <input type="hidden" name="studyId" value="{{$result->StudyID}}">
@@ -125,7 +140,6 @@
                                                         </button>
                                                     </form>                                                                                                          
                                                 </div>                                                 
-                                                
                                             </td>
                                         </tr>                            
                                     @endforeach

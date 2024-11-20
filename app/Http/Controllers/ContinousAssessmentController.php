@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CourseAssessment;
+use App\Models\CourseAssessmentScores;
 use App\Models\CourseComponentAllocation;
 use App\Models\CourseElectives;
 use App\Models\EduroleBasicInformation;
@@ -208,6 +209,33 @@ class ContinousAssessmentController extends Controller
         
         // return $results;
         return view('allStudents.continousAssessment.viewCourseComponents', compact('results','studentNumber','courseName','courseCode','studentDetails'));
+    }
+
+    public function deleteStudentCourseAssements(Request $request){
+        $studentNumber = Crypt::decrypt($request->student_id);
+        $academicYear= 2024;
+        $delivery = Crypt::decrypt($request->delivery_mode);
+        $courseId = Crypt::decrypt($request->course_id);
+        $studyId = Crypt::decrypt($request->study_id);
+
+        $getCourses = EduroleCourses::where('ID', $courseId)->first();
+        $courseCode = $getCourses->Name;
+
+        $studentCourseAssessments = StudentsContinousAssessment::where('student_id', $studentNumber)
+            ->where('course_id', $courseId)
+            ->where('study_id', $studyId)
+            ->where('delivery_mode', $delivery)
+            ->where('academic_year', $academicYear)
+            ->delete();
+        $continousAssessmentScores = CourseAssessmentScores::where('student_id', $studentNumber)
+            ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'course_assessment_scores.course_assessment_id')
+            ->where('course_assessment_scores.course_code', $courseCode)
+            ->where('course_assessment_scores.study_id', $studyId)
+            ->where('course_assessment_scores.delivery_mode', $delivery)
+            ->where('course_assessments.academic_year', $academicYear)
+            ->delete();
+
+        return redirect()->back()->with('success', 'Student CA Deleted Successfully');
     }
 
     public function viewInSpecificCaComponent(Request $request, $courseId,$caType)

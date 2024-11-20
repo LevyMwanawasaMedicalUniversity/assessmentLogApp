@@ -102,6 +102,8 @@ Route::middleware(['auth','force.password.change'])->group(function () {
         Route::get('/students/caResult/resultsViewCourses/', 'App\Http\Controllers\ContinousAssessmentController@studentsCAResults')->name('docket.studentsCAResults');
         Route::get('/students/caResult/viewCaComponents/{courseId}/', 'App\Http\Controllers\ContinousAssessmentController@viewCaComponents')->name('docket.viewCaComponents');
         Route::get('/students/caResult/viewCaComponentsWithComponent/{courseId}/', 'App\Http\Controllers\ContinousAssessmentController@viewCaComponentsWithComponent')->name('docket.viewCaComponentsWithComponent');
+        Route::post('/students/caResult/deleteStudentCourseAssements/{courseId}/', 'App\Http\Controllers\ContinousAssessmentController@deleteStudentCourseAssements')->name('docket.deleteStudentCourseAssements');
+        
         Route::get('/students/caResult/viewInSpecificCaComponent/{courseId}/{caType}', 'App\Http\Controllers\ContinousAssessmentController@viewInSpecificCaComponent')->name('docket.viewInSpecificCaComponent');
         Route::get('/students/caResult/searchForStudents/', 'App\Http\Controllers\ContinousAssessmentController@searchForStudents')->name('coordinator.searchForStudents');
 
