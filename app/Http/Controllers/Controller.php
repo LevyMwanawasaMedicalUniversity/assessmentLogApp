@@ -262,7 +262,9 @@ abstract class Controller
                 ->where('programmes.ProgramName', 'NOT LIKE', '%BAGC-FT-2019-Y1%')
                 ->where('programmes.ProgramName', 'NOT LIKE', '%BAGC-FT-2019-Y2%')
                 ->where('programmes.ProgramName', 'NOT LIKE', '%BAGC-FT-2019-Y3%')
-                ->where('programmes.ProgramName', 'NOT LIKE', '%BAGC-FT-2019-Y4%');
+                ->where('programmes.ProgramName', 'NOT LIKE', '%BAGC-FT-2019-Y4%')
+                ->where('programmes.ProgramName', 'NOT LIKE', '%DipMID-FT-2019-Y3%')
+                ->where('programmes.ProgramName', 'NOT LIKE', '%DIPMID-FT-2023-Y3%');
                 // ->where('courses.CourseDescription', 'NOT LIKE', '%Research%')                
                 // ->where('courses.CourseDescription', 'NOT LIKE', '%Attachment%')
                 // ->where('courses.CourseDescription', 'NOT LIKE', '%Clinical Practice%')
