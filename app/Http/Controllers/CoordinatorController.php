@@ -725,6 +725,41 @@ class CoordinatorController extends Controller
         return view('coordinator.viewSpecificCaInCourse', compact('caTypeFromAssessment','componentId','hasComponents','delivery','results', 'courseId','assessmentType','courseDetails','statusId'));
     }
 
+    public function cleanUpDuplicatesForCourse($courseId, $studyId, $deliveryMode, $componentId)
+    {
+        // Step 1: Find IDs to delete by keeping the one with the latest updated_at
+        $idsToDelete = DB::table('students_continous_assessments as sca1')
+            ->select('sca1.students_continous_assessment_id')
+            ->where('sca1.course_id', $courseId)
+            ->where('sca1.study_id', $studyId)
+            ->where('sca1.delivery_mode', $deliveryMode)
+            ->where('sca1.component_id', $componentId)
+            ->whereExists(function ($query) use ($courseId, $studyId, $deliveryMode, $componentId) {
+                $query->select(DB::raw(1))
+                    ->from('students_continous_assessments as sca2')
+                    ->whereRaw('sca1.student_id = sca2.student_id')
+                    ->whereRaw('sca1.course_id = sca2.course_id')
+                    ->whereRaw('sca1.academic_year = sca2.academic_year')
+                    ->whereRaw('sca1.ca_type = sca2.ca_type')
+                    ->whereRaw('sca1.delivery_mode = sca2.delivery_mode')
+                    ->whereRaw('sca1.study_id = sca2.study_id')
+                    ->whereRaw('sca1.component_id <=> sca2.component_id') // NULL-safe comparison
+                    ->whereRaw('sca1.updated_at < sca2.updated_at'); // Keep the one with the latest updated_at
+            })
+            ->pluck('sca1.students_continous_assessment_id') // Fetch duplicate IDs into an array
+            ->toArray();
+
+        // Step 2: Delete duplicates
+        if (!empty($idsToDelete)) {
+            DB::table('students_continous_assessments')
+                ->whereIn('students_continous_assessment_id', $idsToDelete)
+                ->delete();
+        }
+    }
+
+
+
+
     public function viewTotalCaInCourse(Request $request ,$statusId, $courseIdValue, $basicInformationId,$delivery){
         $courseId = Crypt::decrypt($courseIdValue);
         // $caType = Crypt::decrypt($statusId);
@@ -739,7 +774,9 @@ class CoordinatorController extends Controller
                 ->where('study.Delivery', $delivery)
                 ->first();
         // return $courseDetails;
-        // if($caType != 4){            
+        // if($caType != 4){   
+        $this->cleanUpDuplicatesForCourse($courseId, $coursesInEdurole->StudyID, $delivery,$componentId);
+        
         $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
             ->where('students_continous_assessments.delivery_mode', $delivery)
             ->where('students_continous_assessments.study_id', $coursesInEdurole->StudyID)
