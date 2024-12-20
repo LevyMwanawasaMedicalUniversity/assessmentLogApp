@@ -106,23 +106,7 @@
                                             <td class="text-right">
                                                 <div class="btn-group float-end" role="group" aria-label="Button group">
                                                     {{-- @if(auth()->user()->hasPermissionTo('Coordinator')) --}}
-                                                    @if(in_array($result->CourseName, ['CAG201', 'GRA201']) || strtoupper($result->Name) != 'BASIC SCIENCES')
-                                                    <form method="GET" action="{{ route('coordinator.viewTotalCaInCourseAndFinalExam', ['statusId' => encrypt($result->caType),'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery'=>encrypt($result->Delivery)]) }}">
-                                                        {{-- <input type="hidden" name="componentId" value="{{$componentId}}">
-                                                        <input type="hidden" name="hasComponents" value="{{ ($component_name) }}"> --}}
-                                                        <button type="submit" class="btn btn-info font-weight-bold py-2 px-4 rounded-0">
-                                                            {{ __("Results Report") }}
-                                                        </button>
-                                                    </form>
-                                                    @elseif(strtoupper($result->Name) == 'BASIC SCIENCES')
-                                                    <form action="{{route('coordinator.viewTotalCaInComponentCourseAndFinalExam',['statusId' => encrypt($result->caType),'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery'=>encrypt($result->Delivery)])}}" method="GET" class="d-inline">
-                                                        <input type="hidden" name="studyId" value="{{ $result->StudyID }}">
-                                                        <input type="hidden" name="isSettings" value="0">
-                                                        <button type="submit" class="btn btn-info font-weight-bold py-2 px-4 rounded-0">
-                                                            {{ __("Results Report") }}
-                                                        </button>
-                                                    </form> 
-                                                    @endif
+                                                    
                                                     <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#uploadCourseModal{{ $result->ID }}{{ $result->Delivery }}{{$result->StudyID}}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
                                                         Upload Exam & Ca
                                                     </button>
