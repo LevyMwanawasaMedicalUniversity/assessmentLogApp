@@ -127,7 +127,7 @@
                                                         Upload Exam & Ca
                                                     </button>
                                                     {{-- @endif --}}
-                                                    <form method="GET" action="{{ route('coordinator.viewExamCaInCourse', [ 'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery'=>encrypt($result->Delivery)]) }}">
+                                                    <form method="GET" action="{{ route('coordinator.viewExamCaInCourseFinalExamAndCa', [ 'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId),'delivery'=>encrypt($result->Delivery)]) }}">
                                                         <input type="hidden" name="delivery" value="{{ $result->Delivery }}">
                                                         <input type="hidden" name="studyId" value="{{$result->StudyID}}">
                                                         <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">

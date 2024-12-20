@@ -136,6 +136,7 @@ Route::middleware(['auth','force.password.change'])->group(function () {
         
         Route::get('/coordinator/viewCa/{statusId}/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'viewAllCaInCourse'])->name('coordinator.viewAllCaInCourse');
         Route::get('/coordinator/viewExamCaInCourse/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'viewAllExamInCourse'])->name('coordinator.viewExamCaInCourse');
+        Route::get('/coordinator/viewExamCaInCourseFinalExamAndCa/{courseIdValue}/{basicInformationId}/{delivery}',[CoordinatorController::class, 'viewExamCaInCourseFinalExamAndCa'])->name('coordinator.viewExamCaInCourseFinalExamAndCa');
 
     });
     

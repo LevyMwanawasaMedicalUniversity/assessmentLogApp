@@ -18,6 +18,7 @@ class CaAndExamUpload extends Model
         'type_of_exam',
         'status',
         'course_id',
+        'basic_information_id',
         'academic_year',
         'ca',
         'exam',

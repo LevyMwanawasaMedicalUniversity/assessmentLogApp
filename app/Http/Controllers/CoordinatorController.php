@@ -661,6 +661,52 @@ class CoordinatorController extends Controller
         return view('coordinator.viewAllCaInCourse', compact('studyId','componentId','hasComponents','delivery','results', 'statusId', 'courseId','courseDetails','assessmentType','basicInformationId'));
     }
 
+    
+
+    public function viewExamCaInCourseFinalExamAndCa(Request $request, $courseIdValue, $basicInformationId, $delivery){
+        $courseId = Crypt::decrypt($courseIdValue);
+        $basicInformationId = Crypt::decrypt($basicInformationId);
+        $delivery = Crypt::decrypt($delivery);
+        $academicYear = 2024;
+        
+        $studyId = $request->studyId;       
+
+        // return $hasComponents;
+        $courseDetails = EduroleCourses::where('ID', $courseId)->first();
+
+        // return 'Course ID: ' . $courseId . ' Basic Information ID: ' . $basicInformationId . ' Delivery: ' . $delivery . ' Study ID: ' . $studyId;
+
+        $results = CaAndExamUpload::where('ca_and_exam_uploads.course_id', $courseId)
+            ->where('ca_and_exam_uploads.delivery_mode', $delivery)
+            ->where('ca_and_exam_uploads.study_id', $studyId)
+            ->where('ca_and_exam_uploads.academic_year', $academicYear)
+            ->select('ca_and_exam_uploads.student_id', 'ca_and_exam_uploads.exam as FinalExam', 'ca_and_exam_uploads.type_of_exam', 'ca_and_exam_uploads.ca as Ca', 'ca_and_exam_uploads.course_code', 'ca_and_exam_uploads.academic_year', 'ca_and_exam_uploads.course_id','ca_and_exam_uploads.delivery_mode','ca_and_exam_uploads.study_id','ca_and_exam_uploads.basic_information_id','ca_and_exam_uploads.updated_at','ca_and_exam_uploads.created_at','ca_and_exam_uploads.ca_and_exam_uploads_id')
+            
+            ->get();
+
+    // return $results;
+
+        $resultsArrayStudentNumbers = $results->pluck('student_id')->toArray();
+
+        $resultsFromBasicInformation= EduroleBasicInformation::join('student-study-link', 'student-study-link.StudentID', '=', 'basic-information.ID')
+            ->join('study', 'study.ID', '=', 'student-study-link.StudyID')            
+            ->join('schools', 'schools.ID', '=', 'study.ParentID')
+            ->select('basic-information.ID', 'basic-information.FirstName','basic-information.StudyType', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.Name as Programme', 'schools.Name as School')
+            ->whereIn('basic-information.ID', $resultsArrayStudentNumbers)
+            ->get();
+
+            $results = $results->map(function ($result) use ($resultsFromBasicInformation) {
+                $result->basic_information = $resultsFromBasicInformation->firstWhere('ID', $result->student_id);
+                return $result;
+            });
+    
+        // return $results; 
+        if($results->isEmpty()){
+            return redirect()->back()->with('error', 'No results found for the selected course');
+        }
+
+        return view('coordinator.viewAllExamInCourseFinalExamAndCa', compact('studyId','delivery','results', 'courseId','courseDetails','basicInformationId'));
+    }
     public function viewAllExamInCourse(Request $request, $courseIdValue, $basicInformationId, $delivery){
         $courseId = Crypt::decrypt($courseIdValue);
         $basicInformationId = Crypt::decrypt($basicInformationId);
@@ -1588,6 +1634,7 @@ class CoordinatorController extends Controller
                         ];
 
                         $values = [
+                            'basic_information_id' => $request->basicInformationId,
                             'status' => 1,
                             'type_of_exam' => $typeOfExam,
                             'ca' => $typeOfExam == 1 ? $entry['ca'] : null,

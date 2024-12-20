@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('type_of_exam');
             $table->integer('status')->default(1);
             $table->integer('course_id');
+            $table->integer('basic_information_id');
             $table->string('academic_year');
             $table->decimal('ca',8,2)->nullable();
             $table->decimal('exam', 8,2);
