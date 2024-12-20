@@ -68,6 +68,35 @@ class PagesController extends Controller
         return view('coordinator.viewCoordinatorsCoursesFinalExam', compact('results','studyId'));
     }    
 
+    public function uploadFinalExamAndCa(Request $request)
+    {
+        $user = auth()->user();
+        try {
+            $role = $user->roles->first()->name;
+        } catch (\Exception $e) {
+            return redirect()->route('dashboard');
+        }
+        if($request->basicInformationId){
+            $userBasicInformation = decrypt($request->basicInformationId);
+        }else{
+            $userBasicInformation = $user->basic_information_id;
+        }
+
+        $results = $this->getCoursesFromEdurole()
+            ->where('basic-information.ID', $userBasicInformation)
+            ->orderBy('programmes.Year')
+            ->orderBy('courses.Name')
+            ->orderBy('study.Delivery')            
+            ->get();
+        try{
+            $studyId = $results->first()->StudyID;
+        }catch(\Exception $e){
+            return redirect()->back()->with('error', 'No courses found');
+        }
+        
+        return view('coordinator.viewCoordinatorsCoursesFinalExamAndCa', compact('results','studyId'));
+    }
+
     public function uploadCourseWithComponents($courseId,$basicInformationId,$delivery,$studyId)
     {
         $user = auth()->user();

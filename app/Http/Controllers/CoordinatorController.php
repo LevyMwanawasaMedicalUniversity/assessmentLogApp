@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AssessmentTypes;
+use App\Models\CaAndExamUpload;
 use App\Models\CATypeMarksAllocation;
 use App\Models\CourseAssessment;
 use App\Models\CourseAssessmentScores;
@@ -59,9 +60,47 @@ class CoordinatorController extends Controller
 
     }
 
+    public function uploadCaAndFinalExamAtOnce(Request $request, $courseIdValue,$basicInformationId){
+        $delivery = $request->delivery; 
+        $courseId = Crypt::decrypt($courseIdValue);
+        $typeOfExam = $request->typeOfExam;
+
+        // $caType = Crypt::decrypt($caType);
+        // return  $basicInformationId;
+        $basicInformationId = Crypt::decrypt($basicInformationId);
+        // return  $basicInformationId;
+        $hasComponents = $request->hasComponents;
+        
+        $componentId = $request->input('componentId');
+        
+        $studyId = $request->studyId;
+        // $getAssessmentType = AssessmentTypes::where('id', $caType)->first();
+        // $assessmentType = $getAssessmentType->assesment_type_name;
+        // return $assessmentType;
+        // return $studyId;
+        // return $courseId . '  ' . $basicInformationId . '  ' . $delivery . '  ' . $caType;
+
+        // return $courseId;
+
+        $results = $this->getCoursesFromEdurole()            
+            ->where('courses.ID', $courseId)
+            ->where('study.Delivery', $delivery)
+            ->where('study.ProgrammesAvailable', $basicInformationId)
+            ->first();
+        // return $results;
+        
+            return view('coordinator.uploadCaAndFinalExamAtOnce', compact('studyId','results',  'courseId', 'basicInformationId','typeOfExam' ,'delivery','hasComponents','componentId'))
+                ->with('info', 'Kindly note that you are uploading under ' . $delivery . ' education');
+
+    }
+
+
+
     public function uploadCaFinalExam(Request $request, $courseIdValue,$basicInformationId){
         $delivery = $request->delivery; 
         $courseId = Crypt::decrypt($courseIdValue);
+        $typeOfExam = $request->typeOfExam;
+
         // $caType = Crypt::decrypt($caType);
         // return  $basicInformationId;
         $basicInformationId = Crypt::decrypt($basicInformationId);
@@ -1462,6 +1501,113 @@ class CoordinatorController extends Controller
             // return redirect()->route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusIdToRoute, 'courseIdValue' => $courseIdToRoute, 'assessmentNumber' => $assessmentNumber])->with('success', 'Data imported successfully');
         } catch (\Exception $e) {
             return back()->with('error', 'An error occurred during the upload process. Please try again. Error: ' . $e->getMessage());
+        }
+    }
+
+    public function importFinalExamAndCaFromExcelSheet(Request $request)
+    {
+        set_time_limit(0);
+        ini_set('memory_limit', '512M');
+        
+        $request->validate([
+            'excelFile' => 'required|mimes:xls,xlsx,csv',
+            'academicYear' => 'required',
+            'course_id' => 'required',
+            'course_code' => 'required',
+            'basicInformationId' => 'required',
+            'delivery' => 'required',
+            'study_id' => 'required',
+            'typeOfExam' => 'required',
+        ]);
+
+        $typeOfExam = $request->typeOfExam;
+        $expectedColumnCount = $typeOfExam == 1 ? 3 : 2;
+
+        try {
+            if ($request->hasFile('excelFile')) {
+                $file = $request->file('excelFile');
+                $filePath = $file->getPathname();
+
+                if (!is_readable($filePath)) {
+                    return back()->with('error', 'The uploaded file could not be read. Please try again.');
+                }
+
+                $reader = ReaderEntityFactory::createXLSXReader();
+                $reader->open($filePath);
+
+                $sheetCount = iterator_count($reader->getSheetIterator());
+                if ($sheetCount > 1) {
+                    $reader->close();
+                    return back()->with('error', 'The uploaded Excel workbook must contain exactly one sheet.');
+                }
+
+                $reader->close();
+                $reader->open($filePath);
+
+                $data = [];
+                foreach ($reader->getSheetIterator() as $sheet) {
+                    foreach ($sheet->getRowIterator() as $row) {  // Removed rowIndex check
+                        try {
+                            $studentNumber = trim($row->getCellAtIndex(0)->getValue());
+                            
+                            if ($typeOfExam == 1) {
+                                $caScore = trim($row->getCellAtIndex(1)->getValue());
+                                $examScore = trim($row->getCellAtIndex(2)->getValue());
+                                
+                                $data[] = [
+                                    'student_id' => $studentNumber,
+                                    'ca' => (float)$caScore,
+                                    'exam' => (float)$examScore
+                                ];
+                            } else {
+                                $examScore = trim($row->getCellAtIndex(1)->getValue());
+                                
+                                $data[] = [
+                                    'student_id' => $studentNumber,
+                                    'exam' => (float)$examScore
+                                ];
+                            }
+                        } catch (\Exception $e) {
+                            $reader->close();
+                            return back()->with('error', 'Error in row: ' . $e->getMessage());
+                        }
+                    }
+                }
+                $reader->close();
+
+                DB::beginTransaction();
+                try {
+                    foreach ($data as $entry) {
+                        $conditions = [
+                            'student_id' => $entry['student_id'],
+                            'course_code' => $request->course_code,
+                            'delivery_mode' => $request->delivery,
+                            'study_id' => $request->study_id,
+                            'course_id' => $request->course_id,
+                            'academic_year' => $request->academicYear,
+                        ];
+
+                        $values = [
+                            'status' => 1,
+                            'type_of_exam' => $typeOfExam,
+                            'ca' => $typeOfExam == 1 ? $entry['ca'] : null,
+                            'exam' => $entry['exam']
+                        ];
+
+                        CaAndExamUpload::updateOrCreate($conditions, $values);
+                    }
+                    
+                    DB::commit();
+                    return redirect()->back()->with('success', 'Data imported successfully');
+                    
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    return back()->with('error', 'An error occurred while importing the data: ' . $e->getMessage());
+                }
+            }
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred during the upload process: ' . $e->getMessage());
         }
     }
 
