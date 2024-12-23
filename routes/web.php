@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdministratorController;
 use App\Http\Controllers\CaAssementTypesController;
+use App\Http\Controllers\ContinousAssessmentController;
 use App\Http\Controllers\CoordinatorController;
 use App\Http\Controllers\CourseComponentsController;
 use App\Http\Controllers\PagesController;
@@ -103,8 +104,8 @@ Route::middleware(['auth','force.password.change'])->group(function () {
 
         
         ///////////////////////////////////////////////////
-        Route::get('/students/caResult/resultsViewCourses/', 'App\Http\Controllers\ContinousAssessmentController@studentsCAResults')->name('docket.studentsCAResults');
-        Route::get('/students/caResult/viewCaComponents/{courseId}/', 'App\Http\Controllers\ContinousAssessmentController@viewCaComponents')->name('docket.viewCaComponents');
+        Route::get('/students/caResult/resultsViewCourses/',[ContinousAssessmentController::class, 'studentsCAResults'] )->name('docket.studentsCAResults');
+        Route::get('/students/caResult/viewCaComponents/{courseId}/', [ContinousAssessmentController::class, 'viewCaComponents'])->name('docket.viewCaComponents');
         Route::get('/students/caResult/viewCaComponentsWithComponent/{courseId}/', 'App\Http\Controllers\ContinousAssessmentController@viewCaComponentsWithComponent')->name('docket.viewCaComponentsWithComponent');
         Route::post('/students/caResult/deleteStudentCourseAssements/{courseId}/', 'App\Http\Controllers\ContinousAssessmentController@deleteStudentCourseAssements')->name('docket.deleteStudentCourseAssements');
         

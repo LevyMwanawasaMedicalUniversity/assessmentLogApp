@@ -141,7 +141,7 @@
                                                 </form>
                                             </td>
                                             <td>
-                                                <div class="d-flex">
+                                                <div class="btn-group float-end" role="group" aria-label="Button group">
                                                     {{-- @if (auth()->user()->hasPermissionTo('Administrator'))
                                                     <form method="GET" action="{{ route('pages.uploadFinalExam') }}">
                                                         <input type="hidden" name="basicInformationId" value="{{ encrypt($result->basicInformationId) }}">
@@ -153,8 +153,8 @@
                                                     @if (auth()->user()->hasPermissionTo('Administrator'))
                                                     <form method="GET" action="{{ route('pages.uploadFinalExamAndCa') }}">
                                                         <input type="hidden" name="basicInformationId" value="{{ encrypt($result->basicInformationId) }}">
-                                                        <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0 me-2">
-                                                            Final Exam And Ca
+                                                        <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
+                                                            Final Exam
                                                         </button>
                                                     </form>
                                                     @endif
