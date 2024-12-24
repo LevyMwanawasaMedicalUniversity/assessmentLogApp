@@ -12,6 +12,7 @@ class CaAndExamUpload extends Model
 
     protected $fillable = [
         'student_id',
+        'grade',
         'course_code',
         'delivery_mode',
         'study_id',

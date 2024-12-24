@@ -680,7 +680,7 @@ class CoordinatorController extends Controller
             ->where('ca_and_exam_uploads.delivery_mode', $delivery)
             ->where('ca_and_exam_uploads.study_id', $studyId)
             ->where('ca_and_exam_uploads.academic_year', $academicYear)
-            ->select('ca_and_exam_uploads.student_id', 'ca_and_exam_uploads.exam as FinalExam', 'ca_and_exam_uploads.type_of_exam', 'ca_and_exam_uploads.ca as Ca', 'ca_and_exam_uploads.course_code', 'ca_and_exam_uploads.academic_year', 'ca_and_exam_uploads.course_id','ca_and_exam_uploads.delivery_mode','ca_and_exam_uploads.study_id','ca_and_exam_uploads.basic_information_id','ca_and_exam_uploads.updated_at','ca_and_exam_uploads.created_at','ca_and_exam_uploads.ca_and_exam_uploads_id')
+            ->select('ca_and_exam_uploads.student_id', 'ca_and_exam_uploads.exam as FinalExam', 'ca_and_exam_uploads.type_of_exam', 'ca_and_exam_uploads.ca as Ca','ca_and_exam_uploads.grade', 'ca_and_exam_uploads.course_code', 'ca_and_exam_uploads.academic_year', 'ca_and_exam_uploads.course_id','ca_and_exam_uploads.delivery_mode','ca_and_exam_uploads.study_id','ca_and_exam_uploads.basic_information_id','ca_and_exam_uploads.updated_at','ca_and_exam_uploads.created_at','ca_and_exam_uploads.ca_and_exam_uploads_id')
             
             ->get();
 
@@ -1554,9 +1554,9 @@ class CoordinatorController extends Controller
     {
         set_time_limit(0);
         ini_set('memory_limit', '512M');
-        
+    
         try {
-            // Validation with custom messages
+            // Validation
             $request->validate([
                 'excelFile' => 'required|mimes:xls,xlsx,csv',
                 'academicYear' => 'required',
@@ -1566,114 +1566,84 @@ class CoordinatorController extends Controller
                 'delivery' => 'required',
                 'study_id' => 'required',
                 'typeOfExam' => 'required|in:1,2',
-            ], [
-                'excelFile.required' => 'Please select an Excel file to upload.',
-                'excelFile.mimes' => 'The file must be an Excel file (xls, xlsx) or CSV.',
-                'typeOfExam.in' => 'Invalid exam type specified.',
             ]);
-
+    
             $typeOfExam = $request->typeOfExam;
-            $expectedColumnCount = $typeOfExam == 1 ? 3 : 2;
-
             if (!$request->hasFile('excelFile')) {
                 return back()->with('error', 'No file was uploaded. Please try again.');
             }
-
+    
             $file = $request->file('excelFile');
             $filePath = $file->getPathname();
-
-            if (!is_readable($filePath)) {
-                return back()->with('error', 'The uploaded file could not be read. Please check file permissions.');
-            }
-
-            try {
-                $reader = ReaderEntityFactory::createXLSXReader();
-                $reader->open($filePath);
-            } catch (\Exception $e) {
-                return back()->with('error', 'Failed to open Excel file. Please ensure the file is not corrupted.');
-            }
-
-            // Validate sheet count
-            $sheetCount = iterator_count($reader->getSheetIterator());
-            if ($sheetCount > 1) {
-                $reader->close();
-                return back()->with('error', 'The Excel file must contain exactly one sheet. Multiple sheets detected.');
-            }
-
-            $reader->close();
+    
+            $reader = ReaderEntityFactory::createXLSXReader();
             $reader->open($filePath);
-
+    
             $data = [];
             $rowNumber = 0;
             $errors = [];
-
+    
             foreach ($reader->getSheetIterator() as $sheet) {
                 foreach ($sheet->getRowIterator() as $row) {
                     $rowNumber++;
-                    
                     try {
-                        // Validate student number
                         $studentNumber = trim($row->getCellAtIndex(0)->getValue());
                         if (empty($studentNumber)) {
                             $errors[] = "Row {$rowNumber}: Student number cannot be empty.";
                             continue;
                         }
+    
+                        $caScore = $typeOfExam == 1 ? ($row->getCellAtIndex(1) ? trim($row->getCellAtIndex(1)->getValue()) : null) : null;
+                        $examScore = $row->getCellAtIndex($typeOfExam == 1 ? 2 : 1) ? trim($row->getCellAtIndex($typeOfExam == 1 ? 2 : 1)->getValue()) : null;
+                        $gradeFromExcel = $row->getCellAtIndex($typeOfExam == 1 ? 3 : 2) ? trim($row->getCellAtIndex($typeOfExam == 1 ? 3 : 2)->getValue()) : null;
 
-                        if ($typeOfExam == 1) {
-                            // Validate CA score
-                            $caScore = trim($row->getCellAtIndex(1)->getValue());
-                            if (!is_numeric($caScore) || $caScore < 0 || $caScore > 100) {
-                                $errors[] = "Row {$rowNumber}: Invalid CA score for student {$studentNumber}. Score must be between 0 and 100.";
-                                continue;
-                            }
-
-                            // Validate exam score
-                            $examScore = trim($row->getCellAtIndex(2)->getValue());
-                            if (!is_numeric($examScore) || $examScore < 0 || $examScore > 100) {
-                                $errors[] = "Row {$rowNumber}: Invalid exam score for student {$studentNumber}. Score must be between 0 and 100.";
-                                continue;
-                            }
-
-                            $data[] = [
-                                'student_id' => $studentNumber,
-                                'ca' => (float)$caScore,
-                                'exam' => (float)$examScore
-                            ];
-                        } else {
-                            // Validate exam score for type 2
-                            $examScore = trim($row->getCellAtIndex(1)->getValue());
-                            if (!is_numeric($examScore) || $examScore < 0 || $examScore > 100) {
-                                $errors[] = "Row {$rowNumber}: Invalid exam score for student {$studentNumber}. Score must be between 0 and 100.";
-                                continue;
-                            }
-
-                            $data[] = [
-                                'student_id' => $studentNumber,
-                                'exam' => (float)$examScore
-                            ];
+    
+                        $totalMark = $typeOfExam == 1 ? ($caScore + $examScore) : $examScore;
+                        $grade = null;
+    
+                        // Determine grade based on available data
+                        if (is_numeric($totalMark) && $totalMark >= 0) {
+                            if ($totalMark >= 90) $grade = 'A+';
+                            elseif ($totalMark >= 80) $grade = 'A';
+                            elseif ($totalMark >= 70) $grade = 'B+';
+                            elseif ($totalMark >= 60) $grade = 'B';
+                            elseif ($totalMark >= 55) $grade = 'C+';
+                            elseif ($totalMark >= 50) $grade = 'C';
+                            elseif ($totalMark >= 45) $grade = 'D+';
+                            elseif ($totalMark >= 40) $grade = 'D';
+                            else $grade = 'F';
+                        } elseif (!empty($gradeFromExcel)) {
+                            $grade = $gradeFromExcel; // Use pre-assigned grade if provided
+                        } elseif (empty($examScore) || !is_numeric($examScore)) {
+                            $grade = 'NE'; // No Exam score                        
                         }
+    
+                        $data[] = [
+                            'student_id' => $studentNumber,
+                            'ca' => $typeOfExam == 1 ? (is_numeric($caScore) ? (float)$caScore : null) : null,
+                            'exam' => is_numeric($examScore) ? (float)$examScore : null,
+                            'grade' => $grade,
+                        ];
                     } catch (\Exception $e) {
                         $errors[] = "Row {$rowNumber}: Error processing row - {$e->getMessage()}";
                     }
                 }
             }
             $reader->close();
-
-            // If there are any errors, return them all
+    
             if (!empty($errors)) {
                 return back()->with('error', 'Errors found in upload:<br>' . implode('<br>', $errors));
             }
-
-            // If no data was processed
+    
             if (empty($data)) {
                 return back()->with('error', 'No valid data found in the uploaded file.');
             }
-
+    
             DB::beginTransaction();
             try {
                 $successCount = 0;
                 $updateCount = 0;
-
+    
                 foreach ($data as $entry) {
                     $conditions = [
                         'student_id' => $entry['student_id'],
@@ -1683,15 +1653,16 @@ class CoordinatorController extends Controller
                         'course_id' => $request->course_id,
                         'academic_year' => $request->academicYear,
                     ];
-
+    
                     $values = [
                         'basic_information_id' => $request->basicInformationId,
                         'status' => 1,
                         'type_of_exam' => $typeOfExam,
-                        'ca' => $typeOfExam == 1 ? $entry['ca'] : null,
-                        'exam' => $entry['exam']
+                        'ca' => $entry['ca'],
+                        'exam' => $entry['exam'],
+                        'grade' => $entry['grade'],
                     ];
-
+    
                     $result = CaAndExamUpload::updateOrCreate($conditions, $values);
                     if ($result->wasRecentlyCreated) {
                         $successCount++;
@@ -1699,23 +1670,22 @@ class CoordinatorController extends Controller
                         $updateCount++;
                     }
                 }
-                
+    
                 DB::commit();
                 $message = "Data imported successfully. ";
                 $message .= $successCount > 0 ? "{$successCount} new records created. " : "";
                 $message .= $updateCount > 0 ? "{$updateCount} records updated." : "";
-                
+    
                 return redirect()->back()->with('success', $message);
-                
             } catch (\Exception $e) {
                 DB::rollBack();
                 return back()->with('error', 'Database error: ' . $e->getMessage());
             }
-
         } catch (\Exception $e) {
             return back()->with('error', 'System error: ' . $e->getMessage());
         }
     }
+    
 
     public function importStudentCA(Request $request)
     {

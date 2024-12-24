@@ -341,8 +341,7 @@ class AdministratorController extends Controller
         return back()->with('success', 'Updated successfully click "View CA"');
     }
 
-    public function viewCoordinators()
-    {
+    public function viewCoordinators(){
         return $this->generateCoordinatorsView();
     }
 

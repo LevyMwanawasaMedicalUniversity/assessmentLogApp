@@ -123,7 +123,7 @@
                                                                     default => 'black'
                                                                 };
                                                             @endphp
-                                                            <span style="color: {{ $gradeColor }}; font-weight: bold;">{{ $grade }}</span>
+                                                            <span style="color: {{ $gradeColor }}; font-weight: bold;">{{ $result->grade }}</span>
                                                         </td>
                                                         <td class="px-4 py-2 text-right">                                                
                                                                 <div class="btn-group float-end" role="group" aria-label="Button group">
