@@ -1602,7 +1602,9 @@ class CoordinatorController extends Controller
                         $grade = null;
     
                         // Determine grade based on available data
-                        if (is_numeric($totalMark) && $totalMark >= 0) {
+                        if (!empty($gradeFromExcel)) {
+                            $grade = $gradeFromExcel; // Use pre-assigned grade if provided
+                        }elseif (is_numeric($totalMark) && $totalMark >= 0) {
                             if ($totalMark >= 90) $grade = 'A+';
                             elseif ($totalMark >= 80) $grade = 'A';
                             elseif ($totalMark >= 70) $grade = 'B+';
@@ -1612,8 +1614,6 @@ class CoordinatorController extends Controller
                             elseif ($totalMark >= 45) $grade = 'D+';
                             elseif ($totalMark >= 40) $grade = 'D';
                             else $grade = 'F';
-                        } elseif (!empty($gradeFromExcel)) {
-                            $grade = $gradeFromExcel; // Use pre-assigned grade if provided
                         } elseif (empty($examScore) || !is_numeric($examScore)) {
                             $grade = 'NE'; // No Exam score                        
                         }
