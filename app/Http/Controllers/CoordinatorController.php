@@ -1604,7 +1604,7 @@ class CoordinatorController extends Controller
                         // Determine grade based on available data
                         if (!empty($gradeFromExcel)) {
                             $grade = $gradeFromExcel; // Use pre-assigned grade if provided
-                        }elseif (is_numeric($totalMark) && $totalMark >= 0) {
+                        } elseif (is_numeric($totalMark) && $totalMark >= 0) {
                             if ($totalMark >= 90) $grade = 'A+';
                             elseif ($totalMark >= 80) $grade = 'A';
                             elseif ($totalMark >= 70) $grade = 'B+';
