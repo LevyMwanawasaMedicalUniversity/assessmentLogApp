@@ -101,14 +101,14 @@
                                                                                 <input type="hidden" name="course_id" value="{{encrypt($result->course_id)}}">
                                                                                 <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">VIEW</button>
                                                                             </form>
-                                                                            <form action="{{ route('docket.deleteStudentCourseAssements', encrypt($result->course_id)) }}" method="POST" onsubmit="return confirmDelete()">
+                                                                            {{-- <form action="{{ route('docket.deleteStudentCourseAssements', encrypt($result->course_id)) }}" method="POST" onsubmit="return confirmDelete()">
                                                                                 @csrf
                                                                                 <input type="hidden" name="study_id" value="{{encrypt($result->study_id)}}">
                                                                                 <input type="hidden" name="student_id" value="{{encrypt($studentNumber)}}">
                                                                                 <input type="hidden" name="delivery_mode" value="{{encrypt($result->delivery_mode)}}">
                                                                                 <input type="hidden" name="course_id" value="{{encrypt($result->course_id)}}">
                                                                                 <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-0">DELETE</button>
-                                                                            </form>
+                                                                            </form> --}}
                                                                         </div>
                                                                     </td>
                                                                 </tr>
