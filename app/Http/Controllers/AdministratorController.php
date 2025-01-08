@@ -9,18 +9,23 @@ use App\Models\CourseComponentAllocation;
 use App\Models\EduroleBasicInformation;
 use App\Models\EduroleCourseElective;
 use App\Models\EduroleCourses;
+use App\Models\EduroleGradesPublished;
 use App\Models\EduroleStudy;
 use App\Models\StudentsContinousAssessment;
 use App\Models\User;
+use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
+use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Str;
 use OwenIt\Auditing\Models\Audit;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdministratorController extends Controller
 {
@@ -28,6 +33,137 @@ class AdministratorController extends Controller
     public function index()
     {
         return view('admin.index');
+    }
+
+    
+    public function importGradesForReview(Request $request)
+    {
+        set_time_limit(1000000);
+        ini_set('memory_limit', '512M');
+        
+        $request->validate([
+            'excelFile' => 'required|mimes:xls,xlsx,csv',
+            'academicYear' => 'required',
+        ]);
+
+        try {
+            if ($request->hasFile('excelFile')) {
+                $file = $request->file('excelFile');
+                $filePath = $file->getPathname();
+
+                if (!is_readable($filePath)) {
+                    return back()->with('error', 'The uploaded file could not be read.');
+                }
+
+                $reader = ReaderEntityFactory::createXLSXReader();
+                $reader->open($filePath);
+
+                // Check sheet count
+                $sheetCount = iterator_count($reader->getSheetIterator());
+                if ($sheetCount > 1) {
+                    $reader->close();
+                    return back()->with('error', 'The workbook must contain exactly one sheet.');
+                }
+
+                $reader->close();
+                $reader->open($filePath);
+
+                $mismatches = [];
+                foreach ($reader->getSheetIterator() as $sheet) {
+                    foreach ($sheet->getRowIterator() as $rowIndex => $row) {
+                        try {
+                            if ($rowIndex === 1) continue;
+
+                            $studentNumber = trim($row->getCellAtIndex(0)->getValue());
+                            $academicYear = $request->academicYear;
+                            $courseCode = trim($row->getCellAtIndex(2)->getValue());
+                            $caMark = (float)trim($row->getCellAtIndex(3)->getValue());
+                            $examMark = (float)trim($row->getCellAtIndex(4)->getValue());
+
+                            $publishedGrade = EduroleGradesPublished::where([
+                                'StudentNo' => $studentNumber,
+                                'AcademicYear' => $academicYear,
+                                'CourseNo' => $courseCode
+                            ])->first();
+
+                            if ($publishedGrade) {
+                                if ($publishedGrade->CAMarks != $caMark || 
+                                    $publishedGrade->ExamMarks != $examMark) {
+                                    
+                                    $mismatches[] = [
+                                        $studentNumber,
+                                        $academicYear,
+                                        $courseCode,
+                                        $caMark,
+                                        $publishedGrade->CAMarks,
+                                        $examMark,
+                                        $publishedGrade->ExamMarks
+                                    ];
+                                }
+                            }
+
+                        } catch (\Exception $e) {
+                            $reader->close();
+                            return back()->with('error', 'Error in row ' . $rowIndex . ': ' . $e->getMessage());
+                        }
+                    }
+                }
+                $reader->close();
+
+                if (!empty($mismatches)) {
+                    // Create temporary file
+                    $tempFile = tempnam(sys_get_temp_dir(), 'grade_mismatches');
+                    $writer = WriterEntityFactory::createXLSXWriter();
+                    $writer->openToFile($tempFile);
+
+                    // Add headers
+                    $headers = [
+                        'Student Number',
+                        'Academic Year',
+                        'Course Code',
+                        'Uploaded CA Mark',
+                        'Published CA Mark',
+                        'Uploaded Exam Mark',
+                        'Published Exam Mark'
+                    ];
+                    $headerRow = WriterEntityFactory::createRowFromArray($headers);
+                    $writer->addRow($headerRow);
+
+                    // Add data rows
+                    foreach ($mismatches as $mismatch) {
+                        $rowFromValues = WriterEntityFactory::createRowFromArray($mismatch);
+                        $writer->addRow($rowFromValues);
+                    }
+
+                    $writer->close();
+
+                    // Read the file content
+                    $content = file_get_contents($tempFile);
+                    
+                    // Delete temporary file
+                    unlink($tempFile);
+
+                    // Prepare response
+                    $fileName = 'grade_mismatches_' . date('Y-m-d_His') . '.xlsx';
+                    
+                    return response($content)
+                        ->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                        ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"')
+                        ->header('Content-Length', strlen($content));
+                }
+
+                return back()->with('success', 'Review completed. No mismatches found.');
+            }
+
+        } catch (\Exception $e) {
+            if (isset($reader)) {
+                $reader->close();
+            }
+            if (isset($writer)) {
+                $writer->close();
+            }
+            return back()->with('error', 'An error occurred: ' . $e->getMessage());
+        }
     }
 
     public function refreshCAs(Request $request)

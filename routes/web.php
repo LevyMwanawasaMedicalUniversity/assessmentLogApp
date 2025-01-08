@@ -47,6 +47,8 @@ Route::middleware(['auth','force.password.change'])->group(function () {
 
     
     Route::middleware('can:Administrator')->group(function () {
+        Route::get('/resultsReviewerr', [UserController::class, 'resultsReviewer'])->name('administrator.resultsReviewer');
+        Route::POST('/coordinator/importGradesForReview',[AdministratorController::class, 'importGradesForReview'])->name('admin.importGradesForReview');
         Route::resource('users', UserController::class);
         Route::resource('roles', RolesController::class);
         Route::resource('permissions', PermissionsController::class);
@@ -85,6 +87,7 @@ Route::middleware(['auth','force.password.change'])->group(function () {
                     
         Route::POST('/coordinator/importCAFromExcelSheet',[CoordinatorController::class, 'importCAFromExcelSheet'])->name('coordinator.importCAFromExcelSheet');   
         Route::POST('/coordinator/importFinalExamFromExcelSheet',[CoordinatorController::class, 'importFinalExamFromExcelSheet'])->name('coordinator.importFinalExamFromExcelSheet');  
+        
         Route::POST('/coordinator/importFinalExamAndCaFromExcelSheet',[CoordinatorController::class, 'importFinalExamAndCaFromExcelSheet'])->name('coordinator.importFinalExamAndCaFromExcelSheet'); 
 
         Route::POST('/coordinator/importStudentCA',[CoordinatorController::class, 'importStudentCA'])->name('coordinator.importStudentCA');     

@@ -295,6 +295,12 @@
             </a>
             <ul id="components-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
                 <li>
+                    <a href="{{ route('administrator.resultsReviewer') }}">
+                        <i class="bi bi-circle"></i>
+                        <span>Final Exam Review</span>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('users.index') }}">
                         <i class="bi bi-circle"></i>
                         <span>Users</span>

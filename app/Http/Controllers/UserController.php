@@ -41,6 +41,11 @@ class UserController extends Controller
     //     return redirect()->route('dashboard')->with('success', 'Password reset successfully.');
     // }
 
+    public function resultsReviewer(){
+
+        return view('admin.resultsreviewer');
+    }
+
     public function resetUserPassword($userId)
     {
         $user = User::find($userId);
