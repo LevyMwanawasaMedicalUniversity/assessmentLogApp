@@ -67,6 +67,7 @@
             z-index: 1050; /* Ensure it's above the navbar */
         }
     </style>
+    @livewireStyles
 </head>
 <body class="font-sans antialiased">
     <div class="min-h-screen bg-gray-100">
@@ -119,7 +120,7 @@
     <!-- Template Main JS File -->
     <script src="{{ asset('assets/js/main.js') }}"></script>
     
-
+    @livewireScripts
     <!-- Bootstrap JS library (make sure jQuery is loaded before this) -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 </body>
