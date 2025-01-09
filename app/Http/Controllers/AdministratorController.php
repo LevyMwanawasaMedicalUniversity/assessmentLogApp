@@ -81,6 +81,7 @@ class AdministratorController extends Controller
                             $courseCode = trim($row->getCellAtIndex(2)->getValue());
                             $caMark = (float)trim($row->getCellAtIndex(3)->getValue());
                             $examMark = (float)trim($row->getCellAtIndex(4)->getValue());
+                            $grade = trim($row->getCellAtIndex(5)->getValue());
 
                             $publishedGrade = EduroleGradesPublished::where([
                                 'StudentNo' => $studentNumber,
@@ -90,7 +91,9 @@ class AdministratorController extends Controller
 
                             // Calculate Senate Grade
                             $totalMark = $caMark + $examMark;
-                            if ($examMark === 0 || $examMark === null) {
+                            if (!empty($grade)) {
+                                $senateGrade = $grade; // Use pre-assigned grade if provided
+                            }else if ($examMark === null) {
                                 $senateGrade = 'NE';
                             } elseif (is_numeric($totalMark) && $totalMark >= 0) {
                                 if ($totalMark >= 90) $senateGrade = 'A+';
