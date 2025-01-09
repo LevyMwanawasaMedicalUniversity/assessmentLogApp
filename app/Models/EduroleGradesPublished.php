@@ -11,4 +11,11 @@ class EduroleGradesPublished extends Model
 
     protected $connection = 'edurole_database';
     protected $table = 'grades-published';
+
+    protected $fillable = [
+        'CAMarks',
+        'ExamMarks',
+        'Grade'
+        // ... other fields ...
+    ];
 }

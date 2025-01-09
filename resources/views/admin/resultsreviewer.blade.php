@@ -9,7 +9,7 @@
             @include('layouts.alerts')
             <div class="alert alert-info alert-dismissible fade show" role="alert">
                 <i class="bi bi-info-circle me-1"></i>
-                    Please ensure that the excel sheet is formated corrected.
+                    Please ensure that the excel sheet is formatted correctly.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             <nav>
