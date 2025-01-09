@@ -76,12 +76,14 @@ class AdministratorController extends Controller
                         foreach ($sheet->getRowIterator() as $rowIndex => $row) {
                             if ($rowIndex === 1) continue;
 
-                            $studentNumber = trim($row->getCellAtIndex(0)->getValue());
+                            $studentNumber = $row->getCellAtIndex(0) ? trim($row->getCellAtIndex(0)->getValue()) : null;
+                            $studentNumber = preg_replace('/[^0-9]/', '', $studentNumber);
                             $academicYear = $request->academicYear;
-                            $courseCode = trim($row->getCellAtIndex(2)->getValue());
-                            $caMark = (float)trim($row->getCellAtIndex(3)->getValue());
-                            $examMark = (float)trim($row->getCellAtIndex(4)->getValue());
-                            $grade = trim($row->getCellAtIndex(5)->getValue());
+                            $courseCode = $row->getCellAtIndex(2) ? trim($row->getCellAtIndex(2)->getValue()) : null;
+                            
+                            $caMark = $row->getCellAtIndex(3) ? (float)trim($row->getCellAtIndex(3)->getValue()) : null;
+                            $examMark = $row->getCellAtIndex(4) ? (float)trim($row->getCellAtIndex(4)->getValue()) : null;
+                            $grade = $row->getCellAtIndex(5) ? trim($row->getCellAtIndex(5)->getValue()) : null;
 
                             $publishedGrade = EduroleGradesPublished::where([
                                 'StudentNo' => $studentNumber,
@@ -93,7 +95,7 @@ class AdministratorController extends Controller
                             $totalMark = $caMark + $examMark;
                             if (!empty($grade)) {
                                 $senateGrade = $grade; // Use pre-assigned grade if provided
-                            }else if ($examMark === null) {
+                            }elseif ($examMark === null) {
                                 $senateGrade = 'NE';
                             } elseif (is_numeric($totalMark) && $totalMark >= 0) {
                                 if ($totalMark >= 90) $senateGrade = 'A+';
@@ -110,7 +112,7 @@ class AdministratorController extends Controller
                             // Save to senate_approved_results
                             SenateApprovedResults::updateOrCreate(
                                 [
-                                    'student_id' => $studentNumber,
+                                    'student_id' => (int)$studentNumber,
                                     'academic_year' => $academicYear,
                                     'course_code' => $courseCode,
                                 ],
@@ -130,7 +132,7 @@ class AdministratorController extends Controller
                                     
                                     // Save to mismatched_senate_results table
                                     MismatchedSenateResults::create([
-                                        'student_id' => $studentNumber,
+                                        'student_id' => (int)$studentNumber,
                                         'academic_year' => $academicYear,
                                         'course_code' => $courseCode,
                                         'senate_ca_score' => $caMark,
@@ -140,12 +142,12 @@ class AdministratorController extends Controller
                                         'senate_grade' => $senateGrade,
                                         'edurole_grade' => $publishedGrade->Grade
                                     ]);
-
-                                    // $publishedGrade->update([
-                                    //     'CAMarks' => $caMark,
-                                    //     'ExamMarks' => $examMark,
-                                    //     'Grade' => $senateGrade // Also updating the grade to match new scores
-                                    // ]);
+ 
+                                    $publishedGrade->update([
+                                        'CAMarks' => $caMark,
+                                        'ExamMarks' => $examMark,
+                                        'Grade' => $senateGrade // Also updating the grade to match new scores
+                                    ]);
 
                                     $mismatches[] = [
                                         $studentNumber,
@@ -202,7 +204,8 @@ class AdministratorController extends Controller
                     $content = file_get_contents($tempFile);
                     unlink($tempFile);
 
-                    $fileName = 'grade_mismatches_' . date('Y-m-d_His') . '.xlsx';
+                    $originalFileName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                    $fileName = $originalFileName . '_grade_mismatches_' . date('Y-m-d_His') . '.xlsx';
                     
                     return response($content)
                         ->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
