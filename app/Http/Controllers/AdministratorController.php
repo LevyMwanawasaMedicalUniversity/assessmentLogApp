@@ -143,11 +143,11 @@ class AdministratorController extends Controller
                                         'edurole_grade' => $publishedGrade->Grade
                                     ]);
 
-                                    $publishedGrade->update([
-                                        'CAMarks' => $caMark,
-                                        'ExamMarks' => $examMark,
-                                        'Grade' => $senateGrade // Also updating the grade to match new scores
-                                    ]);
+                                    // $publishedGrade->update([
+                                    //     'CAMarks' => $caMark,
+                                    //     'ExamMarks' => $examMark,
+                                    //     'Grade' => $senateGrade // Also updating the grade to match new scores
+                                    // ]);
 
                                     $mismatches[] = [
                                         $studentNumber,
