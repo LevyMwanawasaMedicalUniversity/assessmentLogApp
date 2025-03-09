@@ -42,7 +42,73 @@ Route::middleware(['auth','force.password.change'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     // Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::get('/dashboard', [PagesController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard', function() {
+        // Get basic statistics for the dashboard
+        $studentsWithCA = 0;
+        $totalCoursesCoordinated = 0;
+        $totalCoursesWithCA = 0;
+        
+        try {
+            $studentsWithCA = \App\Models\SisReportsStudent::distinct()
+                ->where('status', 6)
+                ->count();
+                
+            $totalCoursesCoordinated = \Illuminate\Support\Facades\DB::table('courses')
+                ->distinct()
+                ->count();
+                
+            $totalCoursesWithCA = \App\Models\CourseAssessment::distinct(['course_id', 'delivery_mode', 'study_id'])
+                ->count();
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Dashboard error: ' . $e->getMessage());
+        }
+        
+        // Get role information safely using DB query instead of relying on methods that might not exist
+        $userPermissions = [
+            'isAdmin' => false,
+            'isCoordinator' => false, 
+            'isDean' => false,
+            'isRegistrar' => false
+        ];
+        
+        try {
+            $userId = \Illuminate\Support\Facades\Auth::id();
+            if ($userId) {
+                // Check for roles via direct DB query to model_has_roles table
+                $roles = \Illuminate\Support\Facades\DB::table('model_has_roles')
+                    ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                    ->where('model_has_roles.model_id', $userId)
+                    ->pluck('roles.name')
+                    ->toArray();
+                
+                // Check for specific roles
+                $userPermissions['isAdmin'] = in_array('Administrator', $roles);
+                $userPermissions['isCoordinator'] = in_array('Coordinator', $roles);
+                $userPermissions['isDean'] = in_array('Dean', $roles);
+                $userPermissions['isRegistrar'] = in_array('Registrar', $roles);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Permission checking error: ' . $e->getMessage());
+        }
+        
+        // Check if request wants Inertia response
+        if (\Illuminate\Support\Facades\Request::header('X-Inertia')) {
+            return Inertia\Inertia::render('Dashboard/Dashboard', [
+                'studentsWithCA' => $studentsWithCA,
+                'totalCoursesCoordinated' => $totalCoursesCoordinated,
+                'totalCoursesWithCA' => $totalCoursesWithCA,
+                'userPermissions' => $userPermissions
+            ]);
+        }
+        
+        // Default to blade template
+        return view('dashboard', [
+            'studentsWithCA' => $studentsWithCA,
+            'totalCoursesCoordinated' => $totalCoursesCoordinated,
+            'totalCoursesWithCA' => $totalCoursesWithCA
+        ]);
+    })->name('dashboard');
+    Route::get('/test-dashboard', [PagesController::class, 'testDashboard'])->name('test.dashboard');
     
 
     
@@ -65,6 +131,7 @@ Route::middleware(['auth','force.password.change'])->group(function () {
         Route::post('/{user}/delete', 'UserController@destroy')->name('users.destroy');
         Route::post('/{user}/resetPassword', 'UserController@resetPassword')->name('admin.resetPassword');
         Route::get('/admin/index',[AdministratorController::class, 'index'])->name('admin.index');
+        Route::get('/admin/users',[UserController::class, 'index'])->name('admin.users');
         Route::post('/admin/importCoordinators',[AdministratorController::class, 'importCoordinators'])->name('admin.importCoordinators');
         Route::post('/admin/importDeans',[AdministratorController::class, 'importDeans'])->name('admin.importDeans');
         Route::post('/admin/refreshCAs',[AdministratorController::class, 'refreshCAs'])->name('admin.refreshCAs');
