@@ -50,13 +50,6 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::get('/coordinators-traffic', [App\Http\Controllers\Api\DashboardController::class, 'getCoordinatorsTraffic'])->name('coordinators-traffic');
         Route::get('/ca-per-school', [App\Http\Controllers\Api\DashboardController::class, 'getCaPerSchool'])->name('ca-per-school');
         Route::get('/course-with-ca-per-programme', [App\Http\Controllers\Api\DashboardController::class, 'getCourseWithCaPerProgramme'])->name('course-with-ca-per-programme');
-        Route::get('/students-with-ca', [App\Http\Controllers\Api\DashboardController::class, 'getStudentsWithCa'])->name('students-with-ca');
-        Route::get('/courses-from-edurole', [App\Http\Controllers\Api\DashboardController::class, 'getCoursesFromEdurole'])->name('courses-from-edurole');
-        Route::get('/courses-from-lmmax', [App\Http\Controllers\Api\DashboardController::class, 'getCoursesFromLmmax'])->name('courses-from-lmmax');
-        Route::get('/deans-per-school', [App\Http\Controllers\Api\DashboardController::class, 'getDeansPerSchool'])->name('deans-per-school');
-        Route::get('/coordinators-traffic', [App\Http\Controllers\Api\DashboardController::class, 'getCoordinatorsTraffic'])->name('coordinators-traffic');
-        Route::get('/ca-per-school', [App\Http\Controllers\Api\DashboardController::class, 'getCaPerSchool'])->name('ca-per-school');
-        Route::get('/course-with-ca-per-programme', [App\Http\Controllers\Api\DashboardController::class, 'getCourseWithCaPerProgramme'])->name('course-with-ca-per-programme');
     });
 
     Route::middleware('can:Administrator')->group(function () {
