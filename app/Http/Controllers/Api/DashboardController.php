@@ -361,7 +361,6 @@ class DashboardController extends Controller
             // Sort by assessment count in descending order and take top 10
             $programmeData = collect($programmeData)
                 ->sortByDesc('courses_with_ca')
-                ->take(10)
                 ->values()
                 ->toArray();
 
