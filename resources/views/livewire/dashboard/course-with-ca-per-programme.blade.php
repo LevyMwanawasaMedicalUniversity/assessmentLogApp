@@ -27,7 +27,18 @@
 <script>
 // Function to fetch courses with CA per programme data
 document.addEventListener('DOMContentLoaded', function() {
-    fetchCoursesWithCaPerProgramme();
+    // Check if ECharts is already loaded
+    if (typeof echarts !== 'undefined') {
+        fetchCoursesWithCaPerProgramme();
+    } else {
+        // Load ECharts first
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
+        script.onload = function() {
+            fetchCoursesWithCaPerProgramme();
+        };
+        document.head.appendChild(script);
+    }
 });
 
 function fetchCoursesWithCaPerProgramme() {
@@ -62,10 +73,13 @@ function fetchCoursesWithCaPerProgramme() {
                     : (data.programmeData !== undefined ? data.programmeData : []);
                 
                 if (programmeData && programmeData.length > 0) {
+                    // Clear the chart container before creating a new chart
+                    chartContainer.innerHTML = '';
+                    
                     // Prepare data for chart
                     const programmeNames = programmeData.map(programme => programme.programme_name);
-                    const coursesWithCA = programmeData.map(programme => programme.courses_with_ca);
-                    const totalCourses = programmeData.map(programme => programme.total_courses);
+                    const coursesWithCA = programmeData.map(programme => parseInt(programme.courses_with_ca) || 0);
+                    const totalCourses = programmeData.map(programme => parseInt(programme.total_courses) || 0);
                     
                     // Create the vertical bar chart
                     createVerticalBarChart(programmeNames, coursesWithCA, totalCourses);
@@ -88,70 +102,77 @@ function createVerticalBarChart(programmeNames, coursesWithCA, totalCourses) {
     // Define colors for the chart (matching Material Dashboard UI color scheme)
     const colors = ['#4CAF50', '#2196F3']; // Green for Courses with CA, Blue for Total Courses
     
-    // Initialize the chart
-    const chart = echarts.init(document.getElementById('coursesWithCaPerProgrammeChart'));
-    
-    // Chart options
-    const option = {
-        tooltip: {
-            trigger: 'axis',
-            axisPointer: {
-                type: 'shadow'
-            }
-        },
-        legend: {
-            data: ['Courses with CA', 'Courses from Edurole'],
-            textStyle: {
-                color: '#333'
-            }
-        },
-        grid: {
-            left: '3%',
-            right: '4%',
-            bottom: '3%',
-            containLabel: true
-        },
-        xAxis: {
-            type: 'category',
-            data: programmeNames,
-            axisLabel: {
-                interval: 0,
-                rotate: 45,
-                textStyle: {
-                    fontSize: 10
-                }
-            }
-        },
-        yAxis: {
-            type: 'value'
-        },
-        series: [
-            {
-                name: 'Courses with CA',
-                type: 'bar',
-                data: coursesWithCA,
-                itemStyle: {
-                    color: colors[0]
+    try {
+        // Initialize the chart
+        const chartDom = document.getElementById('coursesWithCaPerProgrammeChart');
+        const chart = echarts.init(chartDom);
+        
+        // Chart options
+        const option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
                 }
             },
-            {
-                name: 'Courses from Edurole',
-                type: 'bar',
-                data: totalCourses,
-                itemStyle: {
-                    color: colors[1]
+            legend: {
+                data: ['Courses with CA', 'Total Courses'],
+                textStyle: {
+                    color: '#333'
                 }
-            }
-        ]
-    };
-    
-    // Set the chart options
-    chart.setOption(option);
-    
-    // Make chart responsive
-    window.addEventListener('resize', function() {
-        chart.resize();
-    });
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: programmeNames,
+                axisLabel: {
+                    interval: 0,
+                    rotate: 45,
+                    textStyle: {
+                        fontSize: 10
+                    }
+                }
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [
+                {
+                    name: 'Courses with CA',
+                    type: 'bar',
+                    data: coursesWithCA,
+                    itemStyle: {
+                        color: colors[0]
+                    }
+                },
+                {
+                    name: 'Total Courses',
+                    type: 'bar',
+                    data: totalCourses,
+                    itemStyle: {
+                        color: colors[1]
+                    }
+                }
+            ]
+        };
+        
+        // Set the chart options
+        chart.setOption(option);
+        
+        // Make chart responsive
+        window.addEventListener('resize', function() {
+            chart.resize();
+        });
+    } catch (error) {
+        console.error('Error creating chart:', error);
+        document.getElementById('coursesWithCaPerProgrammeChart').innerHTML = 
+            `<div class="text-center p-4 text-danger">Error creating chart: ${error.message}</div>`;
+    }
 }
 
 function exportCoursesWithCaPerProgrammeToCSV() {
@@ -196,16 +217,4 @@ function exportCoursesWithCaPerProgrammeToCSV() {
 function refreshCoursesWithCaPerProgramme() {
     fetchCoursesWithCaPerProgramme();
 }
-</script>
-
-<!-- Include ECharts library if not already included -->
-<script>
-    if (typeof echarts === 'undefined') {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
-        script.onload = function() {
-            fetchCoursesWithCaPerProgramme();
-        };
-        document.head.appendChild(script);
-    }
 </script>
