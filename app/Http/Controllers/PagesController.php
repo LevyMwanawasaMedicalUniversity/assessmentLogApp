@@ -8,6 +8,7 @@ use App\Models\EduroleCourseElective;
 use App\Models\EduroleCourses;
 use App\Models\EduroleStudy;
 use App\Models\StudentsContinousAssessment;
+use App\Models\CourseAssessment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -129,57 +130,10 @@ class PagesController extends Controller
 
     public function dashboard()
     {
-        $coursesFromLMMAX = $this->getCoursesFromLMMAX();
-        // return $coursesFromLMMAX;
-        $coursesFromEdurole = $this->getCoursesFromEdurole();
-
-        $resultsForCount = $coursesFromEdurole
-                // ->where('basic-information.ID', $basicInformationId)
-                // ->whereIn('courses.ID', $coursesFromCourseElectives)
-                ->orderBy('programmes.Year')
-                ->orderBy('courses.Name')
-                ->orderBy('study.Delivery')
-                ->get();
-        
-        $coursesFromEdurole =  $coursesFromEdurole->get();
-        
-        
-        // return $coursesFromEdurole;
-        $filteredResults = $coursesFromEdurole->filter(function ($item) use ($coursesFromLMMAX) {
-            foreach ($coursesFromLMMAX as $course) {
-                if ($item->CourseName == $course['course_code'] && $item->Delivery == $course['delivery_mode'] && $item->ProgrammesAvailable != 1 && $item->StudyID == $course['study_id']) {
-                    return true;
-                }
-            }
-            return false;
-        });
-        
-
-        $coursesWithCA = $filteredResults;
-        // return $coursesWithCA->count();
-        $deansDataGet = EduroleBasicInformation::join('access', 'access.ID', '=', 'basic-information.ID')
-            ->join('roles', 'roles.ID', '=', 'access.RoleID')
-            ->join('schools', 'schools.Dean', '=', 'basic-information.ID')
-            ->join('study', 'study.ParentID', '=', 'schools.ID')
-            ->select('basic-information.FirstName', 'basic-information.Surname', 'basic-information.ID', 'roles.RoleName', 'schools.ID as ParentID', 'study.ID as StudyID', 'schools.Name as SchoolName','study.Delivery')
-            ->get();
-        $deansData= $deansDataGet->unique('ID');
-        // $results= $deansDataGet->unique('ID');
-        // $counts = $deansDataGet->countBy('ID');;
-        // return $coursesWithCA;
-        $coursesFromCourseElectivesQuery = EduroleCourseElective::select('course-electives.CourseID')
-                ->join('courses', 'courses.ID', '=', 'course-electives.CourseID')
-                ->join('program-course-link', 'program-course-link.CourseID', '=', 'courses.ID')
-                ->join('student-study-link', 'student-study-link.StudentID', '=', 'course-electives.StudentID')
-                ->join('study', 'study.ID', '=', 'student-study-link.StudyID')
-                ->where('course-electives.Year', 2024)
-                ->where('course-electives.Approved', 1);
-
-        
-        return view('dashboard', compact('coursesFromCourseElectivesQuery','resultsForCount','coursesWithCA', 'coursesFromEdurole','deansData'));
+        // The dashboard now uses Livewire components for all statistics
+        // Each component loads its own data, reducing the initial load time
+        return view('dashboard');
     }
-
-    
 
     public function viewCoordinatorsCourses(Request $request){
 
@@ -194,6 +148,69 @@ class PagesController extends Controller
             ->get();
                 
         return view('coordinator.viewCoordinatorsCourses', compact('results'));
+    }
 
+    /**
+     * Get courses from LMMAX
+     * 
+     * @return array
+     */
+    public function getCoursesFromLMMAX()
+    {
+        return CourseAssessment::select('course_id', 'delivery_mode', 'study_id')
+            ->selectRaw('course_id as course_code')
+            ->distinct()
+            ->get()
+            ->toArray();
+    }
+
+    /**
+     * Get courses from Edurole
+     * 
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function getCoursesFromEdurole()
+    {
+        return EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
+            ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
+            ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
+            ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
+            ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
+            ->join('schools', 'schools.ID', '=', 'study.ParentID')
+            ->select(
+                'courses.ID',
+                'basic-information.Firstname', 
+                'basic-information.Surname', 
+                'basic-information.PrivateEmail', 
+                'study.ProgrammesAvailable', 
+                'study.Name', 
+                'courses.Name as CourseName',
+                'courses.CourseDescription',
+                'study.Delivery',
+                'study.ID as StudyID',
+                'study.ShortName as ProgrammeCode',
+                'schools.Name as SchoolName',
+                'schools.Description as SchoolDescription'
+            );
+    }
+
+    /**
+     * Get allocated courses
+     * 
+     * @param int $courseId
+     * @param int $basicInformationId
+     * @param string $delivery
+     * @param int $studyId
+     * @param int $academicYear
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getAllocatedCourses($courseId, $basicInformationId, $delivery, $studyId, $academicYear)
+    {
+        return CourseComponentAllocation::where('course_id', $courseId)
+            ->where('basic_information_id', $basicInformationId)
+            ->where('delivery_mode', $delivery)
+            ->where('study_id', $studyId)
+            ->where('academic_year', $academicYear)
+            ->get();
     }
 }
