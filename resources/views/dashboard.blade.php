@@ -37,7 +37,9 @@
                         </div><!-- End Course With CA Per Programme -->
 
                         <!-- Deans Per School -->
-                        
+                        <div class="col-12">
+                            @livewire('dashboard.deans-per-school')
+                        </div><!-- End Deans Per School -->
 
                     </div>
                 </div><!-- End Left side columns -->
@@ -50,9 +52,9 @@
                         @livewire('dashboard.ca-per-school')
                     </div><!-- End CA Per School Chart -->
 
-                    <!-- Deans Per School -->
+                    <!-- Coordinators Traffic Chart -->
                     <div class="col-12 mt-4">
-                        @livewire('dashboard.deans-per-school')
+                        @livewire('dashboard.coordinators-traffic')
                     </div><!-- End Coordinators Traffic Chart -->
 
                 </div><!-- End Right side columns -->

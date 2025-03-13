@@ -151,29 +151,25 @@ class DashboardController extends Controller
     public function getCoordinatorsTraffic()
     {
         try {
-            // Use the exact query from the original implementation
-            $deansDataGet = EduroleBasicInformation::join('access', 'access.ID', '=', 'basic-information.ID')
+            // Query to get coordinators per school
+            $coordinatorsPerSchool = DB::table('basic-information')
+                ->join('access', 'access.ID', '=', 'basic-information.ID')
                 ->join('roles', 'roles.ID', '=', 'access.RoleID')
-                ->join('schools', 'schools.Dean', '=', 'basic-information.ID')
-                ->join('study', 'study.ParentID', '=', 'schools.ID')
-                ->select('basic-information.FirstName', 'basic-information.Surname', 'basic-information.ID', 'roles.RoleName', 'schools.ID as ParentID', 'study.ID as StudyID', 'schools.Name as SchoolName','study.Delivery')
+                ->join('study', 'study.ProgrammesAvailable', '=', 'basic-information.ID')
+                ->join('schools', 'schools.ID', '=', 'study.ParentID')
+                ->where('roles.RoleName', 'Coordinator')
+                ->select(
+                    'schools.Name as school_name',
+                    'schools.Description as school_description',
+                    DB::raw('COUNT(DISTINCT `basic-information`.ID) as coordinator_count')
+                )
+                ->groupBy('schools.Name', 'schools.Description')
+                ->orderBy('coordinator_count', 'desc')
                 ->get();
-            
-            $deansData = $deansDataGet->unique('ID');
-            
-            // Get total number of unique coordinators
-            $coordinatorsCount = $deansData->count();
-            
-            // Aggregate the number of unique usernames per SchoolName
-            $userCountsPerSchool = $deansDataGet->groupBy('SchoolName')->map(function ($group) {
-                return $group->unique('ID')->count();
-            });
 
             return response()->json([
                 'status' => 'success',
-                'coordinatorsCount' => $coordinatorsCount,
-                'schoolNames' => $userCountsPerSchool->keys()->toArray(),
-                'userCounts' => $userCountsPerSchool->values()->toArray()
+                'coordinatorsPerSchool' => $coordinatorsPerSchool
             ]);
         } catch (\Exception $e) {
             return response()->json([
