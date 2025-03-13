@@ -27,7 +27,18 @@
 <script>
 // Function to fetch CA per school data
 document.addEventListener('DOMContentLoaded', function() {
-    fetchCaPerSchool();
+    // Check if ECharts is already loaded
+    if (typeof echarts !== 'undefined') {
+        fetchCaPerSchool();
+    } else {
+        // Load ECharts first
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
+        script.onload = function() {
+            fetchCaPerSchool();
+        };
+        document.head.appendChild(script);
+    }
 });
 
 function fetchCaPerSchool() {
@@ -57,10 +68,13 @@ function fetchCaPerSchool() {
             console.log('CA Per School API Response:', data);
             if (data.status === 'success') {
                 if (data.caPerSchool && data.caPerSchool.length > 0) {
+                    // Clear the chart container before creating a new chart
+                    chartContainer.innerHTML = '';
+                    
                     // Prepare data for chart
                     const schoolNames = data.caPerSchool.map(school => school.school_name);
-                    const coursesWithCA = data.caPerSchool.map(school => school.courses_with_ca);
-                    const totalCourses = data.caPerSchool.map(school => school.total_courses);
+                    const coursesWithCA = data.caPerSchool.map(school => parseInt(school.courses_with_ca) || 0);
+                    const totalCourses = data.caPerSchool.map(school => parseInt(school.total_courses) || 0);
                     
                     // Create the horizontal bar chart
                     createHorizontalBarChart(schoolNames, coursesWithCA, totalCourses);
@@ -83,64 +97,71 @@ function createHorizontalBarChart(schoolNames, coursesWithCA, totalCourses) {
     // Define colors for the chart (matching Material Dashboard UI color scheme)
     const colors = ['#4CAF50', '#2196F3']; // Green for Courses with CA, Blue for Total Courses
     
-    // Initialize the chart
-    const chart = echarts.init(document.getElementById('caPerSchoolChart'));
-    
-    // Chart options
-    const option = {
-        tooltip: {
-            trigger: 'axis',
-            axisPointer: {
-                type: 'shadow'
-            }
-        },
-        legend: {
-            data: ['Courses with CA', 'Total Courses'],
-            textStyle: {
-                color: '#333'
-            }
-        },
-        grid: {
-            left: '3%',
-            right: '4%',
-            bottom: '3%',
-            containLabel: true
-        },
-        xAxis: {
-            type: 'value',
-            boundaryGap: [0, 0.01]
-        },
-        yAxis: {
-            type: 'category',
-            data: schoolNames
-        },
-        series: [
-            {
-                name: 'Courses with CA',
-                type: 'bar',
-                data: coursesWithCA,
-                itemStyle: {
-                    color: colors[0]
+    try {
+        // Initialize the chart
+        const chartDom = document.getElementById('caPerSchoolChart');
+        const chart = echarts.init(chartDom);
+        
+        // Chart options
+        const option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
                 }
             },
-            {
-                name: 'Total Courses',
-                type: 'bar',
-                data: totalCourses,
-                itemStyle: {
-                    color: colors[1]
+            legend: {
+                data: ['Courses with CA', 'Total Courses'],
+                textStyle: {
+                    color: '#333'
                 }
-            }
-        ]
-    };
-    
-    // Set the chart options
-    chart.setOption(option);
-    
-    // Make chart responsive
-    window.addEventListener('resize', function() {
-        chart.resize();
-    });
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'value',
+                boundaryGap: [0, 0.01]
+            },
+            yAxis: {
+                type: 'category',
+                data: schoolNames
+            },
+            series: [
+                {
+                    name: 'Courses with CA',
+                    type: 'bar',
+                    data: coursesWithCA,
+                    itemStyle: {
+                        color: colors[0]
+                    }
+                },
+                {
+                    name: 'Total Courses',
+                    type: 'bar',
+                    data: totalCourses,
+                    itemStyle: {
+                        color: colors[1]
+                    }
+                }
+            ]
+        };
+        
+        // Set the chart options
+        chart.setOption(option);
+        
+        // Make chart responsive
+        window.addEventListener('resize', function() {
+            chart.resize();
+        });
+    } catch (error) {
+        console.error('Error creating chart:', error);
+        document.getElementById('caPerSchoolChart').innerHTML = 
+            `<div class="text-center p-4 text-danger">Error creating chart: ${error.message}</div>`;
+    }
 }
 
 function exportCaPerSchoolToCSV() {
@@ -180,16 +201,4 @@ function exportCaPerSchoolToCSV() {
 function refreshCaPerSchool() {
     fetchCaPerSchool();
 }
-</script>
-
-<!-- Include ECharts library if not already included -->
-<script>
-    if (typeof echarts === 'undefined') {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
-        script.onload = function() {
-            fetchCaPerSchool();
-        };
-        document.head.appendChild(script);
-    }
 </script>
