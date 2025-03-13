@@ -14,21 +14,8 @@
     </div>
     <div class="card-body">
         <div class="content-container">
-            <div class="table-responsive">
-                <table class="table">
-                    <thead class="text-primary">
-                        <tr>
-                            <th>School</th>
-                            <th>Courses with CA</th>
-                            <th>Total Courses</th>
-                            <th>Percentage</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ca-per-school-table-body">
-                        <!-- Loader will be shown instead of this content -->
-                    </tbody>
-                </table>
-            </div>
+            <!-- Horizontal Bar Chart -->
+            <div id="caPerSchoolChart" style="min-height: 400px;" class="echart mb-4"></div>
         </div>
         
         <div class="error-container alert alert-danger d-none">
@@ -45,18 +32,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function fetchCaPerSchool() {
     const error = document.querySelector('.error-container');
-    const tableBody = document.getElementById('ca-per-school-table-body');
+    const chartContainer = document.getElementById('caPerSchoolChart');
     
-    // Clear the table body and add a loading row
-    tableBody.innerHTML = `
-        <tr>
-            <td colspan="4" class="text-center">
-                <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                Loading school data...
-            </td>
-        </tr>
+    // Show loading in chart container
+    chartContainer.innerHTML = `
+        <div class="d-flex justify-content-center align-items-center" style="height: 400px;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
     `;
     
     error.classList.add('d-none');
@@ -70,33 +54,19 @@ function fetchCaPerSchool() {
             return response.json();
         })
         .then(data => {
+            console.log('CA Per School API Response:', data);
             if (data.status === 'success') {
-                // Clear the table body
-                tableBody.innerHTML = '';
-                
                 if (data.caPerSchool && data.caPerSchool.length > 0) {
-                    // Populate the table with CA per school data
-                    data.caPerSchool.forEach(school => {
-                        const percentage = school.total_courses > 0 
-                            ? ((school.courses_with_ca / school.total_courses) * 100).toFixed(2) 
-                            : '0.00';
-                        
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${school.school_name}</td>
-                            <td>${school.courses_with_ca}</td>
-                            <td>${school.total_courses}</td>
-                            <td>${percentage}%</td>
-                        `;
-                        tableBody.appendChild(row);
-                    });
+                    // Prepare data for chart
+                    const schoolNames = data.caPerSchool.map(school => school.school_name);
+                    const coursesWithCA = data.caPerSchool.map(school => school.courses_with_ca);
+                    const totalCourses = data.caPerSchool.map(school => school.total_courses);
+                    
+                    // Create the horizontal bar chart
+                    createHorizontalBarChart(schoolNames, coursesWithCA, totalCourses);
                 } else {
                     // No data found
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td colspan="4" class="text-center">No data available</td>
-                    `;
-                    tableBody.appendChild(row);
+                    chartContainer.innerHTML = `<div class="text-center p-4">No CA per school data found</div>`;
                 }
             } else {
                 throw new Error('Data status is not success');
@@ -104,22 +74,75 @@ function fetchCaPerSchool() {
         })
         .catch(err => {
             console.error('Error fetching CA per school:', err);
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="4" class="text-center text-danger">
-                        Failed to load data. Please try again.
-                    </td>
-                </tr>
-            `;
+            chartContainer.innerHTML = `<div class="text-center p-4 text-danger">Failed to load chart data</div>`;
+            error.classList.remove('d-none');
         });
 }
 
-// Function to refresh data
-function refreshCaPerSchool() {
-    fetchCaPerSchool();
+function createHorizontalBarChart(schoolNames, coursesWithCA, totalCourses) {
+    // Define colors for the chart (matching Material Dashboard UI color scheme)
+    const colors = ['#4CAF50', '#2196F3']; // Green for Courses with CA, Blue for Total Courses
+    
+    // Initialize the chart
+    const chart = echarts.init(document.getElementById('caPerSchoolChart'));
+    
+    // Chart options
+    const option = {
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            }
+        },
+        legend: {
+            data: ['Courses with CA', 'Total Courses'],
+            textStyle: {
+                color: '#333'
+            }
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'value',
+            boundaryGap: [0, 0.01]
+        },
+        yAxis: {
+            type: 'category',
+            data: schoolNames
+        },
+        series: [
+            {
+                name: 'Courses with CA',
+                type: 'bar',
+                data: coursesWithCA,
+                itemStyle: {
+                    color: colors[0]
+                }
+            },
+            {
+                name: 'Total Courses',
+                type: 'bar',
+                data: totalCourses,
+                itemStyle: {
+                    color: colors[1]
+                }
+            }
+        ]
+    };
+    
+    // Set the chart options
+    chart.setOption(option);
+    
+    // Make chart responsive
+    window.addEventListener('resize', function() {
+        chart.resize();
+    });
 }
 
-// Function to export data to CSV
 function exportCaPerSchoolToCSV() {
     fetch('{{ route('api.dashboard.ca-per-school') }}')
         .then(response => response.json())
@@ -133,13 +156,13 @@ function exportCaPerSchoolToCSV() {
                         ? ((school.courses_with_ca / school.total_courses) * 100).toFixed(2) 
                         : '0.00';
                     
-                    csvContent += `${school.school_name},${school.courses_with_ca},${school.total_courses},${percentage}%\n`;
+                    csvContent += `${school.school_name || 'N/A'},${school.courses_with_ca || 0},${school.total_courses || 0},${percentage}%\n`;
                 });
                 
                 const encodedUri = encodeURI(csvContent);
                 const link = document.createElement("a");
                 link.setAttribute("href", encodedUri);
-                link.setAttribute("download", "ca_per_school.csv");
+                link.setAttribute("download", "CA_per_School.csv");
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -149,7 +172,24 @@ function exportCaPerSchoolToCSV() {
         })
         .catch(err => {
             console.error('Error exporting data:', err);
-            alert('Failed to export data');
+            alert('Failed to export data. Please try again.');
         });
 }
+
+// Function to refresh data
+function refreshCaPerSchool() {
+    fetchCaPerSchool();
+}
+</script>
+
+<!-- Include ECharts library if not already included -->
+<script>
+    if (typeof echarts === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
+        script.onload = function() {
+            fetchCaPerSchool();
+        };
+        document.head.appendChild(script);
+    }
 </script>

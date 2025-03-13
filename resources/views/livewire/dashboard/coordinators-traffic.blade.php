@@ -19,20 +19,8 @@
                 </div>
             </div>
             
-            <div class="table-responsive">
-                <table class="table">
-                    <thead class="text-primary">
-                        <tr>
-                            <th>School</th>
-                            <th>Description</th>
-                            <th>Coordinators Count</th>
-                        </tr>
-                    </thead>
-                    <tbody id="coordinators-traffic-table-body">
-                        <!-- Loader will be shown instead of this content -->
-                    </tbody>
-                </table>
-            </div>
+            <!-- Donut Chart -->
+            <div id="coordinatorsDonutChart" style="min-height: 300px;" class="echart"></div>
         </div>
         
         <div class="error-container alert alert-danger d-none">
@@ -49,19 +37,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function fetchCoordinatorsTraffic() {
     const error = document.querySelector('.error-container');
-    const tableBody = document.getElementById('coordinators-traffic-table-body');
     const totalCoordinators = document.getElementById('total-coordinators');
+    const chartContainer = document.getElementById('coordinatorsDonutChart');
     
-    // Clear the table body and add a loading row
-    tableBody.innerHTML = `
-        <tr>
-            <td colspan="3" class="text-center">
-                <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                Loading coordinator data...
-            </td>
-        </tr>
+    // Show loading in chart container
+    chartContainer.innerHTML = `
+        <div class="d-flex justify-content-center align-items-center" style="height: 300px;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
     `;
     
     totalCoordinators.innerHTML = `
@@ -90,27 +75,18 @@ function fetchCoordinatorsTraffic() {
                 const formattedTotal = new Intl.NumberFormat().format(data.totalCoordinators || 0);
                 totalCoordinators.textContent = formattedTotal;
                 
-                // Clear the table body
-                tableBody.innerHTML = '';
-                
                 if (data.coordinatorsPerSchool && data.coordinatorsPerSchool.length > 0) {
-                    // Populate the table with coordinators per school data
-                    data.coordinatorsPerSchool.forEach(school => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${school.school_name || 'N/A'}</td>
-                            <td>${school.school_description || 'N/A'}</td>
-                            <td><strong>${school.coordinator_count || 0}</strong></td>
-                        `;
-                        tableBody.appendChild(row);
-                    });
+                    // Prepare data for chart
+                    const chartData = data.coordinatorsPerSchool.map(school => ({
+                        value: school.coordinator_count,
+                        name: school.school_name
+                    }));
+                    
+                    // Create the donut chart
+                    createDonutChart(chartData);
                 } else {
                     // No data found
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td colspan="3" class="text-center">No coordinator data found</td>
-                    `;
-                    tableBody.appendChild(row);
+                    chartContainer.innerHTML = `<div class="text-center p-4">No coordinator data found</div>`;
                 }
             } else {
                 throw new Error('Data status is not success');
@@ -119,19 +95,92 @@ function fetchCoordinatorsTraffic() {
         .catch(err => {
             console.error('Error fetching coordinators traffic:', err);
             totalCoordinators.textContent = '0';
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="3" class="text-center text-danger">
-                        Failed to load data. Please try again.
-                    </td>
-                </tr>
-            `;
+            chartContainer.innerHTML = `<div class="text-center p-4 text-danger">Failed to load chart data</div>`;
             error.classList.remove('d-none');
         });
+}
+
+function createDonutChart(data) {
+    // Define colors for the chart (matching Material Dashboard UI color scheme)
+    const colors = [
+        '#4CAF50', // Green
+        '#2196F3', // Blue
+        '#FFC107', // Amber
+        '#F44336', // Red
+        '#9C27B0', // Purple
+        '#00BCD4'  // Cyan
+    ];
+    
+    // Initialize the chart
+    const chart = echarts.init(document.getElementById('coordinatorsDonutChart'));
+    
+    // Chart options
+    const option = {
+        tooltip: {
+            trigger: 'item',
+            formatter: '{a} <br/>{b}: {c} ({d}%)'
+        },
+        legend: {
+            top: '5%',
+            left: 'center',
+            textStyle: {
+                color: '#333'
+            }
+        },
+        color: colors,
+        series: [
+            {
+                name: 'Coordinators',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                    borderRadius: 10,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                },
+                label: {
+                    show: false,
+                    position: 'center'
+                },
+                emphasis: {
+                    label: {
+                        show: true,
+                        fontSize: '18',
+                        fontWeight: 'bold'
+                    }
+                },
+                labelLine: {
+                    show: false
+                },
+                data: data
+            }
+        ]
+    };
+    
+    // Set the chart options
+    chart.setOption(option);
+    
+    // Make chart responsive
+    window.addEventListener('resize', function() {
+        chart.resize();
+    });
 }
 
 // Function to refresh data
 function refreshCoordinatorsTraffic() {
     fetchCoordinatorsTraffic();
 }
+</script>
+
+<!-- Include ECharts library if not already included -->
+<script>
+    if (typeof echarts === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
+        script.onload = function() {
+            fetchCoordinatorsTraffic();
+        };
+        document.head.appendChild(script);
+    }
 </script>
