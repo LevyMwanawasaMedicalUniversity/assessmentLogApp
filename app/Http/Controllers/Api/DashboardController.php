@@ -123,24 +123,16 @@ class DashboardController extends Controller
     public function getDeansPerSchool()
     {
         try {
-            // Same query as was used in the original dashboard
-            $schools = EduroleSchool::where('ID', '>=', 4)->get();
+            // Using the correct join query as provided
+            // $deansData = DB::table('schools as s')
+            //     ->join('basic-information as bi', 'bi.ID', '=', 's.Dean')
+            //     ->select('bi.FirstName', 'bi.Surname', 's.Description', 's.ID', 'bi.PrivateEmail')
+            //     ->get();
             
-            $deans = [];
+            $deans = EduroleBasicInformation::join('schools', 'schools.Dean', '=', 'basic-information.ID')
+                    ->select('basic-information.FirstName', 'basic-information.Surname', 'schools.Description', 'schools.ID', 'basic-information.PrivateEmail')
+                    ->get();           
             
-            foreach ($schools as $school) {
-                $dean = EduroleBasicInformation::find($school->DeanID);
-                
-                if ($dean) {
-                    $deans[] = [
-                        'school_name' => $school->Name,
-                        'dean_name' => $dean->Firstname . ' ' . $dean->Surname,
-                        'email' => $dean->PrivateEmail,
-                        'parentId' => $school->ID
-                    ];
-                }
-            }
-
             return response()->json([
                 'status' => 'success',
                 'deans' => $deans

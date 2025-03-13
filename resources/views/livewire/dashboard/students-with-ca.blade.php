@@ -63,9 +63,13 @@ function fetchStudentsWithCa() {
         .then(data => {
             console.log('Students With CA API Response:', data); 
             if (data.status === 'success') {
+                // Check for all possible field names in the API response
                 const count = data.totalStudentsWithCa !== undefined ? data.totalStudentsWithCa : 
                              (data.studentCount !== undefined ? data.studentCount : 0);
-                totalStudentsWithCa.textContent = count;
+                
+                // Format the number with commas for thousands
+                const formattedCount = new Intl.NumberFormat().format(count);
+                totalStudentsWithCa.textContent = formattedCount;
             } else {
                 throw new Error('Data status is not success');
             }

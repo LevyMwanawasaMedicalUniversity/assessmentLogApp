@@ -74,9 +74,11 @@ function fetchDeansPerSchool() {
                     data.deans.forEach(dean => {
                         const row = document.createElement('tr');
                         // Support both field naming conventions
-                        const schoolName = dean.school_name || dean.school || '';
-                        const deanName = dean.dean_name || dean.dean || '';
-                        const email = dean.email || 'N/A';
+                        const schoolName = dean.Description || dean.school_name || dean.school || '';
+                        const deanName = (dean.FirstName && dean.Surname) ? 
+                            `${dean.FirstName} ${dean.Surname}` : 
+                            (dean.dean_name || dean.dean || '');
+                        const email = dean.PrivateEmail || dean.email || 'N/A';
                         
                         row.innerHTML = `
                             <td>${schoolName}</td>
