@@ -9,6 +9,16 @@
     </div>
     <div class="card-body">
         <div class="content-container">
+            <div class="d-flex align-items-center mb-4">
+                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="ps-3">
+                    <h6 id="total-coordinators">0</h6>
+                    <span class="text-primary small pt-1 fw-bold">Total Coordinators</span>
+                </div>
+            </div>
+            
             <div class="table-responsive">
                 <table class="table">
                     <thead class="text-primary">
@@ -40,6 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function fetchCoordinatorsTraffic() {
     const error = document.querySelector('.error-container');
     const tableBody = document.getElementById('coordinators-traffic-table-body');
+    const totalCoordinators = document.getElementById('total-coordinators');
     
     // Clear the table body and add a loading row
     tableBody.innerHTML = `
@@ -51,6 +62,15 @@ function fetchCoordinatorsTraffic() {
                 Loading coordinator data...
             </td>
         </tr>
+    `;
+    
+    totalCoordinators.innerHTML = `
+        <div class="d-flex align-items-center">
+            <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <span>Loading...</span>
+        </div>
     `;
     
     error.classList.add('d-none');
@@ -66,6 +86,10 @@ function fetchCoordinatorsTraffic() {
         .then(data => {
             console.log('Coordinators Traffic API Response:', data);
             if (data.status === 'success') {
+                // Update total coordinators count
+                const formattedTotal = new Intl.NumberFormat().format(data.totalCoordinators || 0);
+                totalCoordinators.textContent = formattedTotal;
+                
                 // Clear the table body
                 tableBody.innerHTML = '';
                 
@@ -94,6 +118,7 @@ function fetchCoordinatorsTraffic() {
         })
         .catch(err => {
             console.error('Error fetching coordinators traffic:', err);
+            totalCoordinators.textContent = '0';
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="3" class="text-center text-danger">
@@ -101,6 +126,7 @@ function fetchCoordinatorsTraffic() {
                     </td>
                 </tr>
             `;
+            error.classList.remove('d-none');
         });
 }
 

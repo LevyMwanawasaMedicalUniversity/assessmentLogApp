@@ -152,12 +152,8 @@ class DashboardController extends Controller
     {
         try {
             // Query to get coordinators per school
-            $coordinatorsPerSchool = DB::table('basic-information')
-                ->join('access', 'access.ID', '=', 'basic-information.ID')
-                ->join('roles', 'roles.ID', '=', 'access.RoleID')
-                ->join('study', 'study.ProgrammesAvailable', '=', 'basic-information.ID')
+            $coordinatorsPerSchool = EduroleBasicInformation::join('study', 'study.ProgrammesAvailable', '=', 'basic-information.ID')
                 ->join('schools', 'schools.ID', '=', 'study.ParentID')
-                ->where('roles.RoleName', 'Coordinator')
                 ->select(
                     'schools.Name as school_name',
                     'schools.Description as school_description',
@@ -167,9 +163,13 @@ class DashboardController extends Controller
                 ->orderBy('coordinator_count', 'desc')
                 ->get();
 
+            // Get total number of unique coordinators
+            $totalCoordinators = $coordinatorsPerSchool->sum('coordinator_count');
+
             return response()->json([
                 'status' => 'success',
-                'coordinatorsPerSchool' => $coordinatorsPerSchool
+                'coordinatorsPerSchool' => $coordinatorsPerSchool,
+                'totalCoordinators' => $totalCoordinators
             ]);
         } catch (\Exception $e) {
             return response()->json([
