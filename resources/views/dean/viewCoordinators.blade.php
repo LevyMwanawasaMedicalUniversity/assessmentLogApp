@@ -5,186 +5,204 @@
         <h1>Coordinators</h1>
         @include('layouts.alerts')
         <nav>
-            {{ Breadcrumbs::render() }}
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item active">Coordinators</li>
+            </ol>
         </nav>
     </div><!-- End Page Title -->
+
     <section class="section">
         <div class="row">
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="card-title">Coordinators @isset($schoolId) in {{$results->first()->SchoolName}} @else on Edurole @endif</h5>
+                            <h5 class="card-title" id="coordinatorsTitle">Coordinators @isset($schoolId) in {{$results->first()->SchoolName}} @else on Edurole @endif</h5>
                             <div class=""> 
                                 <button class="btn btn-info font-weight-bold py-2 px-4 rounded-0" id="exportBtn">Export to Excel</button>
-                            </div>
-                            @if(auth()->user()->hasPermissionTo('Administrator'))
-                                <form method="post" action="{{ route('admin.importCoordinators') }}">
+                                @if (auth()->user()->hasPermissionTo('Administrator'))
+                                <form method="POST" action="{{ route('admin.importCoordinators') }}" class="d-inline">
                                     @csrf
-                                    <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
-                                        Import
+                                    <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
+                                        Import Coordinators
                                     </button>
                                 </form>
-                            @endif
-                            
+                                @endif
+                            </div>
                         </div>
-                        <!-- Table with hoverable rows -->
-                        <div style="overflow-x:auto;">
-                            <table id="myTable" class="table table-hover">
-                            @php
-
-                            if (($schoolId)) {
-                                $studyId = \App\Models\EduroleStudy::select('ID')
-                                    ->where('ParentID', '=', $schoolId)
-                                    ->pluck('ID')
-                                    ->toArray();
-
-                                $totalCa = \App\Models\CourseAssessment::whereIn('study_id', $studyId)
-                                    ->distinct(['course_id', 'delivery_mode',])
-                                    ->count();
-                            } else {
-                                $totalCa = \App\Models\CourseAssessment::distinct(['course_id', 'delivery_mode','study_id'])
-                                    ->count();
-                            }
-
-
-                            @endphp
-                                {{-- <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for courses.." class="shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"> --}}
-                                <thead>
-                                    <tr>
-                                        <th scope="col">#</th>
-                                        <th scope="col">Firstname</th>
-                                        <th scope="col">Lastname</th>
-                                        <th scope="col">Programme Coordinated</th>
-                                        <th scope="col">School</th>
-                                        <th scope="col">Last Login</th>
-                                        <th scope="col">Courses in @isset($schoolId) {{$results->first()->SchoolName}} @else Edurole @endif<span class="text-primary"> {{ $totalCoursesCoordinated }} </span></th>
-                                        <th scope="col">Courses With CA <span class="text-success"> {{$totalCa}} </span></th>
-                                        <th scope="col">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-
-                                @php
-                                    
-                                @endphp
-                                    @foreach($results as $result)
-                                        @include('coordinator.components.uploadAssessmentTypeModal')
-                                        @include('coordinator.components.viewAssessmentTypeModal')
+                        
+                        <!-- Loading spinner -->
+                        <div id="loadingSpinner" class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading coordinators data...</p>
+                        </div>
+                        
+                        <!-- Error message container -->
+                        <div id="errorContainer" class="alert alert-danger d-none">
+                            Failed to load coordinators data. Please refresh the page.
+                        </div>
+                        
+                        <div id="coordinatorsTableContainer" class="d-none">
+                            <div style="overflow-x:auto;">
+                                <table id="myTable" class="table table-hover">
+                                    <thead>
                                         <tr>
-                                            @php
-                                            /*$coursesFromCourseElectives = \App\Models\EduroleCourseElective::select('course-electives.CourseID')
-                                                ->join('courses', 'courses.ID','=','course-electives.CourseID')
-                                                ->join('program-course-link', 'program-course-link.CourseID','=','courses.ID')
-                                                ->join('student-study-link','student-study-link.StudentID','=','course-electives.StudentID')
-                                                ->join('study','study.ID','=','student-study-link.StudyID')
-                                                ->where('course-electives.Year', 2024)
-                                                ->where('course-electives.Approved', 1)
-                                                ->where('study.ProgrammesAvailable', $result->basicInformationId)
-                                                ->distinct()
-                                                ->pluck('course-electives.CourseID')
-                                                ->toArray();*/
-
-                                                $coursesFromCourseElectives = clone $coursesFromCourseElectivesQuery;
-                                                $coursesFromCourseElectives = $coursesFromCourseElectives
-                                                    ->where('study.ProgrammesAvailable', $result->basicInformationId)
-                                                    ->distinct()
-                                                    ->pluck('course-electives.CourseID')
-                                                    ->toArray();
-                                                $user = \App\Models\User::where('basic_information_id', $result->basicInformationId)->first();
-                                                $numberOfCourses = $resultsForCount->where('basicInformationId', $result->basicInformationId)
-                                                    ->whereIn('ID', $coursesFromCourseElectives)
-                                                    ->count();
-
-                                                
-
-                                                //$numberOfCourses = $numberOfCourses->sum('c.ID');
-
-                                                /*$couresWithCa = \App\Models\CourseAssessment::select('course_id')
-                                                    //->where('course_id', '=', $result->ID )
-                                                    ->where('study_id', '=', $result->StudyID )
-                                                    ->distinct('course_id', 'delivery_mode')
-                                                    ->get()
-                                                    ->count();
-                                                */
-                                                $getCourdinatoresCourses = \App\Models\EduroleStudy::where('ProgrammesAvailable', $result->basicInformationId)->pluck('ID')->toArray();
-
-                                                $coursesWithCa = \App\Models\CourseAssessment::whereIn('study_id', $getCourdinatoresCourses)
-                                                    ->select('course_id', 'delivery_mode')
-                                                    //->distinct()
-                                                    ->groupBy('course_id', 'delivery_mode')
-                                                    ->get()
-                                                    ->count();
-                                                    
-                                            @endphp
-                                            {{-- <th scope="row">1</th> --}}
-                                            <td>{{$loop->iteration}}</td>
-                                            <td>{{ $result->Firstname }}</td>
-                                            <td>{{ $result->Surname }}</td>
-                                            <td>{{ $result->Name }}</td>
-                                            <td>{{ $result->School }}</td>
-                                            <td style="color: {{ $user && $user->last_login_at ? 'blue' : 'red' }};">
-                                                {{ $user && $user->last_login_at ? $user->last_login_at : 'NEVER' }}
-                                            </td>
-                                            @if(($result->StudyID == 163) || ($result->StudyID == 165) || ($result->StudyID == 166) || ($result->StudyID == 167) || ($result->StudyID == 168))
-                                                <td>{{ $counts[$result->StudyID] ?? '0' }} Courses</td>
-                                            @else
-                                                <td>{{$numberOfCourses}} Courses</td>
-                                                {{-- <td>{{ $counts[$result->StudyID] ?? '0' }} Courses</td> --}}
-                                            @endif
-                                            <td>
-                                                <form action="{{ route('coordinator.viewOnlyProgrammesWithCaForCoordinator', $result->basicInformationId) }}" method="GET">
-                                                    <button type="submit" style="background:none;border:none;color:blue;text-decoration:underline;cursor:pointer;">
-                                                        {{-- {{ $withCa[$result->StudyID] ?? '0' }} Courses --}}
-                                                        {{$coursesWithCa}} Courses
-                                                    </button>
-                                                </form>
-                                            </td>
-                                            <td>
-                                                <div class="btn-group float-end" role="group" aria-label="Button group">
-                                                    {{-- @if (auth()->user()->hasPermissionTo('Administrator'))
-                                                    <form method="GET" action="{{ route('pages.uploadFinalExam') }}">
-                                                        <input type="hidden" name="basicInformationId" value="{{ encrypt($result->basicInformationId) }}">
-                                                        <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0 me-2">
-                                                            Final Exam
-                                                        </button>
-                                                    </form>
-                                                    @endif --}}
-                                                    @if (auth()->user()->hasPermissionTo('Administrator'))
-                                                    <form method="GET" action="{{ route('pages.uploadFinalExamAndCa') }}">
-                                                        <input type="hidden" name="basicInformationId" value="{{ encrypt($result->basicInformationId) }}">
-                                                        <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
-                                                            Final Exam
-                                                        </button>
-                                                    </form>
-                                                    @endif
-                                                    <form method="GET" action="{{ route('admin.viewCoordinatorsCourses', ['basicInformationId' => encrypt($result->basicInformationId)]) }}">
-                                                        <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
-                                                            Continuous Assessment
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            </td>
-                                            
-                                        </tr>                            
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                            <th scope="col">#</th>
+                                            <th scope="col">First Name</th>
+                                            <th scope="col">Last Name</th>
+                                            <th scope="col">Programme</th>
+                                            <th scope="col">School</th>
+                                            <th scope="col">Last Login</th>
+                                            <th scope="col">Courses</th>
+                                            <th scope="col">Courses With CA</th>
+                                            <th scope="col">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="coordinatorsTableBody">
+                                        <!-- Table content will be loaded dynamically via JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                         <!-- End Table with hoverable rows -->
-
                     </div>
                 </div>
             </div>
         </div>
     </section>
 </main><!-- End #main -->
+
 <script>
-    document.getElementById('exportBtn').addEventListener('click', function() {
-        var table = document.getElementById('myTable');
-        var wb = XLSX.utils.table_to_book(table, {sheet: "Sheet JS"});
-        XLSX.writeFile(wb, "ALL COORDINATORS.xlsx");
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load coordinators data
+        fetchCoordinatorsData();
+        
+        // Set up export button
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            var table = document.getElementById('myTable');
+            var wb = XLSX.utils.table_to_book(table, {sheet: "Sheet JS"});
+            XLSX.writeFile(wb, "ALL COORDINATORS.xlsx");
+        });
     });
+    
+    function fetchCoordinatorsData() {
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const errorContainer = document.getElementById('errorContainer');
+        const tableContainer = document.getElementById('coordinatorsTableContainer');
+        const tableBody = document.getElementById('coordinatorsTableBody');
+        const titleElement = document.getElementById('coordinatorsTitle');
+        
+        // Show loading spinner
+        loadingSpinner.classList.remove('d-none');
+        errorContainer.classList.add('d-none');
+        tableContainer.classList.add('d-none');
+        
+        // Get schoolId from URL if present
+        const urlParams = new URLSearchParams(window.location.search);
+        const schoolId = urlParams.get('schoolId');
+        
+        // Store route URLs for use in the table
+        const routes = {
+            viewOnlyProgrammesWithCaForCoordinator: "{{ route('coordinator.viewOnlyProgrammesWithCaForCoordinator', ':id') }}",
+            uploadFinalExamAndCa: "{{ route('pages.uploadFinalExamAndCa') }}",
+            viewCoordinatorsCourses: "{{ route('admin.viewCoordinatorsCourses', ':id') }}"
+        };
+        
+        // Fetch data from API
+        fetch(`{{ route('api.coordinators.data') }}${schoolId ? '?schoolId=' + schoolId : ''}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Coordinators Data API Response:', data);
+                if (data.status === 'success') {
+                    // Update the title if schoolId is present
+                    if (data.schoolId) {
+                        // We'll need to fetch the school name separately or include it in the API response
+                        // For now, we'll keep the existing title
+                    }
+                    
+                    // Populate the table
+                    populateCoordinatorsTable(data.coordinators, routes);
+                    
+                    // Hide loading spinner and show table
+                    loadingSpinner.classList.add('d-none');
+                    tableContainer.classList.remove('d-none');
+                } else {
+                    throw new Error('Data status is not success');
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching coordinators data:', err);
+                loadingSpinner.classList.add('d-none');
+                errorContainer.classList.remove('d-none');
+            });
+    }
+    
+    function populateCoordinatorsTable(coordinators, routes) {
+        const tableBody = document.getElementById('coordinatorsTableBody');
+        tableBody.innerHTML = ''; // Clear existing content
+        
+        // Ensure coordinators is an array
+        const coordinatorsArray = Array.isArray(coordinators) ? coordinators : Object.values(coordinators);
+        
+        coordinatorsArray.forEach((coordinator, index) => {
+            const row = document.createElement('tr');
+            
+            // Create route URLs with proper IDs
+            const viewProgrammesRoute = routes.viewOnlyProgrammesWithCaForCoordinator.replace(':id', coordinator.id);
+            const viewCoordinatorsCoursesRoute = routes.viewCoordinatorsCourses.replace(':id', coordinator.encrypted_id);
+            
+            // Create row content
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${coordinator.firstname}</td>
+                <td>${coordinator.surname}</td>
+                <td>${coordinator.name}</td>
+                <td>${coordinator.school}</td>
+                <td style="color: ${coordinator.last_login !== 'NEVER' ? 'blue' : 'red'};">
+                    ${coordinator.last_login}
+                </td>
+                <td>${coordinator.numberOfCourses} Courses</td>
+                <td>
+                    <form action="${viewProgrammesRoute}" method="GET">
+                        <button type="submit" style="background:none;border:none;color:blue;text-decoration:underline;cursor:pointer;">
+                            ${coordinator.coursesWithCa} Courses
+                        </button>
+                    </form>
+                </td>
+                <td>
+                    <div class="btn-group float-end" role="group" aria-label="Button group">
+                        ${hasAdminPermission() ? `
+                        <form method="GET" action="${routes.uploadFinalExamAndCa}">
+                            <input type="hidden" name="basicInformationId" value="${coordinator.encrypted_id}">
+                            <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
+                                Final Exam
+                            </button>
+                        </form>
+                        ` : ''}
+                        <form method="GET" action="${viewCoordinatorsCoursesRoute}">
+                            <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
+                                Continuous Assessment
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+    }
+    
+    // Helper functions for permissions
+    function hasAdminPermission() {
+        return {{ auth()->user()->hasPermissionTo('Administrator') ? 'true' : 'false' }};
+    }
 </script>
 </x-app-layout>
-

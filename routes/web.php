@@ -51,6 +51,11 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::get('/ca-per-school', [App\Http\Controllers\Api\DashboardController::class, 'getCaPerSchool'])->name('ca-per-school');
         Route::get('/course-with-ca-per-programme', [App\Http\Controllers\Api\DashboardController::class, 'getCourseWithCaPerProgramme'])->name('course-with-ca-per-programme');
     });
+    
+    // Coordinators API endpoints
+    Route::prefix('api/coordinators')->name('api.coordinators.')->group(function () {
+        Route::get('/data', [App\Http\Controllers\Api\CoordinatorsController::class, 'getCoordinatorsData'])->name('data');
+    });
 
     Route::middleware('can:Administrator')->group(function () {
         Route::resource('users', UserController::class);
