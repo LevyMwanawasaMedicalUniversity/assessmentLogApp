@@ -1,36 +1,65 @@
 <div class="card">
-    <div class="card-body">
-        <div class="d-flex justify-content-between">
-            <h5 class="card-title">Top Programmes <span>| With CA</span></h5>
-            <button id="exportProgrammesCSV" class="btn btn-primary mb-3 mt-3">Export to CSV</button>
+    <div class="card-header card-header-primary">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="card-title">Courses With CA Per Programme</h4>
+            <div>
+                <button type="button" class="btn btn-sm btn-light" onclick="refreshCoursesWithCaPerProgramme()">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-primary" onclick="exportCoursesWithCaPerProgrammeToCSV()">
+                    Export to CSV
+                </button>
+            </div>
         </div>
-
-        <div id="course-with-ca-per-programme-container">
-            <div class="loading-spinner d-flex justify-content-center">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
+    </div>
+    <div class="card-body">
+        <div class="content-container">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead class="text-primary">
+                        <tr>
+                            <th>Programme</th>
+                            <th>Courses with CA</th>
+                            <th>Total Courses</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody id="courses-with-ca-per-programme-table-body">
+                        <!-- Loader will be shown instead of this content -->
+                    </tbody>
+                </table>
             </div>
-            
-            <div class="content-container d-none">
-                <div id="programmeBarChart" style="min-height: 400px;" class="echart"></div>
-            </div>
-            
-            <div class="error-container d-none">
-                <div class="alert alert-danger">
-                    Failed to load data. Please refresh the page.
-                </div>
-            </div>
+        </div>
+        
+        <div class="error-container alert alert-danger d-none">
+            Failed to load data. Please refresh the page.
         </div>
     </div>
 </div>
 
 <script>
+// Function to fetch courses with CA per programme data
 document.addEventListener('DOMContentLoaded', function() {
-    const container = document.getElementById('course-with-ca-per-programme-container');
-    const spinner = container.querySelector('.loading-spinner');
-    const content = container.querySelector('.content-container');
-    const error = container.querySelector('.error-container');
+    fetchCoursesWithCaPerProgramme();
+});
+
+function fetchCoursesWithCaPerProgramme() {
+    const error = document.querySelector('.error-container');
+    const tableBody = document.getElementById('courses-with-ca-per-programme-table-body');
+    
+    // Clear the table body and add a loading row
+    tableBody.innerHTML = `
+        <tr>
+            <td colspan="4" class="text-center">
+                <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                Loading programme data...
+            </td>
+        </tr>
+    `;
+    
+    error.classList.add('d-none');
     
     // Fetch data from API
     fetch('{{ route('api.dashboard.course-with-ca-per-programme') }}')
@@ -41,87 +70,103 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.json();
         })
         .then(data => {
-            if (data.status === 'success' && data.courseWithCaPerProgramme) {
-                // Setup chart data
-                const programmes = data.courseWithCaPerProgramme.map(item => item.programme_name);
-                const assessmentCounts = data.courseWithCaPerProgramme.map(item => item.assessment_count);
+            console.log('Courses With CA Per Programme API Response:', data); 
+            if (data.status === 'success') {
+                // Clear the table body
+                tableBody.innerHTML = '';
                 
-                // Initialize the chart
-                const programmeBarChart = echarts.init(document.getElementById('programmeBarChart'));
+                // Check both possible field names in the API response
+                const programmes = data.coursesWithCaPerProgramme || data.courseWithCaPerProgramme || [];
                 
-                // Configure chart options
-                programmeBarChart.setOption({
-                    tooltip: {
-                        trigger: 'axis',
-                        axisPointer: {
-                            type: 'shadow'
-                        }
-                    },
-                    grid: {
-                        left: '3%',
-                        right: '4%',
-                        bottom: '3%',
-                        containLabel: true
-                    },
-                    xAxis: {
-                        type: 'category',
-                        data: programmes,
-                        axisLabel: {
-                            rotate: 45,
-                            interval: 0
-                        }
-                    },
-                    yAxis: {
-                        type: 'value'
-                    },
-                    series: [
-                        {
-                            name: 'Assessments',
-                            type: 'bar',
-                            data: assessmentCounts,
-                            itemStyle: {
-                                color: '#4e73df'
-                            }
-                        }
-                    ]
-                });
-                
-                // Add resize listener
-                window.addEventListener('resize', function() {
-                    programmeBarChart.resize();
-                });
-                
-                // Export to CSV functionality
-                document.getElementById('exportProgrammesCSV').addEventListener('click', function() {
-                    // Prepare CSV data
-                    let csvContent = "Programme,Assessment Count\n";
-                    
-                    for (let i = 0; i < programmes.length; i++) {
-                        csvContent += `"${programmes[i]}",${assessmentCounts[i]}\n`;
-                    }
-                    
-                    // Create download link
-                    const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
-                    const link = document.createElement("a");
-                    link.setAttribute("href", encodedUri);
-                    link.setAttribute("download", "programmes_with_ca.csv");
-                    document.body.appendChild(link);
-                    
-                    // Download CSV file
-                    link.click();
-                });
-                
-                // Show content
-                spinner.classList.add('d-none');
-                content.classList.remove('d-none');
+                if (programmes && programmes.length > 0) {
+                    // Populate the table with courses with CA per programme data
+                    programmes.forEach(programme => {
+                        // Support both field naming conventions
+                        const coursesWithCa = programme.courses_with_ca || programme.assessment_count || 0;
+                        const totalCourses = programme.total_courses || 0;
+                        const programmeName = programme.programme_name || '';
+                        
+                        const percentage = totalCourses > 0 
+                            ? ((coursesWithCa / totalCourses) * 100).toFixed(2) 
+                            : '0.00';
+                        
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${programmeName}</td>
+                            <td>${coursesWithCa}</td>
+                            <td>${totalCourses}</td>
+                            <td>${percentage}%</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                } else {
+                    // No data found
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td colspan="4" class="text-center">No data available</td>
+                    `;
+                    tableBody.appendChild(row);
+                }
             } else {
-                throw new Error('Data is invalid or empty');
+                throw new Error('Data status is not success');
             }
         })
         .catch(err => {
-            console.error('Error fetching programme data:', err);
-            spinner.classList.add('d-none');
-            error.classList.remove('d-none');
+            console.error('Error fetching courses with CA per programme:', err);
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-danger">
+                        Failed to load data. Please try again.
+                    </td>
+                </tr>
+            `;
         });
-});
+}
+
+// Function to refresh data
+function refreshCoursesWithCaPerProgramme() {
+    fetchCoursesWithCaPerProgramme();
+}
+
+// Function to export data to CSV
+function exportCoursesWithCaPerProgrammeToCSV() {
+    fetch('{{ route('api.dashboard.course-with-ca-per-programme') }}')
+        .then(response => response.json())
+        .then(data => {
+            // Check both possible field names in the API response
+            const programmes = data.coursesWithCaPerProgramme || data.courseWithCaPerProgramme || [];
+            
+            if (data.status === 'success' && programmes && programmes.length > 0) {
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += "Programme,Courses with CA,Total Courses,Percentage\n";
+                
+                programmes.forEach(programme => {
+                    // Support both field naming conventions
+                    const coursesWithCa = programme.courses_with_ca || programme.assessment_count || 0;
+                    const totalCourses = programme.total_courses || 0;
+                    const programmeName = programme.programme_name || '';
+                    
+                    const percentage = totalCourses > 0 
+                        ? ((coursesWithCa / totalCourses) * 100).toFixed(2) 
+                        : '0.00';
+                    
+                    csvContent += `${programmeName},${coursesWithCa},${totalCourses},${percentage}%\n`;
+                });
+                
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "courses_with_ca_per_programme.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                alert('No data available to export');
+            }
+        })
+        .catch(err => {
+            console.error('Error exporting data:', err);
+            alert('Failed to export data');
+        });
+}
 </script>

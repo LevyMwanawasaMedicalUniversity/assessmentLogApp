@@ -1,25 +1,25 @@
-<div class="card info-card customers-card">                    
+<div class="card info-card revenue-card">
+    <div class="card-header card-header-primary">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="card-title">Courses From LM-MAX <span>| Total</span></h5>
+            <button type="button" class="btn btn-sm btn-light" onclick="refreshCoursesFromLmmax()">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+        </div>
+    </div>
     <div class="card-body">
-        <h5 class="card-title">Courses From LM-MAX <span>| Total</span></h5>
-        
         <div id="courses-from-lmmax-container">
-            <div class="loading-spinner d-flex justify-content-center">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-            
-            <div class="content-container d-none">
+            <div class="content-container">
                 @if (auth()->user()->hasPermissionTo('Registrar'))
                     <a href="{{ route('coordinator.viewOnlyProgrammesWithCa') }}">
                 @endif
                     <div class="d-flex align-items-center">
                         <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="bi bi-receipt"></i>
+                            <i class="bi bi-journal-text"></i>
                         </div>
                         <div class="ps-3">
                             <h6 id="total-courses-with-ca">0</h6>
-                            <span class="text-success small pt-1 fw-bold">With Continuous Assessments</span>
+                            <span class="text-success small pt-1 fw-bold">With Continuous</span> <span class="text-muted small pt-2 ps-1">Assessments</span>
                         </div>
                     </div>
                 @if (auth()->user()->hasPermissionTo('Registrar'))
@@ -27,22 +27,36 @@
                 @endif
             </div>
             
-            <div class="error-container d-none">
-                <div class="alert alert-danger">
-                    Failed to load data. Please refresh the page.
-                </div>
+            <div class="error-container alert alert-danger d-none">
+                Failed to load data. Please refresh the page.
             </div>
         </div>
     </div>
 </div>
 
 <script>
+// Function to fetch courses from LMMAX data
 document.addEventListener('DOMContentLoaded', function() {
+    fetchCoursesFromLmmax();
+});
+
+function fetchCoursesFromLmmax() {
     const container = document.getElementById('courses-from-lmmax-container');
-    const spinner = container.querySelector('.loading-spinner');
     const content = container.querySelector('.content-container');
     const error = container.querySelector('.error-container');
     const totalCoursesWithCa = document.getElementById('total-courses-with-ca');
+    
+    // Show loading state
+    totalCoursesWithCa.innerHTML = `
+        <div class="d-flex align-items-center">
+            <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <span>Loading...</span>
+        </div>
+    `;
+    
+    error.classList.add('d-none');
     
     // Fetch data from API
     fetch('{{ route('api.dashboard.courses-from-lmmax') }}')
@@ -55,18 +69,21 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.status === 'success') {
                 totalCoursesWithCa.textContent = data.totalCoursesWithCa;
-                spinner.classList.add('d-none');
-                content.classList.remove('d-none');
             } else {
                 throw new Error('Data status is not success');
             }
         })
         .catch(err => {
             console.error('Error fetching courses from LMMAX:', err);
-            spinner.classList.add('d-none');
             error.classList.remove('d-none');
+            totalCoursesWithCa.textContent = '0';
         });
-});
+}
+
+// Function to refresh data
+function refreshCoursesFromLmmax() {
+    fetchCoursesFromLmmax();
+}
 </script>
 
 {{-- To attain knowledge, add things every day; To attain wisdom, subtract things every day. --}}

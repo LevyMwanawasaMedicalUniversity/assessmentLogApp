@@ -28,7 +28,7 @@ class DashboardController extends Controller
             
             return response()->json([
                 'status' => 'success',
-                'studentCount' => $uniqueStudentIds->count()
+                'totalStudentsWithCa' => $uniqueStudentIds->count()
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -44,12 +44,33 @@ class DashboardController extends Controller
     public function getCoursesFromEdurole()
     {
         try {
-            $controller = new PagesController();
-            $coursesFromEdurole = $controller->getCoursesFromEdurole()->get();
+            // Use the exact query from the parent Controller class
+            $coursesFromEdurole = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
+                ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
+                ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
+                ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
+                ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
+                ->join('schools', 'schools.ID', '=', 'study.ParentID')
+                ->select(
+                    'courses.ID',
+                    'basic-information.Firstname', 
+                    'basic-information.Surname', 
+                    'basic-information.PrivateEmail', 
+                    'study.ProgrammesAvailable', 
+                    'study.Name', 
+                    'courses.Name as CourseName',
+                    'courses.CourseDescription',
+                    'study.Delivery',
+                    'study.ID as StudyID',
+                    'study.ShortName as ProgrammeCode',
+                    'schools.Name as SchoolName',
+                    'schools.Description as SchoolDescription'
+                )
+                ->get();
 
             // Count unique courses based on ID, Delivery, and StudyID
             $totalCoursesCoordinated = $coursesFromEdurole->unique(function ($item) {
-                return $item['ID'] . '-' . $item['Delivery'] . '-' . $item['StudyID'];
+                return $item->ID . '-' . $item->Delivery . '-' . $item->StudyID;
             })->count();
 
             return response()->json([
@@ -70,9 +91,19 @@ class DashboardController extends Controller
     public function getCoursesFromLmmax()
     {
         try {
-            // Use the exact same method from PagesController
-            $controller = new PagesController();
-            $coursesFromLMMAX = $controller->getCoursesFromLMMAX();
+            // Use the exact same method from Controller class
+            $coursesFromLMMAX = CourseAssessment::select('course_assessment_scores.course_code','course_assessments.study_id','course_assessments.course_id','course_assessment_scores.study_id','course_assessments.delivery_mode','course_assessments.basic_information_id')
+                ->join('course_assessment_scores', 'course_assessment_scores.course_assessment_id', '=', 'course_assessments.course_assessments_id')
+                ->distinct()
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'course_code' => $item->course_code,
+                        'delivery_mode' => $item->delivery_mode,
+                        'basic_information_id' => $item->basic_information_id,
+                        'study_id' => $item->study_id
+                    ];
+                })->toArray();
             
             return response()->json([
                 'status' => 'success',
@@ -102,8 +133,8 @@ class DashboardController extends Controller
                 
                 if ($dean) {
                     $deans[] = [
-                        'school' => $school->Name,
-                        'dean' => $dean->Firstname . ' ' . $dean->Surname,
+                        'school_name' => $school->Name,
+                        'dean_name' => $dean->Firstname . ' ' . $dean->Surname,
                         'email' => $dean->PrivateEmail,
                         'parentId' => $school->ID
                     ];
@@ -128,18 +159,22 @@ class DashboardController extends Controller
     public function getCoordinatorsTraffic()
     {
         try {
-            $controller = new PagesController();
-            $coursesFromEdurole = $controller->getCoursesFromEdurole()
-                ->join('users', 'users.basic_information_id', '=', 'basic-information.ID')
-                ->addSelect('users.email as username')
+            // Use the exact query from the original implementation
+            $deansDataGet = EduroleBasicInformation::join('access', 'access.ID', '=', 'basic-information.ID')
+                ->join('roles', 'roles.ID', '=', 'access.RoleID')
+                ->join('schools', 'schools.Dean', '=', 'basic-information.ID')
+                ->join('study', 'study.ParentID', '=', 'schools.ID')
+                ->select('basic-information.FirstName', 'basic-information.Surname', 'basic-information.ID', 'roles.RoleName', 'schools.ID as ParentID', 'study.ID as StudyID', 'schools.Name as SchoolName','study.Delivery')
                 ->get();
             
+            $deansData = $deansDataGet->unique('ID');
+            
             // Get total number of unique coordinators
-            $coordinatorsCount = $coursesFromEdurole->unique('username')->count();
+            $coordinatorsCount = $deansData->count();
             
             // Aggregate the number of unique usernames per SchoolName
-            $userCountsPerSchool = $coursesFromEdurole->groupBy('SchoolName')->map(function ($group) {
-                return $group->unique('username')->count();
+            $userCountsPerSchool = $deansDataGet->groupBy('SchoolName')->map(function ($group) {
+                return $group->unique('ID')->count();
             });
 
             return response()->json([
@@ -164,8 +199,30 @@ class DashboardController extends Controller
         try {
             // Use the same schools list as in the original implementation
             $schools = ['SOHS', 'SOPHES', 'SOMCS', 'DRGS', 'SON', 'IBBS'];
-            $controller = new PagesController();
-            $coursesFromEdurole = $controller->getCoursesFromEdurole()->get();
+            
+            // Get courses from Edurole
+            $coursesFromEdurole = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
+                ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
+                ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
+                ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
+                ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
+                ->join('schools', 'schools.ID', '=', 'study.ParentID')
+                ->select(
+                    'courses.ID',
+                    'basic-information.Firstname', 
+                    'basic-information.Surname', 
+                    'basic-information.PrivateEmail', 
+                    'study.ProgrammesAvailable', 
+                    'study.Name', 
+                    'courses.Name as CourseName',
+                    'courses.CourseDescription',
+                    'study.Delivery',
+                    'study.ID as StudyID',
+                    'study.ShortName as ProgrammeCode',
+                    'schools.Name as SchoolName',
+                    'schools.Description as SchoolDescription'
+                )
+                ->get();
             
             $caPerSchool = [];
             
@@ -185,7 +242,7 @@ class DashboardController extends Controller
                     // Count total courses
                     $totalCourses = $coursesFromEdurole->where('SchoolName', $school)
                         ->unique(function ($item) {
-                            return $item['ID'] . '-' . $item['Delivery'] . '-' . $item['StudyID'];
+                            return $item->ID . '-' . $item->Delivery . '-' . $item->StudyID;
                         })->count();
                     
                     $caPerSchool[] = [
@@ -214,13 +271,51 @@ class DashboardController extends Controller
     public function getCourseWithCaPerProgramme()
     {
         try {
-            $controller = new PagesController();
+            // Get courses from LMMAX
+            $coursesFromLMMAX = CourseAssessment::select('course_assessment_scores.course_code','course_assessments.study_id','course_assessments.course_id','course_assessment_scores.study_id','course_assessments.delivery_mode','course_assessments.basic_information_id')
+                ->join('course_assessment_scores', 'course_assessment_scores.course_assessment_id', '=', 'course_assessments.course_assessments_id')
+                ->distinct()
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'course_code' => $item->course_code,
+                        'delivery_mode' => $item->delivery_mode,
+                        'basic_information_id' => $item->basic_information_id,
+                        'study_id' => $item->study_id
+                    ];
+                })->toArray();
             
             // Get courses from Edurole
-            $coursesFromEdurole = $controller->getCoursesFromEdurole()->get();
+            $coursesFromEdurole = EduroleStudy::join('basic-information', 'basic-information.ID', '=', 'study.ProgrammesAvailable')
+                ->join('study-program-link', 'study-program-link.StudyID', '=', 'study.ID')
+                ->join('programmes', 'programmes.ID', '=', 'study-program-link.ProgramID')
+                ->join('program-course-link', 'program-course-link.ProgramID', '=', 'programmes.ID')
+                ->join('courses', 'courses.ID', '=', 'program-course-link.CourseID')
+                ->join('schools', 'schools.ID', '=', 'study.ParentID')
+                ->select(
+                    'courses.ID',
+                    'basic-information.Firstname', 
+                    'basic-information.Surname', 
+                    'basic-information.PrivateEmail', 
+                    'study.ProgrammesAvailable', 
+                    'study.Name', 
+                    'courses.Name as CourseName',
+                    'courses.CourseDescription',
+                    'study.Delivery',
+                    'study.ID as StudyID',
+                    'study.ShortName as ProgrammeCode',
+                    'schools.Name as SchoolName',
+                    'schools.Description as SchoolDescription'
+                );
             
-            // Get courses from LMMAX
-            $coursesFromLMMAX = $controller->getCoursesFromLMMAX();
+            // Get results for count
+            $resultsForCount = $coursesFromEdurole
+                ->orderBy('programmes.Year')
+                ->orderBy('courses.Name')
+                ->orderBy('study.Delivery')
+                ->get();
+            
+            $coursesFromEdurole = $coursesFromEdurole->get();
             
             // Filter courses with CA
             $coursesWithCA = collect($coursesFromEdurole)->filter(function ($item) use ($coursesFromLMMAX) {
@@ -231,13 +326,6 @@ class DashboardController extends Controller
                 }
                 return false;
             });
-            
-            // Get results for count
-            $resultsForCount = $controller->getCoursesFromEdurole()
-                ->orderBy('programmes.Year')
-                ->orderBy('courses.Name')
-                ->orderBy('study.Delivery')
-                ->get();
             
             // Extract unique ProgrammeCodes from coursesFromEdurole
             $programmeCodes = $coursesFromEdurole->pluck('ProgrammeCode')->unique()->values()->toArray();
@@ -273,27 +361,26 @@ class DashboardController extends Controller
                 
                 $programmeData[] = [
                     'programme_name' => $code,
-                    'assessment_count' => $coursesWithCACount,
+                    'courses_with_ca' => $coursesWithCACount,
                     'total_courses' => $totalCoursesCount
                 ];
             }
             
             // Sort by assessment count in descending order and take top 10
             $programmeData = collect($programmeData)
-                ->sortByDesc('assessment_count')
+                ->sortByDesc('courses_with_ca')
                 ->take(10)
                 ->values()
                 ->toArray();
 
             return response()->json([
                 'status' => 'success',
-                'courseWithCaPerProgramme' => $programmeData
+                'coursesWithCaPerProgramme' => $programmeData
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'message' => $e->getMessage()
             ], 500);
         }
     }
