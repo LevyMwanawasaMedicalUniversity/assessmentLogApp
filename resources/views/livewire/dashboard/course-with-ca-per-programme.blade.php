@@ -30,8 +30,8 @@
             
             <!-- 3. Data Display: Only show when we have data -->
             <div x-show="data.length > 0" x-cloak>
-                <!-- Manual refresh indicator -->
-                <div x-show="isRefreshing" x-cloak class="text-center mb-2">
+                <!-- Manual refresh indicator with animation -->
+                <div x-show="isRefreshing" x-cloak class="text-center mb-2 refreshing-text">
                     <small class="text-muted">Refreshing data...</small>
                 </div>
                 
@@ -42,8 +42,8 @@
                     </small>
                 </div>
                 
-                <!-- Chart container -->
-                <div id="coursesWithCaPerProgrammeChart" style="min-height: 400px;" class="echart"></div>
+                <!-- Chart container with minimal height -->
+                <div id="coursesWithCaPerProgrammeChart" style="height: 360px;" class="echart"></div>
             </div>
         </div>
     
@@ -53,6 +53,14 @@
         }
         [x-cloak] {
             display: none !important;
+        }
+        .refreshing-text {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
         }
         </style>
     
@@ -171,6 +179,9 @@
                 
                 // Quiet fetch - used for background refresh on init with cached data
                 fetchDataQuietly() {
+                    // Show refreshing indicator when fetching data
+                    this.isRefreshing = true;
+                    
                     fetch('{{ route('api.dashboard.course-with-ca-per-programme') }}')
                         .then(response => response.ok ? response.json() : null)
                         .then(data => {
@@ -186,7 +197,10 @@
                                 }
                             }
                         })
-                        .catch(err => console.error('Silent refresh error:', err));
+                        .catch(err => console.error('Silent refresh error:', err))
+                        .finally(() => {
+                            this.isRefreshing = false;
+                        });
                 },
                 
                 // Manual refresh triggered by user
@@ -211,97 +225,68 @@
                             return;
                         }
                         
-                        // Clear previous chart instance if it exists
+                        // Clear any previous chart instance
                         if (window.coursesWithCaChart) {
                             window.coursesWithCaChart.dispose();
                         }
                         
+                        // Initialize chart with minimal height
+                        chartDom.style.height = '360px';
                         window.coursesWithCaChart = echarts.init(chartDom);
                         
-                        // Chart options - ORIGINAL CHART DESIGN
+                        // Basic chart config with optimized spacing
                         const option = {
+                            color: ['#4CAF50', '#2196F3'],
                             tooltip: {
                                 trigger: 'axis',
-                                axisPointer: {
-                                    type: 'shadow'
-                                },
-                                formatter: function(params) {
-                                    // Get the programme name from the first series
-                                    const programmeName = params[0].name;
-                                    let tooltipContent = `<div style="font-weight:bold">${programmeName}</div>`;
-                                    
-                                    // Add each series data
-                                    params.forEach(param => {
-                                        const color = param.color;
-                                        const seriesName = param.seriesName;
-                                        const value = param.value;
-                                        tooltipContent += `<div>
-                                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${color};margin-right:5px;"></span>
-                                            <span>${seriesName}</span>: <span style="float:right;margin-left:20px;font-weight:bold">${value}</span>
-                                        </div>`;
-                                    });
-                                    
-                                    return tooltipContent;
-                                }
+                                axisPointer: { type: 'shadow' }
                             },
                             legend: {
-                                data: ['Courses with CA', 'Total Courses'],
-                                textStyle: {
-                                    color: '#333'
-                                }
+                                data: ['Courses with CA', 'Total Courses']
                             },
                             grid: {
                                 left: '3%',
-                                right: '4%',
-                                bottom: '3%',
+                                right: '3%',
+                                bottom: '8%',   // Minimal bottom margin
+                                top: '10%',
                                 containLabel: true
                             },
                             xAxis: {
                                 type: 'category',
                                 data: programmeNames,
                                 axisLabel: {
+                                    show: true,
                                     interval: 0,
                                     rotate: 45,
-                                    textStyle: {
-                                        fontSize: 10
-                                    }
-                                },
-                                axisLine: {
-                                    lineStyle: {
-                                        color: '#eee'
-                                    }
+                                    fontSize: 9,     // Smaller font
+                                    overflow: 'break',
+                                    lineHeight: 10   // Tighter line height
                                 }
                             },
                             yAxis: {
-                                type: 'value',
-                                splitLine: {
-                                    lineStyle: {
-                                        color: '#eee'
-                                    }
-                                }
+                                type: 'value'
                             },
                             series: [
                                 {
                                     name: 'Courses with CA',
                                     type: 'bar',
-                                    data: coursesWithCA,
-                                    itemStyle: {
-                                        color: '#4CAF50'  // Green
-                                    }
+                                    data: coursesWithCA
                                 },
                                 {
                                     name: 'Total Courses',
                                     type: 'bar',
-                                    data: totalCourses,
-                                    itemStyle: {
-                                        color: '#2196F3'  // Blue
-                                    }
+                                    data: totalCourses
                                 }
                             ]
                         };
                         
-                        // Set the chart options
+                        // Apply the options
                         window.coursesWithCaChart.setOption(option);
+                        
+                        // Force resize on window resize
+                        window.addEventListener('resize', function() {
+                            window.coursesWithCaChart.resize();
+                        });
                     } catch (error) {
                         console.error('Error creating chart:', error);
                         document.getElementById('coursesWithCaPerProgrammeChart').innerHTML = 

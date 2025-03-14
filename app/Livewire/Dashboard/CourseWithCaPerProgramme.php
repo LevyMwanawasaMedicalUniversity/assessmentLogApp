@@ -9,10 +9,12 @@ class CourseWithCaPerProgramme extends Component
     public $programmeData = [];
     public $isLoading = true;
     public $hasError = false;
+    public $isRefreshing = false;
+    public $lastUpdated = null;
 
     public function mount()
     {
-        // We'll use AJAX in the blade view
+        // We'll use Alpine.js with localStorage in the blade view
     }
 
     public function render()

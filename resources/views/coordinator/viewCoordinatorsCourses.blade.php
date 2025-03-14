@@ -113,23 +113,23 @@
                                             <td class="text-right">
                                                 @if(in_array($result->CourseName, ['CAG201', 'GRA201','BCH2015','BCH2060','CBP2020','HAN2040','HAN2050','PGY2040','PHR3030','PHR3060','PTH2020','PTH2040','PTH2070']) || strtoupper($result->Name) != 'BASIC SCIENCES')
                                                     <div class="btn-group float-end" role="group" aria-label="Button group">
-                                                        {{-- @if(auth()->user()->hasPermissionTo('Coordinator')) --}}
-                                                            {{-- <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#uploadCourseModal{{ $result->ID }}{{ $result->Delivery }}{{$result->StudyID}}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
+                                                        @if(auth()->user()->hasPermissionTo('Coordinator'))
+                                                            <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#uploadCourseModal{{ $result->ID }}{{ $result->Delivery }}{{$result->StudyID}}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
                                                                 Upload
-                                                            </button> --}}
-                                                        {{-- @endif --}}
+                                                            </button>
+                                                        @endif
                                                             <button type="button" class="btn btn-success font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#viewCourseModal{{ $result->ID }}{{ $result->Delivery }}{{$result->StudyID}}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
                                                                 View
                                                             </button>                                                        
                                                         
-                                                        {{-- <form action="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID), 'basicInformationId' => encrypt($result->basicInformationId), 'delivery' => encrypt($result->Delivery)]) }}" method="GET" class="d-inline">
+                                                        <form action="{{ route('coordinator.courseCASettings', ['courseIdValue' => encrypt($result->ID), 'basicInformationId' => encrypt($result->basicInformationId), 'delivery' => encrypt($result->Delivery)]) }}" method="GET" class="d-inline">
                                                             <input type="hidden" name="studyId" value="{{ ($result->StudyID) }}">
                                                             <input type="hidden" name="hasComponents" value="0">
                                                             <input type="hidden" name="componentName" value="">
                                                             <button type="submit" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
                                                                 Settings
                                                             </button>
-                                                        </form> --}}
+                                                        </form>
                                                     </div>                                                    
                                                 @elseif(strtoupper($result->Name) == 'BASIC SCIENCES')
                                                     <div class="btn-group float-end" role="group" aria-label="Button group">
@@ -147,13 +147,13 @@
                                                                 Proceed
                                                             </button>
                                                         </form>                                            
-                                                        {{-- <form action="{{ route('coordinator.viewCourseWithComponents', ['courseIdValue' => encrypt($result->ID), 'basicInformationId' => encrypt($result->basicInformationId), 'delivery' => encrypt($result->Delivery)]) }}" method="GET" class="d-inline">
+                                                        <form action="{{ route('coordinator.viewCourseWithComponents', ['courseIdValue' => encrypt($result->ID), 'basicInformationId' => encrypt($result->basicInformationId), 'delivery' => encrypt($result->Delivery)]) }}" method="GET" class="d-inline">
                                                             <input type="hidden" name="studyId" value="{{ ($result->StudyID) }}">
                                                             <input type="hidden" name="isSettings" value="1">
                                                             <button type="submit" class="btn btn-warning font-weight-bold py-2 px-4 rounded-0">
                                                                 Components
                                                             </button>
-                                                        </form> --}}
+                                                        </form>
                                                     </div>
                                                 @endif
                                             </td>
