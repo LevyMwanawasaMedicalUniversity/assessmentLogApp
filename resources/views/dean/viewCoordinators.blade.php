@@ -17,57 +17,7 @@
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="card-title" id="coordinatorsTitle">Coordinators @isset($schoolId) in {{$results->first()->SchoolName}} @else on Edurole @endif</h5>
-                            <div class=""> 
-                                <button class="btn btn-info font-weight-bold py-2 px-4 rounded-0" id="exportBtn">Export to Excel</button>
-                                @if (auth()->user()->hasPermissionTo('Administrator'))
-                                <form method="POST" action="{{ route('admin.importCoordinators') }}" class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
-                                        Import Coordinators
-                                    </button>
-                                </form>
-                                @endif
-                            </div>
-                        </div>
-                        
-                        <!-- Loading spinner -->
-                        <div id="loadingSpinner" class="text-center py-5">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                            <p class="mt-2">Loading coordinators data...</p>
-                        </div>
-                        
-                        <!-- Error message container -->
-                        <div id="errorContainer" class="alert alert-danger d-none">
-                            Failed to load coordinators data. Please refresh the page.
-                        </div>
-                        
-                        <div id="coordinatorsTableContainer" class="d-none">
-                            <div style="overflow-x:auto;">
-                                <table id="myTable" class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">#</th>
-                                            <th scope="col">First Name</th>
-                                            <th scope="col">Last Name</th>
-                                            <th scope="col">Programme</th>
-                                            <th scope="col">School</th>
-                                            <th scope="col">Last Login</th>
-                                            <th scope="col">Courses</th>
-                                            <th scope="col">Courses With CA</th>
-                                            <th scope="col">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="coordinatorsTableBody">
-                                        <!-- Table content will be loaded dynamically via JavaScript -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <!-- End Table with hoverable rows -->
+                        @livewire('dashboard.coordinators-table', ['schoolId' => $schoolId ?? null, 'schoolName' => isset($results) && $results->count() > 0 ? $results->first()->SchoolName : null])
                     </div>
                 </div>
             </div>
@@ -75,134 +25,270 @@
     </section>
 </main><!-- End #main -->
 
+<style>
+.text-right {
+    text-align: right;
+}
+[x-cloak] {
+    display: none !important;
+}
+.refreshing-text {
+    animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+</style>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Load coordinators data
-        fetchCoordinatorsData();
+function coordinatorsStore() {
+    return {
+        data: [],
+        isLoading: true,
+        isRefreshing: false,
+        hasError: false,
+        lastUpdated: null,
+        storageKey: 'viewCoordinators',
+        schoolId: null,
+        hasAdminPermission: {{ auth()->user()->hasPermissionTo('Administrator') ? 'true' : 'false' }},
         
-        // Set up export button
-        document.getElementById('exportBtn').addEventListener('click', function() {
-            var table = document.getElementById('myTable');
-            var wb = XLSX.utils.table_to_book(table, {sheet: "Sheet JS"});
-            XLSX.writeFile(wb, "ALL COORDINATORS.xlsx");
-        });
-    });
-    
-    function fetchCoordinatorsData() {
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const errorContainer = document.getElementById('errorContainer');
-        const tableContainer = document.getElementById('coordinatorsTableContainer');
-        const tableBody = document.getElementById('coordinatorsTableBody');
-        const titleElement = document.getElementById('coordinatorsTitle');
-        
-        // Show loading spinner
-        loadingSpinner.classList.remove('d-none');
-        errorContainer.classList.add('d-none');
-        tableContainer.classList.add('d-none');
-        
-        // Get schoolId from URL if present
-        const urlParams = new URLSearchParams(window.location.search);
-        const schoolId = urlParams.get('schoolId');
-        
-        // Store route URLs for use in the table
-        const routes = {
+        // Routes
+        routes: {
             viewOnlyProgrammesWithCaForCoordinator: "{{ route('coordinator.viewOnlyProgrammesWithCaForCoordinator', ':id') }}",
             uploadFinalExamAndCa: "{{ route('pages.uploadFinalExamAndCa') }}",
             viewCoordinatorsCourses: "{{ route('admin.viewCoordinatorsCourses', ':id') }}"
-        };
+        },
         
-        // Fetch data from API
-        fetch(`{{ route('api.coordinators.data') }}${schoolId ? '?schoolId=' + schoolId : ''}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Coordinators Data API Response:', data);
-                if (data.status === 'success') {
-                    // Update the title if schoolId is present
-                    if (data.schoolId) {
-                        // We'll need to fetch the school name separately or include it in the API response
-                        // For now, we'll keep the existing title
+        init() {
+            // Get schoolId from URL if present
+            const urlParams = new URLSearchParams(window.location.search);
+            this.schoolId = urlParams.get('schoolId');
+            
+            // Add schoolId to storage key if present to ensure different caches for different views
+            if (this.schoolId) {
+                this.storageKey = `viewCoordinators_${this.schoolId}`;
+            }
+            
+            // First check cache before doing anything
+            const hasCachedData = this.loadFromCache();
+            
+            if (hasCachedData) {
+                // We have cached data - immediately turn off loading and render
+                this.isLoading = false;
+                
+                // Do a quiet refresh without showing any indicator
+                this.fetchDataQuietly();
+            } else {
+                // No cached data, so we need to show loading and fetch
+                this.fetchData(true);
+            }
+        },
+        
+        loadFromCache() {
+            try {
+                const cachedData = localStorage.getItem(this.storageKey);
+                if (cachedData) {
+                    const parsed = JSON.parse(cachedData);
+                    const parsedData = parsed.data || [];
+                    
+                    if (parsedData.length > 0) {
+                        this.data = parsedData;
+                        this.lastUpdated = parsed.timestamp || null;
+                        return true; // We have valid cached data
                     }
-                    
-                    // Populate the table
-                    populateCoordinatorsTable(data.coordinators, routes);
-                    
-                    // Hide loading spinner and show table
-                    loadingSpinner.classList.add('d-none');
-                    tableContainer.classList.remove('d-none');
-                } else {
-                    throw new Error('Data status is not success');
                 }
-            })
-            .catch(err => {
-                console.error('Error fetching coordinators data:', err);
-                loadingSpinner.classList.add('d-none');
-                errorContainer.classList.remove('d-none');
-            });
+                return false; // No valid cached data
+            } catch (error) {
+                console.error('Error loading from cache:', error);
+                return false;
+            }
+        },
+        
+        saveToCache(data) {
+            try {
+                const timestamp = new Date().toISOString();
+                localStorage.setItem(this.storageKey, JSON.stringify({
+                    data: data,
+                    timestamp: timestamp
+                }));
+                this.lastUpdated = timestamp;
+            } catch (error) {
+                console.error('Error saving to cache:', error);
+            }
+        },
+        
+        // Main fetch - used for initial load and manual refreshes
+        fetchData(showLoading = false) {
+            // Only show loading spinner if we have no data and specifically want loading
+            if (showLoading && !this.data.length) {
+                this.isLoading = true;
+            }
+            
+            const apiUrl = `{{ route('api.coordinators.data') }}${this.schoolId ? '?schoolId=' + this.schoolId : ''}`;
+            
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Extract the data
+                        const coordinatorsData = data.coordinators || [];
+                        
+                        // Ensure coordinators is an array
+                        const coordinatorsArray = Array.isArray(coordinatorsData) 
+                            ? coordinatorsData 
+                            : Object.values(coordinatorsData);
+                        
+                        if (coordinatorsArray && coordinatorsArray.length > 0) {
+                            this.data = coordinatorsArray;
+                            this.saveToCache(coordinatorsArray);
+                        } else {
+                            // Empty data
+                            this.data = [];
+                            this.saveToCache([]);
+                        }
+                    } else {
+                        throw new Error('Data status is not success');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching coordinators data:', err);
+                    if (!this.data.length) {
+                        this.hasError = true;
+                    }
+                })
+                .finally(() => {
+                    this.isLoading = false;
+                    this.isRefreshing = false;
+                });
+        },
+        
+        // Quiet fetch - used for background refresh on init with cached data
+        fetchDataQuietly() {
+            // Show refreshing indicator when fetching data
+            this.isRefreshing = true;
+            
+            const apiUrl = `{{ route('api.coordinators.data') }}${this.schoolId ? '?schoolId=' + this.schoolId : ''}`;
+            
+            fetch(apiUrl)
+                .then(response => response.ok ? response.json() : null)
+                .then(data => {
+                    if (data && data.status === 'success') {
+                        // Extract the data
+                        const coordinatorsData = data.coordinators || [];
+                        
+                        // Ensure coordinators is an array
+                        const coordinatorsArray = Array.isArray(coordinatorsData) 
+                            ? coordinatorsData 
+                            : Object.values(coordinatorsData);
+                        
+                        if (coordinatorsArray && coordinatorsArray.length > 0) {
+                            this.data = coordinatorsArray;
+                            this.saveToCache(coordinatorsArray);
+                        } else {
+                            // Empty data
+                            this.data = [];
+                            this.saveToCache([]);
+                        }
+                    }
+                })
+                .catch(err => console.error('Silent refresh error:', err))
+                .finally(() => {
+                    this.isRefreshing = false;
+                });
+        },
+        
+        // Manual refresh triggered by user
+        refreshData() {
+            this.isRefreshing = true;
+            this.fetchData(false);
+        },
+        
+        // Helper method to get route URLs with proper IDs
+        getViewProgrammesRoute(id) {
+            return this.routes.viewOnlyProgrammesWithCaForCoordinator.replace(':id', id);
+        },
+        
+        getViewCoordinatorsCoursesRoute(id) {
+            return this.routes.viewCoordinatorsCourses.replace(':id', id);
+        },
+        
+        getUploadFinalExamRoute() {
+            return this.routes.uploadFinalExamAndCa;
+        },
+        
+        // Export functionality
+        exportToExcel() {
+            if (!this.data || !this.data.length) {
+                alert('No data available to export');
+                return;
+            }
+            
+            try {
+                var table = document.getElementById('myTable');
+                var wb = XLSX.utils.table_to_book(table, {sheet: "Sheet JS"});
+                XLSX.writeFile(wb, "ALL COORDINATORS.xlsx");
+            } catch (error) {
+                console.error('Error exporting to Excel:', error);
+                alert('Failed to export data. Please make sure the XLSX library is loaded.');
+            }
+        },
+        
+        formatLastUpdated(timestamp) {
+            if (!timestamp) return '';
+            
+            try {
+                const date = new Date(timestamp);
+                
+                // Check if date is valid
+                if (isNaN(date.getTime())) {
+                    return 'Invalid date';
+                }
+                
+                // Format: "Today, 2:30 PM" or "Mar 15, 2:30 PM"
+                const now = new Date();
+                const isToday = date.toDateString() === now.toDateString();
+                
+                const timeOptions = { hour: 'numeric', minute: 'numeric', hour12: true };
+                const formattedTime = date.toLocaleTimeString(undefined, timeOptions);
+                
+                if (isToday) {
+                    return `Today, ${formattedTime}`;
+                } else {
+                    const dateOptions = { month: 'short', day: 'numeric' };
+                    const formattedDate = date.toLocaleDateString(undefined, dateOptions);
+                    return `${formattedDate}, ${formattedTime}`;
+                }
+            } catch (error) {
+                console.error('Error formatting date:', error);
+                return timestamp;
+            }
+        }
+    };
+}
+
+// Make sure Bootstrap Icons and XLSX are loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Add Bootstrap Icons if not already included
+    if (!document.querySelector('link[href*="bootstrap-icons"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css';
+        document.head.appendChild(link);
     }
     
-    function populateCoordinatorsTable(coordinators, routes) {
-        const tableBody = document.getElementById('coordinatorsTableBody');
-        tableBody.innerHTML = ''; // Clear existing content
-        
-        // Ensure coordinators is an array
-        const coordinatorsArray = Array.isArray(coordinators) ? coordinators : Object.values(coordinators);
-        
-        coordinatorsArray.forEach((coordinator, index) => {
-            const row = document.createElement('tr');
-            
-            // Create route URLs with proper IDs
-            const viewProgrammesRoute = routes.viewOnlyProgrammesWithCaForCoordinator.replace(':id', coordinator.id);
-            const viewCoordinatorsCoursesRoute = routes.viewCoordinatorsCourses.replace(':id', coordinator.encrypted_id);
-            
-            // Create row content
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${coordinator.firstname}</td>
-                <td>${coordinator.surname}</td>
-                <td>${coordinator.name}</td>
-                <td>${coordinator.school}</td>
-                <td style="color: ${coordinator.last_login !== 'NEVER' ? 'blue' : 'red'};">
-                    ${coordinator.last_login}
-                </td>
-                <td>${coordinator.numberOfCourses} Courses</td>
-                <td>
-                    <form action="${viewProgrammesRoute}" method="GET">
-                        <button type="submit" style="background:none;border:none;color:blue;text-decoration:underline;cursor:pointer;">
-                            ${coordinator.coursesWithCa} Courses
-                        </button>
-                    </form>
-                </td>
-                <td>
-                    <div class="btn-group float-end" role="group" aria-label="Button group">
-                        ${hasAdminPermission() ? `
-                        <form method="GET" action="${routes.uploadFinalExamAndCa}">
-                            <input type="hidden" name="basicInformationId" value="${coordinator.encrypted_id}">
-                            <button type="submit" class="btn btn-success font-weight-bold py-2 px-4 rounded-0">
-                                Final Exam
-                            </button>
-                        </form>
-                        ` : ''}
-                        <form method="GET" action="${viewCoordinatorsCoursesRoute}">
-                            <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
-                                Continuous Assessment
-                            </button>
-                        </form>
-                    </div>
-                </td>
-            `;
-            
-            tableBody.appendChild(row);
-        });
+    // Check if XLSX is loaded, if not load it
+    if (typeof XLSX === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+        document.head.appendChild(script);
     }
-    
-    // Helper functions for permissions
-    function hasAdminPermission() {
-        return {{ auth()->user()->hasPermissionTo('Administrator') ? 'true' : 'false' }};
-    }
+});
 </script>
 </x-app-layout>
