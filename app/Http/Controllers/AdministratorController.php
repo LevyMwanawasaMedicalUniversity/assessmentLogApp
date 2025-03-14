@@ -14,6 +14,7 @@ use App\Models\StudentsContinousAssessment;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -28,6 +29,88 @@ class AdministratorController extends Controller
     public function index()
     {
         return view('admin.index');
+    }
+
+    /**
+     * Show the application settings page
+     *
+     * @return \Illuminate\View\View
+     */
+    public function showSettings()
+    {
+        $settings = \App\Models\Setting::all();
+        return view('admin.settings.index', compact('settings'));
+    }
+
+    /**
+     * Show the form to edit a specific setting
+     *
+     * @param int $id Setting ID
+     * @return \Illuminate\View\View
+     */
+    public function editSetting($id)
+    {
+        $setting = \App\Models\Setting::findOrFail($id);
+        return view('admin.settings.edit', compact('setting'));
+    }
+
+    /**
+     * Update a specific setting
+     *
+     * @param Request $request
+     * @param int $id Setting ID
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateSetting(Request $request, $id)
+    {
+        $setting = \App\Models\Setting::findOrFail($id);
+        
+        $request->validate([
+            'value' => 'required',
+            'display_name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $setting->value = $request->value;
+        $setting->display_name = $request->display_name;
+        $setting->description = $request->description;
+        $setting->updated_by = Auth::check() ? Auth::id() : null;
+        $setting->save();
+
+        // Clear the cache for this setting
+        \App\Models\Setting::clearCache($setting->key);
+
+        return redirect()->route('admin.settings.index')
+            ->with('success', 'Setting updated successfully.');
+    }
+
+    /**
+     * Show the academic year settings page
+     *
+     * @return \Illuminate\View\View
+     */
+    public function showAcademicYearSettings()
+    {
+        $currentAcademicYear = \App\Models\Setting::getCurrentAcademicYear();
+        return view('admin.settings.academic_year', compact('currentAcademicYear'));
+    }
+
+    /**
+     * Update the academic year setting
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateAcademicYear(Request $request)
+    {
+        $request->validate([
+            'academic_year' => 'required|integer|min:2000|max:2100',
+        ]);
+
+        \App\Models\Setting::setCurrentAcademicYear($request->academic_year);
+
+        return redirect()->route('admin.settings.academic_year')
+            ->with('success', 'Academic year updated successfully.');
     }
 
     public function refreshCAs(Request $request)
@@ -249,7 +332,7 @@ class AdministratorController extends Controller
         $results = EduroleBasicInformation::join('access', 'access.ID', '=', 'basic-information.ID')
             ->join('roles', 'roles.ID', '=', 'access.RoleID')
             ->join('schools', 'schools.Dean', '=', 'basic-information.ID')
-            ->select('basic-information.FirstName', 'basic-information.Surname','basic-information.PrivateEmail', 'basic-information.ID', 'roles.RoleName', 'schools.ID as ParentID')
+            ->select('basic-information.FirstName', 'basic-information.Surname','basic-information.PrivateEmail', 'basic-information.ID as basicInformationId', 'roles.RoleName', 'schools.ID as ParentID')
             ->get();
     
         foreach ($results as $result) {
@@ -369,7 +452,7 @@ class AdministratorController extends Controller
         $resultsForCount = $coursesFromEduroleQuery
             ->orderBy('programmes.Year')
             ->orderBy('courses.Name')
-            ->orderBy('study.Delivery')
+            ->orderBy('study.Delivery')            
             ->get();
         $coursesFromCourseElectivesQuery =EduroleCourseElective::select('course-electives.CourseID')
         ->join('courses', 'courses.ID', '=', 'course-electives.CourseID')

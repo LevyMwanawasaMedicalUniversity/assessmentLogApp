@@ -330,6 +330,12 @@
                         <span>Course Components</span>
                     </a>
                 </li>
+                <li>
+                    <a href="{{ route('admin.settings.index') }}">
+                        <i class="bi bi-gear"></i>
+                        <span>Application Settings</span>
+                    </a>
+                </li>
             </ul>
         </li><!-- End Components Nav -->
         @endif
@@ -594,4 +600,3 @@ $(document).ready(function() {
     };
 });
 </script>
-

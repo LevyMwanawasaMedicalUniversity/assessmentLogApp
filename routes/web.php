@@ -81,6 +81,14 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
         Route::post('/admin/refreshCAs', [AdministratorController::class, 'refreshCAs'])->name('admin.refreshCAs');
         Route::post('/admin/refreshCAInAprogram', [AdministratorController::class, 'refreshCAInAprogram'])->name('admin.refreshCAInAprogram');
         Route::get('/admin/auditTrails', [AdministratorController::class, 'auditTrails'])->name('admin.auditTrails');
+        
+        // Application Settings Routes
+        Route::get('/admin/settings', [AdministratorController::class, 'showSettings'])->name('admin.settings.index');
+        Route::get('/admin/settings/{id}/edit', [AdministratorController::class, 'editSetting'])->name('admin.settings.edit');
+        Route::put('/admin/settings/{id}', [AdministratorController::class, 'updateSetting'])->name('admin.settings.update');
+        Route::get('/admin/settings/academic-year', [AdministratorController::class, 'showAcademicYearSettings'])->name('admin.settings.academic_year');
+        Route::put('/admin/settings/academic-year/update', [AdministratorController::class, 'updateAcademicYear'])->name('admin.settings.academic_year.update');
+        
     });
     
     Route::middleware('can:Coordinator')->group(function () {

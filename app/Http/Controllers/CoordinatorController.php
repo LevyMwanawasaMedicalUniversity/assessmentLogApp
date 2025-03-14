@@ -26,9 +26,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class CoordinatorController extends Controller
 {
+    // use HasRoles; // Removed the incorrect trait
+
     public function uploadCa(Request $request,$caType, $courseIdValue,$basicInformationId){
         $delivery = $request->delivery; 
         $courseId = Crypt::decrypt($courseIdValue);
@@ -206,7 +209,7 @@ class CoordinatorController extends Controller
         if(!$courseComponentAllocated || $isSettings == 1){
             return view('coordinator.caComponents.setCourseComponents', compact('academicYear','courseComponentAllocated','courseDetails','courseId', 'basicInformationId', 'delivery', 'studyId', 'courseComponents'));
         }else{
-            if ($user && method_exists($user, 'hasRole') && $user->hasRole('Coordinator')) {
+            if (auth()->check() && auth()->user()->hasPermissionTo('Coordinator')) {
                 return redirect()->route('pages.uploadCourseWithComponents', ['courseId' => $courseIdEncrypt, 'basicInformationId' => $basicInformationIdEncrypt, 'delivery' => $deliveryEncrypt, 'studyId' => $studyIdEncrypt])
                     ->with('success', $courseCode . ' Select Component In which you want to upload CA');
             } else {
@@ -437,7 +440,7 @@ class CoordinatorController extends Controller
             $studyIdEncrypt = encrypt($studyId);
 
             // Redirect based on user role
-            $isCoordinator = $user && method_exists($user, 'hasRole') && $user->hasRole('Coordinator');
+            $isCoordinator = auth()->check() && auth()->user()->hasPermissionTo('Coordinator');
             if ($isCoordinator) {
                 if($componentId){
                     return redirect()->route('pages.uploadCourseWithComponents', ['courseId' => $courseIdEncrypt, 'basicInformationId' => $basicInformationEncrypt, 'delivery' => $deliveryEncrypt, 'studyId' => $studyIdEncrypt])
@@ -557,7 +560,7 @@ class CoordinatorController extends Controller
             $basicInformationEncrypt = encrypt($basicInformationId);
 
             // Redirect based on user role
-            if ($user && method_exists($user, 'hasRole') && $user->hasRole('Coordinator')) {
+            if (auth()->check() && auth()->user()->hasPermissionTo('Coordinator')) {
                 return redirect()->route('pages.upload')->with('success', $courseCode . ' Component settings updated successfully');
             } else {
                 return redirect()->route('admin.viewCoordinatorsCourses', $basicInformationEncrypt)->with('success', $courseCode . ' Component settings updated successfully');
@@ -1279,8 +1282,8 @@ class CoordinatorController extends Controller
                     ],
                     [
                         'cas_score' => $entry['mark'],
-                        'created_by' => Auth::check() ? Auth::id() : null,
-                        'updated_by' => Auth::check() ? Auth::id() : null,
+                        'created_by' => auth()->check() ? auth()->id() : null,
+                        'updated_by' => auth()->check() ? auth()->id() : null,
                     ]
                 );
                 
@@ -1451,8 +1454,8 @@ class CoordinatorController extends Controller
                         ],
                         [
                             'cas_score' => $mark,
-                            'created_by' => Auth::check() ? Auth::id() : null,
-                            'updated_by' => Auth::check() ? Auth::id() : null,
+                            'created_by' => auth()->check() ? auth()->id() : null,
+                            'updated_by' => auth()->check() ? auth()->id() : null,
                         ]
                     );
                     
