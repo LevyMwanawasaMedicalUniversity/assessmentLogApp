@@ -22,6 +22,7 @@ use Exception;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -180,7 +181,7 @@ class CoordinatorController extends Controller
         $isSettings = $request->isSettings;
         $academicYear = 2024;
         $courseDetails = EduroleCourses::where('ID', $courseId)->first();
-        $user = auth()->user();
+        $user = Auth::check() ? Auth::user() : null;
     
         $courseComponentAllocated = CourseComponentAllocation::where('course_id', $courseId)
             ->where('delivery_mode', $delivery)
@@ -205,12 +206,11 @@ class CoordinatorController extends Controller
         if(!$courseComponentAllocated || $isSettings == 1){
             return view('coordinator.caComponents.setCourseComponents', compact('academicYear','courseComponentAllocated','courseDetails','courseId', 'basicInformationId', 'delivery', 'studyId', 'courseComponents'));
         }else{
-            if ($user->hasRole('Coordinator')) {
+            if ($user && method_exists($user, 'hasRole') && $user->hasRole('Coordinator')) {
                 return redirect()->route('pages.uploadCourseWithComponents', ['courseId' => $courseIdEncrypt, 'basicInformationId' => $basicInformationIdEncrypt, 'delivery' => $deliveryEncrypt, 'studyId' => $studyIdEncrypt])
-                    ->with('success', $courseCode . 'Select Component In which you want to upload CA');
+                    ->with('success', $courseCode . ' Select Component In which you want to upload CA');
             } else {
-                return redirect()->route('admin.viewCoordinatorsCoursesWithComponents', ['courseId' => $courseIdEncrypt, 'basicInformationId' => $basicInformationIdEncrypt, 'delivery' => $deliveryEncrypt, 'studyId' => $studyIdEncrypt] )
-                    ->with('success', $courseCode . 'Select Component In which you want to upload CA');
+                return redirect()->route('admin.viewCoordinatorsCourses', $basicInformationIdEncrypt)->with('success', $courseCode . ' Component settings updated successfully');
             }
         }
         
@@ -348,8 +348,8 @@ class CoordinatorController extends Controller
             $marksAllocated = $request->input('marks_allocated');
             // return $assessmentTypes;
             // return $marksAllocated;
-            $user = auth()->user();
-            $userBasicInformationId = $user->basic_information_id;
+            $user = Auth::check() ? Auth::user() : null;
+            $userBasicInformationId = $user ? $user->basic_information_id : null;
 
             // Get the program information for validation
             $programmeInfo = $this->getCoursesFromEdurole()
@@ -390,7 +390,6 @@ class CoordinatorController extends Controller
                             'component_id' => $componentId
                         ],
                         [
-                            'user_id' => auth()->user()->id,
                             'total_marks' => $marks
                         ]
                     );
@@ -438,7 +437,8 @@ class CoordinatorController extends Controller
             $studyIdEncrypt = encrypt($studyId);
 
             // Redirect based on user role
-            if ($user->hasRole('Coordinator')) {
+            $isCoordinator = $user && method_exists($user, 'hasRole') && $user->hasRole('Coordinator');
+            if ($isCoordinator) {
                 if($componentId){
                     return redirect()->route('pages.uploadCourseWithComponents', ['courseId' => $courseIdEncrypt, 'basicInformationId' => $basicInformationEncrypt, 'delivery' => $deliveryEncrypt, 'studyId' => $studyIdEncrypt])
                         ->with('success', $courseCode . ' CA settings updated successfully');
@@ -475,8 +475,8 @@ class CoordinatorController extends Controller
             $courseComponents = $request->input('courseComponent');
             // return $courseComponents;
             // $marksAllocated = $request->input('marks_allocated');
-            $user = auth()->user();
-            $userBasicInformationId = $user->basic_information_id;
+            $user = Auth::check() ? Auth::user() : null;
+            $userBasicInformationId = $user ? $user->basic_information_id : null;
 
             // Retrieve existing assessment type IDs for the course
             // $existingAssessmentTypeIds = CATypeMarksAllocation::where('course_id', $courseId)
@@ -516,7 +516,6 @@ class CoordinatorController extends Controller
                             'academic_year' => $academicYear
                         ],
                         [
-                            'user_id' => auth()->user()->id,
                         ]
                     );
                 }
@@ -558,7 +557,7 @@ class CoordinatorController extends Controller
             $basicInformationEncrypt = encrypt($basicInformationId);
 
             // Redirect based on user role
-            if ($user->hasRole('Coordinator')) {
+            if ($user && method_exists($user, 'hasRole') && $user->hasRole('Coordinator')) {
                 return redirect()->route('pages.upload')->with('success', $courseCode . ' Component settings updated successfully');
             } else {
                 return redirect()->route('admin.viewCoordinatorsCourses', $basicInformationEncrypt)->with('success', $courseCode . ' Component settings updated successfully');
@@ -628,19 +627,9 @@ class CoordinatorController extends Controller
 
     public function viewAllCaInCourse(Request $request,$statusId, $courseIdValue, $basicInformationId, $delivery){
         $courseId = Crypt::decrypt($courseIdValue);
-        $statusId = Crypt::decrypt($statusId);
+        // $caType = Crypt::decrypt($statusId);
         $basicInformationId = Crypt::decrypt($basicInformationId);
         $delivery = Crypt::decrypt($delivery);
-        if($request->studyId ){
-            $studyId = $request->studyId;
-        }else{
-            $result = $this->getCoursesFromEdurole()            
-                ->where('courses.ID', $courseId)
-                ->where('study.Delivery', $delivery)
-                ->where('study.ProgrammesAvailable', $basicInformationId)
-                ->first();
-            $studyId = $result->StudyID;
-        }
         $componentId = $request->componentId;
         $hasComponents = $request->hasComponents;
 
@@ -650,13 +639,14 @@ class CoordinatorController extends Controller
         $results = CourseAssessment::where('course_id', $courseId)
             ->where('ca_type', $statusId)
             ->where('delivery_mode', $delivery)
-            ->where('study_id', $studyId)
+            ->where('study_id', $request->studyId)
             ->where('component_id', $componentId)
             // ->join('course_assessment_scores', 'course_assessments.id', '=', 'course_assessment_scores.course_assessment_id')
             ->orderBy('course_assessments.course_assessments_id', 'asc')
             ->get();
         // return $results;
-        $assessmentType = $this->setAssesmentType($statusId);
+        
+            $assessmentType = $this->setAssesmentType($statusId);
 
         return view('coordinator.viewAllCaInCourse', compact('studyId','componentId','hasComponents','delivery','results', 'statusId', 'courseId','courseDetails','assessmentType','basicInformationId'));
     }
@@ -680,6 +670,7 @@ class CoordinatorController extends Controller
             ->where('ca_and_exam_uploads.delivery_mode', $delivery)
             ->where('ca_and_exam_uploads.study_id', $studyId)
             ->where('ca_and_exam_uploads.academic_year', $academicYear)
+            // ->join('course_assessment_scores', 'course_assessments.id', '=', 'course_assessment_scores.course_assessment_id')
             ->select('ca_and_exam_uploads.student_id', 'ca_and_exam_uploads.exam as FinalExam', 'ca_and_exam_uploads.type_of_exam', 'ca_and_exam_uploads.ca as Ca','ca_and_exam_uploads.grade', 'ca_and_exam_uploads.course_code', 'ca_and_exam_uploads.academic_year', 'ca_and_exam_uploads.course_id','ca_and_exam_uploads.delivery_mode','ca_and_exam_uploads.study_id','ca_and_exam_uploads.basic_information_id','ca_and_exam_uploads.updated_at','ca_and_exam_uploads.created_at','ca_and_exam_uploads.ca_and_exam_uploads_id')
             
             ->get();
@@ -691,7 +682,7 @@ class CoordinatorController extends Controller
         $resultsFromBasicInformation= EduroleBasicInformation::join('student-study-link', 'student-study-link.StudentID', '=', 'basic-information.ID')
             ->join('study', 'study.ID', '=', 'student-study-link.StudyID')            
             ->join('schools', 'schools.ID', '=', 'study.ParentID')
-            ->select('basic-information.ID', 'basic-information.FirstName','basic-information.StudyType', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.Name as Programme', 'schools.Name as School')
+            ->select('basic-information.ID', 'basic-information.FirstName','basic-information.Surname', 'basic-information.PrivateEmail', 'study.Name as Programme', 'schools.Name as School')
             ->whereIn('basic-information.ID', $resultsArrayStudentNumbers)
             ->get();
 
@@ -707,6 +698,7 @@ class CoordinatorController extends Controller
 
         return view('coordinator.viewAllExamInCourseFinalExamAndCa', compact('studyId','delivery','results', 'courseId','courseDetails','basicInformationId'));
     }
+
     public function viewAllExamInCourse(Request $request, $courseIdValue, $basicInformationId, $delivery){
         $courseId = Crypt::decrypt($courseIdValue);
         $basicInformationId = Crypt::decrypt($basicInformationId);
@@ -735,7 +727,7 @@ class CoordinatorController extends Controller
         $resultsFromBasicInformation= EduroleBasicInformation::join('student-study-link', 'student-study-link.StudentID', '=', 'basic-information.ID')
             ->join('study', 'study.ID', '=', 'student-study-link.StudyID')            
             ->join('schools', 'schools.ID', '=', 'study.ParentID')
-            ->select('basic-information.ID', 'basic-information.FirstName','basic-information.StudyType', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.Name as Programme', 'schools.Name as School')
+            ->select('basic-information.ID', 'basic-information.FirstName', 'basic-information.Surname','basic-information.StudyType', 'basic-information.PrivateEmail', 'study.Name as Programme', 'schools.Name as School')
             ->whereIn('basic-information.ID', $resultsArrayStudentNumbers)
             ->get();
 
@@ -750,11 +742,6 @@ class CoordinatorController extends Controller
         }
 
         return view('coordinator.viewAllExamInCourse', compact('studyId','delivery','results', 'courseId','courseDetails','basicInformationId'));
-    }
-
-    private function setAssesmentType($statusId){
-        $getAssesmntType = AssessmentTypes::where('id', $statusId)->first();
-        return $getAssesmntType->assesment_type_name;
     }
 
     public function viewSpecificCaInCourse(Request $request,$statusId, $courseIdValue, $assessmentNumber){
@@ -793,7 +780,7 @@ class CoordinatorController extends Controller
         $resultsFromBasicInformation= EduroleBasicInformation::join('student-study-link', 'student-study-link.StudentID', '=', 'basic-information.ID')
             ->join('study', 'study.ID', '=', 'student-study-link.StudyID')            
             ->join('schools', 'schools.ID', '=', 'study.ParentID')
-            ->select('basic-information.ID', 'basic-information.FirstName','basic-information.StudyType', 'basic-information.Surname', 'basic-information.PrivateEmail', 'study.Name as Programme', 'schools.Name as School')
+            ->select('basic-information.ID', 'basic-information.FirstName', 'basic-information.Surname','basic-information.StudyType', 'basic-information.PrivateEmail', 'study.Name as Programme', 'schools.Name as School')
             ->whereIn('basic-information.ID', $resultsArrayStudentNumbers)
             ->get();
         // return $resultsFromBasicInformation;
@@ -917,65 +904,17 @@ class CoordinatorController extends Controller
                 ->where('study.Delivery', $delivery)
                 ->first();
         // return $courseDetails;
-
-        $academicYear = 2024;
         // if($caType != 4){            
-        // $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
-        //     ->where('students_continous_assessments.delivery_mode', $delivery)
-        //     ->where('students_continous_assessments.study_id', $coursesInEdurole->StudyID)
-        //     ->where('students_continous_assessments.component_id', $componentId)
-        //     // ->whereIn('ca_type', [1,2,3]) 
-        //     ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id')
-        //     ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
-        //     ->groupBy('students_continous_assessments.student_id')
-        //     ->get();
-
-        $results = FinalExaminationResults::leftJoin('students_continous_assessments', function($join) use ($courseId, $delivery, $coursesInEdurole, $componentId) {
-        $join->on('final_examination_results.student_id', '=', 'students_continous_assessments.student_id')
-             ->where('students_continous_assessments.course_id', $courseId)
-             ->where('students_continous_assessments.delivery_mode', $delivery)
-             ->where('students_continous_assessments.study_id',$coursesInEdurole->StudyID)
-             ->where('students_continous_assessments.component_id', $componentId);
-    })
-    ->join('final_examinations', 'final_examinations.final_examinations_id', '=', 'final_examination_results.final_examinations_id')
-    ->select(
-        'final_examination_results.student_id',
-        'final_examination_results.cas_score as TotalMarks',
-        'final_examination_results.final_examination_results_id',
-        'final_examinations.course_code',
-        'final_examinations.cas_score as PercentageMark',
-        'final_examinations.academic_year',
-        'final_examinations.course_id',
-        'final_examinations.delivery_mode',
-        'final_examinations.study_id',
-        'final_examinations.basic_information_id',
-        'final_examinations.updated_at',
-        'final_examinations.created_at',
-        DB::raw('SUM(students_continous_assessments.sca_score) as total_marks')
-    )
-    ->where('final_examination_results.course_id', $courseId)
-    ->where('final_examination_results.delivery_mode', $delivery)
-    ->where('final_examination_results.study_id', $coursesInEdurole->StudyID)
-    ->where('final_examination_results.academic_year', $academicYear)
-    ->groupBy(
-        'final_examination_results.student_id',
-        'final_examination_results.cas_score',
-        'final_examination_results.final_examination_results_id',
-        'final_examinations.course_code',
-        'final_examinations.cas_score',
-        'final_examinations.academic_year',
-        'final_examinations.course_id',
-        'final_examinations.delivery_mode',
-        'final_examinations.study_id',
-        'final_examinations.basic_information_id',
-        'final_examinations.updated_at',
-        'final_examinations.created_at'
-    )
-    ->orderBy('final_examination_results.final_examination_results_id', 'asc')
-    ->get();
-
-    // return $results;
-            
+        $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
+            ->where('students_continous_assessments.delivery_mode', $delivery)
+            ->where('students_continous_assessments.study_id', $coursesInEdurole->StudyID)
+            ->where('students_continous_assessments.component_id', $componentId)
+            // ->whereIn('ca_type', [1,2,3]) 
+            ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id')
+            ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
+            ->groupBy('students_continous_assessments.student_id')
+            ->get();
+        
         // }else{
         //     $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
         //         ->where('ca_type', 4) 
@@ -1024,16 +963,16 @@ class CoordinatorController extends Controller
                 ->first();
         // return $courseDetails;
         // if($caType != 4){            
-        $resultsGetAllInstances = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
+        $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
             ->where('students_continous_assessments.delivery_mode', $delivery)
             ->where('students_continous_assessments.study_id', $coursesInEdurole->StudyID)
             ->whereNotNull('students_continous_assessments.component_id');
         
         // Count the number of unique instances based on component_id
-        $numberOfUniqueInstances = $resultsGetAllInstances->distinct('students_continous_assessments.component_id')->count('students_continous_assessments.component_id');
+        $numberOfUniqueInstances = $results->distinct('students_continous_assessments.component_id')->count('students_continous_assessments.component_id');
         
         // Calculate the total marks for each student
-        $results = $resultsGetAllInstances
+        $results = $results
             ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id')
             ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
             ->groupBy('students_continous_assessments.student_id')
@@ -1088,16 +1027,16 @@ class CoordinatorController extends Controller
                 ->first();
         // return $courseDetails;
         // if($caType != 4){            
-        $resultsGetAllInstances = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
+        $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
             ->where('students_continous_assessments.delivery_mode', $delivery)
             ->where('students_continous_assessments.study_id', $coursesInEdurole->StudyID)
             ->whereNotNull('students_continous_assessments.component_id');
         
         // Count the number of unique instances based on component_id
-        $numberOfUniqueInstances = $resultsGetAllInstances->distinct('students_continous_assessments.component_id')->count('students_continous_assessments.component_id');
+        $numberOfUniqueInstances = $results->distinct('students_continous_assessments.component_id')->count('students_continous_assessments.component_id');
         
         // Calculate the total marks for each student
-        $results = $resultsGetAllInstances
+        $results = $results
             ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id')
             ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
             ->groupBy('students_continous_assessments.student_id')
@@ -1302,387 +1241,280 @@ class CoordinatorController extends Controller
 
     public function importCAFromExcelSheet(Request $request)
     {
-        set_time_limit(0);
-        ini_set('memory_limit', '512M'); // Adjust as needed
+        // Process the Excel file
+        $data = $this->processExcelImport($request);
         
-        // Validate the form data
-        $request->validate([
-            'excelFile' => 'required|mimes:xls,xlsx,csv',
-            'academicYear' => 'required',
-            'ca_type' => 'required',
-            'course_id' => 'required',
-            'course_code' => 'required',
-            'basicInformationId' => 'required',
-            'delivery' => 'required',
-            'study_id' => 'required',
-            // 'component_id' => 'required',
-        ]);
-        $expectedColumnCount = 2;
-
+        // If data is not an array, it's a redirect response due to an error
+        if (!is_array($data)) {
+            return $data;
+        }
+        
         try {
-            if ($request->hasFile('excelFile')) {
-                $file = $request->file('excelFile');
-                $filePath = $file->getPathname();
-
-                if (!is_readable($filePath)) {
-                    return back()->with('error', 'The uploaded file could not be read. Please try again.');
-                }
-
-                $reader = ReaderEntityFactory::createXLSXReader();
-                $reader->open($filePath);
-
-                // Check if the workbook has only one sheet
-                $sheetCount = iterator_count($reader->getSheetIterator());
-                if ($sheetCount > 1) {
-                    $reader->close();
-                    return back()->with('error', 'The uploaded Excel workbook must contain exactly one sheet.');
-                }
-
-                $reader->close();
-                $reader->open($filePath); // Re-open to reset the iterator
-
-                $data = [];
-                foreach ($reader->getSheetIterator() as $sheet) {
-                    foreach ($sheet->getRowIterator() as $row) {
-                        $actualColumnCount = count($row->getCells());
-                        // if ($actualColumnCount != $expectedColumnCount) {
-                        //     $reader->close();
-                        //     return back()->with('error', "The uploaded Excel sheet must contain exactly $expectedColumnCount columns.");
-                        // }
-                        try {
-                            // Clean and trim the student number
-                            $studentNumber = trim($row->getCellAtIndex(0)->getValue());
-                            // if (!is_numeric($studentNumber) || strlen($studentNumber) < 7 || strlen($studentNumber) > 10) {
-                            //     throw new \Exception("Student number contains special characters or is not within the valid length range.");
-                            // }
-
-                            // Clean and trim the mark, then convert it to a float
-                            $mark = trim($row->getCellAtIndex(1)->getValue());
-                            // if (!is_numeric($mark)) {
-                            //     throw new \Exception("Mark is not a valid number.");
-                            // }
-                            $mark = (float)$mark;
-                        } catch (\Exception $e) {
-                            $reader->close();
-                            return back()->with('error', 'Error in row: ' . $e->getMessage());
-                        }
-
-                        $data[] = [
-                            'student_number' => $studentNumber,
-                            'mark' => $mark,
-                        ];
-                    }
-                }
-                $reader->close();
-
-                DB::beginTransaction();
-                try {
-                    // Create a new course assessment
-                    $newAssessment = CourseAssessment::create([
-                        'course_id' => $request->course_id,
-                        'ca_type' => $request->ca_type,
-                        'description' => $request->description,
-                        'academic_year' => $request->academicYear,
-                        'basic_information_id' => $request->basicInformationId,
+            DB::beginTransaction();
+            
+            // Create a new course assessment
+            $newAssessment = CourseAssessment::create([
+                'course_id' => $request->course_id,
+                'ca_type' => $request->ca_type,
+                'description' => $request->description,
+                'academic_year' => $request->academicYear,
+                'basic_information_id' => $request->basicInformationId,
+                'delivery_mode' => $request->delivery,
+                'study_id' => $request->study_id,
+                'component_id' => $request->component_id ?? null,
+            ]);
+            
+            // Track created/updated records
+            $createdCount = 0;
+            $updatedCount = 0;
+            
+            foreach ($data as $entry) {
+                $result = CourseAssessmentScores::updateOrCreate(
+                    [
+                        'course_assessment_id' => $newAssessment->course_assessments_id,
+                        'student_id' => trim($entry['student_number']),
+                        'course_code' => $request->course_code,
                         'delivery_mode' => $request->delivery,
                         'study_id' => $request->study_id,
-                        'component_id' => $request->component_id,
-                    ]);
-
-                    foreach ($data as $entry) {
-                        CourseAssessmentScores::updateOrCreate(
-                            [
-                                'course_assessment_id' => $newAssessment->course_assessments_id,
-                                'student_id' => trim($entry['student_number']),
-                                'course_code' => $request->course_code,
-                                'delivery_mode' => $request->delivery,
-                                'study_id' => $request->study_id,
-                                'component_id' => $request->component_id,
-                            ],
-                            [
-                                'cas_score' => $entry['mark'],
-                            ]
-                        );
-                        $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $request->ca_type, trim($entry['student_number']), $newAssessment->course_assessments_id, $request->delivery, $request->study_id,$request->component_id);
-                    }
-                    DB::commit();
-                } catch (\Exception $e) {
-                    DB::rollBack();
-                    return back()->with('error', 'An error occurred while importing the data. Please try again. Error: ' . $e->getMessage());
+                    ],
+                    [
+                        'cas_score' => $entry['mark'],
+                    ]
+                );
+                
+                // Track if record was created or updated
+                if ($result->wasRecentlyCreated) {
+                    $createdCount++;
+                } else {
+                    $updatedCount++;
                 }
+                
+                $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $request->ca_type, trim($entry['student_number']), $newAssessment->course_assessments_id, $request->delivery, $request->study_id, $request->component_id ?? null);
             }
-
+            
+            DB::commit();
+            
             $statusIdToRoute = encrypt($request->ca_type);
             $courseIdToRoute = encrypt($newAssessment->course_assessments_id);
             $assessmentNumber = encrypt(1);
-            $delivery = encrypt($request->delivery);
-
-            return redirect()->route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusIdToRoute, 'courseIdValue' => $courseIdToRoute, 'assessmentNumber' => $assessmentNumber])->with('success', 'Data imported successfully');
+            
+            $message = "Data imported successfully. Created: $createdCount records. Updated: $updatedCount records.";
+            return redirect()->route('coordinator.viewSpecificCaInCourse', [
+                'statusId' => $statusIdToRoute, 
+                'courseIdValue' => $courseIdToRoute, 
+                'assessmentNumber' => $assessmentNumber
+            ])->with('success', $message);
+            
         } catch (\Exception $e) {
-            return back()->with('error', 'An error occurred during the upload process. Please try again. Error: ' . $e->getMessage());
+            DB::rollBack();
+            Log::error('CA Import Error: ' . $e->getMessage());
+            return back()->with('error', 'An error occurred while importing the data: ' . $e->getMessage());
         }
     }
 
     public function importFinalExamFromExcelSheet(Request $request)
     {
-        set_time_limit(0);
-        ini_set('memory_limit', '512M'); // Adjust as needed
+        // Process the Excel file with isFinalExam flag set to true
+        $data = $this->processExcelImport($request, [], true);
         
-        // Validate the form data
-        $request->validate([
-            'excelFile' => 'required|mimes:xls,xlsx,csv',
-            'academicYear' => 'required',
-            // 'ca_type' => 'required',
-            'course_id' => 'required',
-            'course_code' => 'required',
-            'basicInformationId' => 'required',
-            'delivery' => 'required',
-            'study_id' => 'required',
-            // 'component_id' => 'required',
-        ]);
-        $expectedColumnCount = 2;
-
+        // If data is not an array, it's a redirect response due to an error
+        if (!is_array($data)) {
+            return $data;
+        }
+        
         try {
-            if ($request->hasFile('excelFile')) {
-                $file = $request->file('excelFile');
-                $filePath = $file->getPathname();
-
-                if (!is_readable($filePath)) {
-                    return back()->with('error', 'The uploaded file could not be read. Please try again.');
+            DB::beginTransaction();
+            
+            // Create a new course assessment for final exam (ca_type = 4)
+            $newAssessment = CourseAssessment::create([
+                'course_id' => $request->course_id,
+                'ca_type' => 4, // Final Exam
+                'description' => $request->description,
+                'academic_year' => $request->academicYear,
+                'basic_information_id' => $request->basicInformationId,
+                'delivery_mode' => $request->delivery,
+                'study_id' => $request->study_id,
+                'component_id' => $request->component_id ?? null,
+            ]);
+            
+            // Track created/updated records
+            $createdCount = 0;
+            $updatedCount = 0;
+            
+            foreach ($data as $entry) {
+                $result = CourseAssessmentScores::updateOrCreate(
+                    [
+                        'course_assessment_id' => $newAssessment->course_assessments_id,
+                        'student_id' => trim($entry['student_number']),
+                        'course_code' => $request->course_code,
+                        'delivery_mode' => $request->delivery,
+                        'study_id' => $request->study_id,
+                    ],
+                    [
+                        'cas_score' => $entry['mark'],
+                    ]
+                );
+                
+                // Track if record was created or updated
+                if ($result->wasRecentlyCreated) {
+                    $createdCount++;
+                } else {
+                    $updatedCount++;
                 }
-
-                $reader = ReaderEntityFactory::createXLSXReader();
-                $reader->open($filePath);
-
-                // Check if the workbook has only one sheet
-                $sheetCount = iterator_count($reader->getSheetIterator());
-                if ($sheetCount > 1) {
-                    $reader->close();
-                    return back()->with('error', 'The uploaded Excel workbook must contain exactly one sheet.');
-                }
-
-                $reader->close();
-                $reader->open($filePath); // Re-open to reset the iterator
-
-                $data = [];
-                foreach ($reader->getSheetIterator() as $sheet) {
-                    foreach ($sheet->getRowIterator() as $row) {
-                        $actualColumnCount = count($row->getCells());
-                        // if ($actualColumnCount != $expectedColumnCount) {
-                        //     $reader->close();
-                        //     return back()->with('error', "The uploaded Excel sheet must contain exactly $expectedColumnCount columns.");
-                        // }
-                        try {
-                            // Clean and trim the student number
-                            $studentNumber = trim($row->getCellAtIndex(0)->getValue());
-                            // if (!is_numeric($studentNumber) || strlen($studentNumber) < 7 || strlen($studentNumber) > 10) {
-                            //     throw new \Exception("Student number contains special characters or is not within the valid length range.");
-                            // }
-
-                            // Clean and trim the mark, then convert it to a float
-                            $mark = trim($row->getCellAtIndex(1)->getValue());
-                            // if (!is_numeric($mark)) {
-                            //     throw new \Exception("Mark is not a valid number.");
-                            // }
-                            $mark = (float)$mark;
-                        } catch (\Exception $e) {
-                            $reader->close();
-                            return back()->with('error', 'Error in row: ' . $e->getMessage());
-                        }
-
-                        $data[] = [
-                            'student_number' => $studentNumber,
-                            'mark' => $mark,
-                        ];
-                    }
-                }
-                $reader->close();
-
-                DB::beginTransaction();
-                try {
-                    // Create a new course assessment
-                    // $newExam = FinalExamination::updateOrCreate([
-                    //     'course_id' => $request->course_id,
-                    //     // 'ca_type' => $request->ca_type,
-                    //     'course_code' => $request->course_code,
-                    //     'description' => $request->description,
-                    //     'academic_year' => $request->academicYear,
-                    //     'basic_information_id' => $request->basicInformationId,
-                    //     'delivery_mode' => $request->delivery,
-                    //     'study_id' => $request->study_id,
-                    //     'component_id' => $request->component_id,
-                    // ]);
-
-                    foreach ($data as $entry) {
-                        $newExam = FinalExamination::updateOrCreate(
-                            [
-                                'course_id' => $request->course_id,
-                                'student_id' => trim($entry['student_number']),
-                                // 'ca_type' => $request->ca_type,
-                                'course_code' => $request->course_code,
-                                // 'description' => $request->description,
-                                'academic_year' => $request->academicYear,
-                                'basic_information_id' => $request->basicInformationId,
-                                'delivery_mode' => $request->delivery,
-                                'study_id' => $request->study_id,                               
-                            ],
-                            [
-                                'cas_score' => $entry['mark'],
-                            ]
-                        );
-                        $this->calculateAndSubmitFinalExam($request->course_id, $request->academicYear,  trim($entry['student_number']), $newExam->final_examinations_id, $request->delivery, $request->study_id, $request->basicInformationId, $entry['mark']);
-                    }
-                    DB::commit();
-                } catch (\Exception $e) {
-                    DB::rollBack();
-                    return back()->with('error', 'An error occurred while importing the data. Please try again. Error: ' . $e->getMessage());
-                }
+                
+                // Calculate final exam scores
+                $this->calculateFinalExamScores($request->course_id, $request->academicYear, trim($entry['student_number']), $newAssessment->course_assessments_id, $request->delivery, $request->study_id, $request->component_id ?? null, $entry['mark']);
             }
-
-            // $statusIdToRoute = encrypt($request->ca_type);
-            // $courseIdToRoute = encrypt($newAssessment->course_assessments_id);
-            // $assessmentNumber = encrypt(1);
-            // $delivery = encrypt($request->delivery);
-            return redirect()->back()->with('success', 'Data imported successfully');
-            // return redirect()->route('coordinator.viewSpecificCaInCourse', ['statusId' => $statusIdToRoute, 'courseIdValue' => $courseIdToRoute, 'assessmentNumber' => $assessmentNumber])->with('success', 'Data imported successfully');
+            
+            DB::commit();
+            
+            $statusIdToRoute = encrypt(4); // 4 for Final Exam
+            $courseIdToRoute = encrypt($newAssessment->course_assessments_id);
+            $assessmentNumber = encrypt(1);
+            
+            $message = "Final exam data imported successfully. Created: $createdCount records. Updated: $updatedCount records.";
+            return redirect()->route('coordinator.viewSpecificCaInCourse', [
+                'statusId' => $statusIdToRoute, 
+                'courseIdValue' => $courseIdToRoute, 
+                'assessmentNumber' => $assessmentNumber
+            ])->with('success', $message);
+            
         } catch (\Exception $e) {
-            return back()->with('error', 'An error occurred during the upload process. Please try again. Error: ' . $e->getMessage());
+            DB::rollBack();
+            Log::error('Final Exam Import Error: ' . $e->getMessage());
+            return back()->with('error', 'An error occurred while importing the data: ' . $e->getMessage());
         }
     }
 
     public function importFinalExamAndCaFromExcelSheet(Request $request)
     {
         set_time_limit(0);
-        ini_set('memory_limit', '512M');
+        ini_set('memory_limit', '512M'); // Adjust as needed
+        
+        // Validate the form data
+        $request->validate([
+            'excelFile' => 'required|mimes:xls,xlsx,csv',
+            'academicYear' => 'required',
+            'course_id' => 'required',
+            'course_code' => 'required',
+            'basicInformationId' => 'required',
+            'delivery' => 'required',
+            'study_id' => 'required',
+            'typeOfExam' => 'required|in:1,2',
+        ]);
+        
+        $typeOfExam = $request->typeOfExam;
+        if (!$request->hasFile('excelFile')) {
+            return back()->with('error', 'No file was uploaded. Please try again.');
+        }
+        
+        $file = $request->file('excelFile');
+        $filePath = $file->getPathname();
+
+        $reader = ReaderEntityFactory::createXLSXReader();
+        $reader->open($filePath);
+
+        $data = [];
+        $rowNumber = 0;
+        $errors = [];
+
+        foreach ($reader->getSheetIterator() as $sheet) {
+            foreach ($sheet->getRowIterator() as $row) {
+                $rowNumber++;
+                try {
+                    $studentNumber = trim($row->getCellAtIndex(0)->getValue());
+                    if (empty($studentNumber)) {
+                        $errors[] = "Row {$rowNumber}: Student number cannot be empty.";
+                        continue;
+                    }
     
-        try {
-            // Validation
-            $request->validate([
-                'excelFile' => 'required|mimes:xls,xlsx,csv',
-                'academicYear' => 'required',
-                'course_id' => 'required',
-                'course_code' => 'required',
-                'basicInformationId' => 'required',
-                'delivery' => 'required',
-                'study_id' => 'required',
-                'typeOfExam' => 'required|in:1,2',
-            ]);
-    
-            $typeOfExam = $request->typeOfExam;
-            if (!$request->hasFile('excelFile')) {
-                return back()->with('error', 'No file was uploaded. Please try again.');
-            }
-    
-            $file = $request->file('excelFile');
-            $filePath = $file->getPathname();
-    
-            $reader = ReaderEntityFactory::createXLSXReader();
-            $reader->open($filePath);
-    
-            $data = [];
-            $rowNumber = 0;
-            $errors = [];
-    
-            foreach ($reader->getSheetIterator() as $sheet) {
-                foreach ($sheet->getRowIterator() as $row) {
-                    $rowNumber++;
-                    try {
-                        $studentNumber = trim($row->getCellAtIndex(0)->getValue());
-                        if (empty($studentNumber)) {
-                            $errors[] = "Row {$rowNumber}: Student number cannot be empty.";
-                            continue;
-                        }
-    
-                        $caScore = $typeOfExam == 1 ? ($row->getCellAtIndex(1) ? trim($row->getCellAtIndex(1)->getValue()) : null) : null;
-                        $examScore = $row->getCellAtIndex($typeOfExam == 1 ? 2 : 1) ? trim($row->getCellAtIndex($typeOfExam == 1 ? 2 : 1)->getValue()) : null;
-                        $gradeFromExcel = $row->getCellAtIndex($typeOfExam == 1 ? 3 : 2) ? trim($row->getCellAtIndex($typeOfExam == 1 ? 3 : 2)->getValue()) : null;
+                    $caScore = $typeOfExam == 1 ? ($row->getCellAtIndex(1) ? trim($row->getCellAtIndex(1)->getValue()) : null) : null;
+                    $examScore = $row->getCellAtIndex($typeOfExam == 1 ? 2 : 1) ? trim($row->getCellAtIndex($typeOfExam == 1 ? 2 : 1)->getValue()) : null;
+                    $gradeFromExcel = $row->getCellAtIndex($typeOfExam == 1 ? 3 : 2) ? trim($row->getCellAtIndex($typeOfExam == 1 ? 3 : 2)->getValue()) : null;
 
     
-                        $totalMark = $typeOfExam == 1 ? ($caScore + $examScore) : $examScore;
-                        $grade = null;
+                    $totalMark = $typeOfExam == 1 ? ($caScore + $examScore) : $examScore;
+                    $grade = null;
     
-                        // Determine grade based on available data
-                        if (!empty($gradeFromExcel)) {
-                            $grade = $gradeFromExcel; // Use pre-assigned grade if provided
-                        } elseif (is_numeric($totalMark) && $totalMark >= 0) {
-                            if ($totalMark >= 90) $grade = 'A+';
-                            elseif ($totalMark >= 80) $grade = 'A';
-                            elseif ($totalMark >= 70) $grade = 'B+';
-                            elseif ($totalMark >= 60) $grade = 'B';
-                            elseif ($totalMark >= 55) $grade = 'C+';
-                            elseif ($totalMark >= 50) $grade = 'C';
-                            elseif ($totalMark >= 45) $grade = 'D+';
-                            elseif ($totalMark >= 40) $grade = 'D';
-                            else $grade = 'F';
-                        } elseif (empty($examScore) || !is_numeric($examScore)) {
-                            $grade = 'NE'; // No Exam score                        
-                        }
-    
-                        $data[] = [
-                            'student_id' => $studentNumber,
-                            'ca' => $typeOfExam == 1 ? (is_numeric($caScore) ? (float)$caScore : null) : null,
-                            'exam' => is_numeric($examScore) ? (float)$examScore : null,
-                            'grade' => $grade,
-                        ];
-                    } catch (\Exception $e) {
-                        $errors[] = "Row {$rowNumber}: Error processing row - {$e->getMessage()}";
+                    // Determine grade based on available data
+                    if (!empty($gradeFromExcel)) {
+                        $grade = $gradeFromExcel; // Use pre-assigned grade if provided
+                    } elseif (is_numeric($totalMark) && $totalMark >= 0) {
+                        if ($totalMark >= 90) $grade = 'A+';
+                        elseif ($totalMark >= 80) $grade = 'A';
+                        elseif ($totalMark >= 70) $grade = 'B+';
+                        elseif ($totalMark >= 60) $grade = 'B';
+                        elseif ($totalMark >= 55) $grade = 'C+';
+                        elseif ($totalMark >= 50) $grade = 'C';
+                        elseif ($totalMark >= 45) $grade = 'D+';
+                        elseif ($totalMark >= 40) $grade = 'D';
+                        else $grade = 'F';
+                    } elseif (empty($examScore) || !is_numeric($examScore)) {
+                        $grade = 'NE'; // No Exam score                        
                     }
+    
+                    $data[] = [
+                        'student_id' => $studentNumber,
+                        'ca' => $typeOfExam == 1 ? (is_numeric($caScore) ? (float)$caScore : null) : null,
+                        'exam' => is_numeric($examScore) ? (float)$examScore : null,
+                        'grade' => $grade,
+                    ];
+                } catch (\Exception $e) {
+                    $errors[] = "Row {$rowNumber}: Error processing row - {$e->getMessage()}";
                 }
             }
-            $reader->close();
+        }
+        $reader->close();
     
-            if (!empty($errors)) {
-                return back()->with('error', 'Errors found in upload:<br>' . implode('<br>', $errors));
-            }
+        if (!empty($errors)) {
+            return back()->with('error', 'Errors found in upload:<br>' . implode('<br>', $errors));
+        }
     
-            if (empty($data)) {
-                return back()->with('error', 'No valid data found in the uploaded file.');
-            }
+        if (empty($data)) {
+            return back()->with('error', 'No valid data found in the uploaded file.');
+        }
     
-            DB::beginTransaction();
-            try {
-                $successCount = 0;
-                $updateCount = 0;
+        DB::beginTransaction();
+        try {
+            $successCount = 0;
+            $updateCount = 0;
     
-                foreach ($data as $entry) {
-                    $conditions = [
-                        'student_id' => $entry['student_id'],
-                        'course_code' => $request->course_code,
-                        'delivery_mode' => $request->delivery,
-                        'study_id' => $request->study_id,
-                        'course_id' => $request->course_id,
-                        'academic_year' => $request->academicYear,
-                    ];
+            foreach ($data as $entry) {
+                $conditions = [
+                    'student_id' => $entry['student_id'],
+                    'course_code' => $request->course_code,
+                    'delivery_mode' => $request->delivery,
+                    'study_id' => $request->study_id,
+                    'course_id' => $request->course_id,
+                    'academic_year' => $request->academicYear,
+                ];
     
-                    $values = [
-                        'basic_information_id' => $request->basicInformationId,
-                        'status' => 1,
-                        'type_of_exam' => $typeOfExam,
-                        'ca' => $entry['ca'],
-                        'exam' => $entry['exam'],
-                        'grade' => $entry['grade'],
-                    ];
+                $values = [
+                    'basic_information_id' => $request->basicInformationId,
+                    'status' => 1,
+                    'type_of_exam' => $typeOfExam,
+                    'ca' => $entry['ca'],
+                    'exam' => $entry['exam'],
+                    'grade' => $entry['grade'],
+                ];
     
-                    $result = CaAndExamUpload::updateOrCreate($conditions, $values);
-                    if ($result->wasRecentlyCreated) {
-                        $successCount++;
-                    } else {
-                        $updateCount++;
-                    }
+                $result = CaAndExamUpload::updateOrCreate($conditions, $values);
+                if ($result->wasRecentlyCreated) {
+                    $successCount++;
+                } else {
+                    $updateCount++;
                 }
-    
-                DB::commit();
-                $message = "Data imported successfully. ";
-                $message .= $successCount > 0 ? "{$successCount} new records created. " : "";
-                $message .= $updateCount > 0 ? "{$updateCount} records updated." : "";
-    
-                return redirect()->back()->with('success', $message);
-            } catch (\Exception $e) {
-                DB::rollBack();
-                return back()->with('error', 'Database error: ' . $e->getMessage());
             }
+    
+            DB::commit();
+            $message = "Data imported successfully. ";
+            $message .= $successCount > 0 ? "{$successCount} new records created. " : "";
+            $message .= $updateCount > 0 ? "{$updateCount} records updated." : "";
+    
+            return redirect()->back()->with('success', $message);
         } catch (\Exception $e) {
-            return back()->with('error', 'System error: ' . $e->getMessage());
+            DB::rollBack();
+            return back()->with('error', 'Database error: ' . $e->getMessage());
         }
     }
     
@@ -1778,7 +1610,6 @@ class CoordinatorController extends Controller
             $getCaType = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)->first();
             $caType = $request->ca_type;
             $studyId = $request->study_id;
-            // return ' Ca Type: ' . $caType . ' Study ID: ' . $studyId;
             if($request->component_id){
                 $componentId = $request->component_id;
             }else{
@@ -1867,7 +1698,7 @@ class CoordinatorController extends Controller
                 ]);
 
             $getCaType = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)->first();
-            $caType = $request->ca_type;
+            $caType = $request->caType;
             $studyId = $request->study_id;
             if($request->component_id){
                 $componentId = $request->component_id;
@@ -2048,7 +1879,7 @@ class CoordinatorController extends Controller
         try {
             
             $getCaType = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)->first();
-            $caType = $request->ca_type;
+            $caType = $request->caType;
             $studyId = $request->study_id;
             if($request->component_id){
                 $componentId = $request->component_id;
@@ -2093,78 +1924,59 @@ class CoordinatorController extends Controller
         }
     }
     
-    private function calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId,$componentId, $excludeCurrent = false)
-    {
+    private function calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId){
         DB::beginTransaction();
 
         try {
-            // Fetch CA scores
-            $caScores = $this->getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId,$componentId, $excludeCurrent);
+            Log::info("Starting score calculation for student: {$studentNumber}");
+            
+            // Get all CA scores for this student in this course
+            $caScores = $this->getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);
             $total = $caScores->sum('mark');            
+            
             // Fetch the count of assessments
-            $count = $this->getNumberOfAssessmnets($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId,$componentId, $excludeCurrent);
-            Log::info('Total score: ' . $total . ' Count: ' . $count);
-            // Fetch max score
-            $maxScore = $this->getMaxScore($courseId, $caType, $delivery, $studyId,$componentId);
-            // Calculate average and adjusted average
-            $average = $count > 0 ? $total / $count : 0;
-            $adjustedAverage = ($average / 100) * $maxScore;
-            // Save or update the student's CA
-            $this->saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId,$componentId);
-            // Commit the transaction if everything is successful
-            DB::commit();
+            $count = $this->getNumberOfAssessmnets($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);
+            
+            Log::info("Calculating scores for student: {$studentNumber}, course: {$courseId}, CA type: {$caType}");
+            Log::info("Total score: {$total}, Count: {$count}");
+            
+            if ($count > 0) {
+                $average = $total / $count;
+                
+                // Get the maximum possible score for this assessment type
+                $maxScore = $this->getMaxScore($courseId, $caType, $delivery, $studyId, $componentId);
+                
+                // Calculate the adjusted average (scaled to maxScore)
+                $adjustedAverage = ($average / 100) * $maxScore;
+                
+                Log::info("Average: {$average}, Max Score: {$maxScore}, Adjusted Average: {$adjustedAverage}");
+                
+                // Save or update the student's CA record
+                $this->saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId, $componentId);
+                
+                DB::commit();
+                return true;
+            } else {
+                Log::warning("No assessments found for student: {$studentNumber}, course: {$courseId}, CA type: {$caType}");
+                DB::rollBack();
+                return false;
+            }
         } catch (\Exception $e) {
-            // Rollback the transaction if any exception occurs
             DB::rollBack();
-            // Log the error message
-            Log::error('Failed to calculate scores: ' . $e->getMessage());
-            // Optionally, you can throw the exception to handle it in the calling method
+            Log::error("Error calculating scores: " . $e->getMessage());
             throw $e;
         }
     }
-
-    private function calculateFinalExamScores($courseId, $academicYear, $studentNumber, $finalExamId, $delivery, $studyId, $basicInformationId, $mark) {
-        DB::beginTransaction();
     
-        try {
-            $totalMark = 60;
-            $percentOfTotal = ($mark * $totalMark) / 100;
-    
-            FinalExaminationResults::updateOrCreate(                [
-                    'student_id' => $studentNumber,
-                    'course_id' => $courseId,
-                    'academic_year' => $academicYear,
-                    'final_examinations_id' => $finalExamId,
-                    'delivery_mode' => $delivery,
-                    'study_id' => $studyId,
-                    'basic_information_id'=> $basicInformationId,
-                ],
-                [
-                    'cas_score' => $percentOfTotal,
-                ]
-            );
-    
-            DB::commit();
-        } catch (\Exception $e) {
-            // Rollback the transaction if any exception occurs
-            DB::rollBack();
-            // Log the error message
-            Log::error('Failed to calculate scores: ' . $e->getMessage());
-            // Optionally, you can throw the exception to handle it in the calling method
-            throw $e;
-        }
-    }
-
-
-    private function getNumberOfAssessmnets($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery,$studyId,$componentId, $excludeCurrent){
+    private function getNumberOfAssessmnets($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId){
         return CourseAssessmentScores::where('course_assessments.course_id', $courseId)
             ->where('course_assessments.academic_year', $academicYear)
             ->where('course_assessments.ca_type', $caType)
-            ->where('course_assessments.delivery_mode', $delivery)
-            ->where('course_assessments.component_id', $componentId)
-            // ->where('course_assessment_scores.student_id', $studentNumber)
+            ->where('course_assessment_scores.student_id', $studentNumber)
+            ->where('course_assessment_scores.delivery_mode', $delivery)
             ->where('course_assessment_scores.study_id', $studyId)
-            ->when($excludeCurrent, function ($query) use ($courseAssessmentId) {
+            ->where('course_assessment_scores.component_id', $componentId)    
+            ->when(false, function ($query) use ($courseAssessmentId) {
                 return $query->where('course_assessment_scores.course_assessment_id', '!=', $courseAssessmentId);
             })
             ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'course_assessment_scores.course_assessment_id')
@@ -2172,15 +1984,15 @@ class CoordinatorController extends Controller
             ->count('course_assessment_scores.course_assessment_id');
     }
     
-    private function getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId,$delivery,$studyId,$componentId , $excludeCurrent){
+    private function getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId){
         return CourseAssessmentScores::where('course_assessments.course_id', $courseId)
             ->where('course_assessments.academic_year', $academicYear)
             ->where('course_assessments.ca_type', $caType)
-            ->where('course_assessments.delivery_mode', $delivery)
             ->where('course_assessment_scores.student_id', $studentNumber)
+            ->where('course_assessment_scores.delivery_mode', $delivery)
             ->where('course_assessment_scores.study_id', $studyId)
             ->where('course_assessment_scores.component_id', $componentId)
-            ->when($excludeCurrent, function ($query) use ($courseAssessmentId) {
+            ->when(false, function ($query) use ($courseAssessmentId) {
                 return $query->where('course_assessment_scores.course_assessment_id', '!=', $courseAssessmentId);
             })
             ->select('course_assessment_scores.cas_score as mark')
@@ -2199,38 +2011,47 @@ class CoordinatorController extends Controller
         return $courseAssessmenetTypes->total_marks;
     }
 
-    //Old Function
-    private function saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId, $componentId){
-        $studentCA = StudentsContinousAssessment::firstOrNew(['student_id' => $studentNumber,
-                        'course_id' => $courseId,
-                        'academic_year' => $academicYear, 
-                        'ca_type' => $caType, 
-                        'delivery_mode' => $delivery, 
-                        'study_id' => $studyId,
-                        'component_id' => $componentId
-                    ]);
-        $studentCA->course_assessment_id = $courseAssessmentId;
-        $studentCA->sca_score = $adjustedAverage;
-        $studentCA->save();
+    private function setAssesmentType($statusId){
+        $getAssesmntType = AssessmentTypes::where('id', $statusId)->first();
+        return $getAssesmntType->assesment_type_name;
+    }
+
+    /**
+     * Calculate scores for a student's continuous assessment
+     * 
+     * This method calculates the weighted average score for a student based on their assessment scores
+     * and updates the StudentsContinousAssessment table with the result.
+     * 
+     * @param int $courseId The course ID
+     * @param string $academicYear The academic year
+     * @param int $caType The CA type ID
+     * @param string $studentNumber The student's ID number
+     * @param int $courseAssessmentId The course assessment ID
+     * @param string $delivery The delivery mode (e.g., 'Distance', 'Fulltime')
+     * @param int $studyId The study ID
+     * @param int|null $componentId The component ID (if applicable)
+     */
+    private function calculateAndSubmitCA($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId){
+        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);
     }
     
-    // private function saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId, $componentId) {
-    //     StudentsContinousAssessment::updateOrCreate(
-    //         [
-    //             'student_id' => $studentNumber,
-    //             'course_id' => $courseId,
-    //             'academic_year' => $academicYear,
-    //             'ca_type' => $caType,
-    //             'delivery_mode' => $delivery,
-    //             'study_id' => $studyId,
-    //             'component_id' => $componentId,
-    //             'course_assessment_id' => $courseAssessmentId,
-    //         ],
-    //         [
-    //             'sca_score' => $adjustedAverage,
-    //         ]
-    //     );
-    // }
+    private function saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId, $componentId){
+        StudentsContinousAssessment::updateOrCreate(
+            [
+                'student_id' => $studentNumber,
+                'course_id' => $courseId,
+                'academic_year' => $academicYear,
+                'ca_type' => $caType,
+                'delivery_mode' => $delivery,
+                'study_id' => $studyId,
+                'component_id' => $componentId,
+            ],
+            [
+                'course_assessment_id' => $courseAssessmentId,
+                'sca_score' => $adjustedAverage,
+            ]
+        );
+    }
 
     private function calculateAndSubmitFinalExam($courseId, $academicYear,  $studentNumber, $finalExamId, $delivery, $studyId, $basicInformationId, $mark){
         $this->calculateFinalExamScores($courseId, $academicYear,  $studentNumber, $finalExamId, $delivery, $studyId,$basicInformationId, $mark);
@@ -2240,17 +2061,177 @@ class CoordinatorController extends Controller
         $this->refreshCAMark($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);
     }
     
-    private function calculateAndSubmitCA($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId){
-        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId,$componentId, false);
-    }
-
-    
-    
     private function renewCABeforeDelete($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery,$studyId, $componentId){
-        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId,$componentId, true);
+        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);
     }
     
     private function refreshCAMark($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId){        
-        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId,false);        
+        $this->calculateScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);        
+    }
+
+    /**
+     * Calculate final examination scores for a student
+     * 
+     * This method calculates the weighted final exam score for a student and updates
+     * the FinalExaminationResults table with the result.
+     * 
+     * @param int $courseId The course ID
+     * @param string $academicYear The academic year
+     * @param string $studentNumber The student's ID number
+     * @param int $finalExamId The final examination ID
+     * @param string $delivery The delivery mode (e.g., 'Distance', 'Fulltime')
+     * @param int $studyId The study ID
+     * @param int $basicInformationId The basic information ID
+     * @param float $mark The raw mark to be converted
+     */
+    private function calculateFinalExamScores($courseId, $academicYear, $studentNumber, $finalExamId, $delivery, $studyId, $basicInformationId, $mark) {
+        DB::beginTransaction();
+    
+        try {
+            $totalMark = 60;
+            $percentOfTotal = ($mark * $totalMark) / 100;
+    
+            FinalExaminationResults::updateOrCreate(
+                [
+                    'student_id' => $studentNumber,
+                    'course_id' => $courseId,
+                    'academic_year' => $academicYear,
+                    'final_examinations_id' => $finalExamId,
+                    'delivery_mode' => $delivery,
+                    'study_id' => $studyId,
+                    'basic_information_id'=> $basicInformationId,
+                ],
+                [
+                    'cas_score' => $percentOfTotal,
+                ]
+            );
+    
+            Log::info("Successfully calculated final exam score for student: {$studentNumber}, score: {$percentOfTotal}");
+            DB::commit();
+        } catch (\Exception $e) {
+            // Rollback the transaction if any exception occurs
+            DB::rollBack();
+            
+            // Log the error message with detailed context
+            Log::error("Failed to calculate final exam scores: {$e->getMessage()}", [
+                'student_number' => $studentNumber,
+                'course_id' => $courseId,
+                'final_exam_id' => $finalExamId,
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Throw the exception to handle it in the calling method
+            throw $e;
+        }
+    }
+
+    /**
+     * Common method to process Excel imports for assessments
+     * 
+     * @param Request $request The request containing the Excel file and other data
+     * @param array $validationRules Additional validation rules specific to the import type
+     * @param bool $isFinalExam Whether this is a final exam import
+     * @return array|RedirectResponse Array of processed data or redirect response on error
+     */
+    private function processExcelImport(Request $request, array $validationRules = [], $isFinalExam = false)
+    {
+        set_time_limit(0);
+        ini_set('memory_limit', '512M');
+        
+        // Merge the provided validation rules with the default ones
+        $defaultRules = [
+            'excelFile' => 'required|mimes:xls,xlsx,csv',
+            'academicYear' => 'required',
+            // 'ca_type' => 'required',
+            'course_id' => 'required',
+            'course_code' => 'required',
+            'basicInformationId' => 'required',
+            'delivery' => 'required',
+            'study_id' => 'required',
+        ];
+        
+        // If not a final exam, require ca_type
+        if (!$isFinalExam) {
+            $defaultRules['ca_type'] = 'required';
+        }
+        
+        $validationRules = array_merge($defaultRules, $validationRules);
+        
+        // Validate the form data
+        $request->validate($validationRules);
+        
+        try {
+            if ($request->hasFile('excelFile')) {
+                $file = $request->file('excelFile');
+                $filePath = $file->getPathname();
+
+                if (!is_readable($filePath)) {
+                    return back()->with('error', 'The uploaded file could not be read. Please try again.');
+                }
+
+                $reader = ReaderEntityFactory::createXLSXReader();
+                $reader->open($filePath);
+
+                // Validate workbook has only one sheet
+                $sheetCount = iterator_count($reader->getSheetIterator());
+                if ($sheetCount > 1) {
+                    $reader->close();
+                    return back()->with('error', 'The uploaded Excel workbook must contain exactly one sheet.');
+                }
+
+                $reader->close();
+                $reader->open($filePath); // Re-open to reset the iterator
+
+                $data = [];
+                foreach ($reader->getSheetIterator() as $sheet) {
+                    foreach ($sheet->getRowIterator() as $rowIndex => $row) {
+                        // Skip header row if it exists
+                        if ($rowIndex === 1 && !is_numeric(trim($row->getCellAtIndex(0)->getValue()))) {
+                            continue;
+                        }
+                        
+                        try {
+                            // Clean and validate student number
+                            $studentNumber = trim($row->getCellAtIndex(0)->getValue());
+                            if (empty($studentNumber)) {
+                                continue; // Skip empty rows
+                            }
+                            
+                            // Clean and validate mark
+                            $mark = trim($row->getCellAtIndex(1)->getValue());
+                            if (!is_numeric($mark)) {
+                                throw new \Exception("Mark is not a valid number.");
+                            }
+                            $mark = (float)$mark;
+                            
+                            // Validate mark range (0-100)
+                            if ($mark < 0 || $mark > 100) {
+                                throw new \Exception("Mark for student $studentNumber is out of range (0-100).");
+                            }
+                            
+                            $data[] = [
+                                'student_number' => $studentNumber,
+                                'mark' => $mark,
+                            ];
+                        } catch (\Exception $e) {
+                            $reader->close();
+                            return back()->with('error', 'Error in row ' . ($rowIndex + 1) . ': ' . $e->getMessage());
+                        }
+                    }
+                }
+                $reader->close();
+                
+                if (empty($data)) {
+                    return back()->with('error', 'No valid data found in the uploaded file.');
+                }
+                
+                return $data;
+            }
+            
+            return back()->with('error', 'No file was uploaded.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'An error occurred during the upload process: ' . $e->getMessage());
+        }
     }
 }
