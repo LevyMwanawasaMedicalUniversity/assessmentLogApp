@@ -1279,6 +1279,8 @@ class CoordinatorController extends Controller
                     ],
                     [
                         'cas_score' => $entry['mark'],
+                        'created_by' => Auth::check() ? Auth::id() : null,
+                        'updated_by' => Auth::check() ? Auth::id() : null,
                     ]
                 );
                 
@@ -1391,8 +1393,8 @@ class CoordinatorController extends Controller
         set_time_limit(0);
         ini_set('memory_limit', '512M'); // Adjust as needed
         
-        // Validate the form data
-        $request->validate([
+        // Define validation rules
+        $validationRules = [
             'excelFile' => 'required|mimes:xls,xlsx,csv',
             'academicYear' => 'required',
             'course_id' => 'required',
@@ -1401,120 +1403,115 @@ class CoordinatorController extends Controller
             'delivery' => 'required',
             'study_id' => 'required',
             'typeOfExam' => 'required|in:1,2',
-        ]);
+        ];
         
-        $typeOfExam = $request->typeOfExam;
-        if (!$request->hasFile('excelFile')) {
-            return back()->with('error', 'No file was uploaded. Please try again.');
-        }
-        
-        $file = $request->file('excelFile');
-        $filePath = $file->getPathname();
-
-        $reader = ReaderEntityFactory::createXLSXReader();
-        $reader->open($filePath);
-
-        $data = [];
-        $rowNumber = 0;
-        $errors = [];
-
-        foreach ($reader->getSheetIterator() as $sheet) {
-            foreach ($sheet->getRowIterator() as $row) {
-                $rowNumber++;
-                try {
-                    $studentNumber = trim($row->getCellAtIndex(0)->getValue());
-                    if (empty($studentNumber)) {
-                        $errors[] = "Row {$rowNumber}: Student number cannot be empty.";
-                        continue;
-                    }
-    
-                    $caScore = $typeOfExam == 1 ? ($row->getCellAtIndex(1) ? trim($row->getCellAtIndex(1)->getValue()) : null) : null;
-                    $examScore = $row->getCellAtIndex($typeOfExam == 1 ? 2 : 1) ? trim($row->getCellAtIndex($typeOfExam == 1 ? 2 : 1)->getValue()) : null;
-                    $gradeFromExcel = $row->getCellAtIndex($typeOfExam == 1 ? 3 : 2) ? trim($row->getCellAtIndex($typeOfExam == 1 ? 3 : 2)->getValue()) : null;
-
-    
-                    $totalMark = $typeOfExam == 1 ? ($caScore + $examScore) : $examScore;
-                    $grade = null;
-    
-                    // Determine grade based on available data
-                    if (!empty($gradeFromExcel)) {
-                        $grade = $gradeFromExcel; // Use pre-assigned grade if provided
-                    } elseif (is_numeric($totalMark) && $totalMark >= 0) {
-                        if ($totalMark >= 90) $grade = 'A+';
-                        elseif ($totalMark >= 80) $grade = 'A';
-                        elseif ($totalMark >= 70) $grade = 'B+';
-                        elseif ($totalMark >= 60) $grade = 'B';
-                        elseif ($totalMark >= 55) $grade = 'C+';
-                        elseif ($totalMark >= 50) $grade = 'C';
-                        elseif ($totalMark >= 45) $grade = 'D+';
-                        elseif ($totalMark >= 40) $grade = 'D';
-                        else $grade = 'F';
-                    } elseif (empty($examScore) || !is_numeric($examScore)) {
-                        $grade = 'NE'; // No Exam score                        
-                    }
-    
-                    $data[] = [
-                        'student_id' => $studentNumber,
-                        'ca' => $typeOfExam == 1 ? (is_numeric($caScore) ? (float)$caScore : null) : null,
-                        'exam' => is_numeric($examScore) ? (float)$examScore : null,
-                        'grade' => $grade,
-                    ];
-                } catch (\Exception $e) {
-                    $errors[] = "Row {$rowNumber}: Error processing row - {$e->getMessage()}";
-                }
-            }
-        }
-        $reader->close();
-    
-        if (!empty($errors)) {
-            return back()->with('error', 'Errors found in upload:<br>' . implode('<br>', $errors));
-        }
-    
-        if (empty($data)) {
-            return back()->with('error', 'No valid data found in the uploaded file.');
-        }
-    
         DB::beginTransaction();
+        
         try {
+            Log::info('Starting import of both CA and Final Exam data');
+            
+            // Process the Excel file using our common method
+            $data = $this->processExcelImport($request, $validationRules, true);
+            
+            if (!is_array($data)) {
+                // If processExcelImport returns a redirect response (error), return it
+                return $data;
+            }
+            
+            $studyId = $request->study_id;
+            $componentId = $request->component_id ?? null;
+            $caType = $request->caType;
+            $courseId = $request->course_id;
+            $academicYear = $request->academicYear;
+            $courseCode = $request->course_code;
+            $delivery = $request->delivery;
+            $courseAssessmentId = $request->course_assessment_id;
+            $finalExamId = $request->final_examination_results_id;
+            
             $successCount = 0;
-            $updateCount = 0;
-    
+            $errorCount = 0;
+            $errors = [];
+            
             foreach ($data as $entry) {
-                $conditions = [
-                    'student_id' => $entry['student_id'],
-                    'course_code' => $request->course_code,
-                    'delivery_mode' => $request->delivery,
-                    'study_id' => $request->study_id,
-                    'course_id' => $request->course_id,
-                    'academic_year' => $request->academicYear,
-                ];
-    
-                $values = [
-                    'basic_information_id' => $request->basicInformationId,
-                    'status' => 1,
-                    'type_of_exam' => $typeOfExam,
-                    'ca' => $entry['ca'],
-                    'exam' => $entry['exam'],
-                    'grade' => $entry['grade'],
-                ];
-    
-                $result = CaAndExamUpload::updateOrCreate($conditions, $values);
-                if ($result->wasRecentlyCreated) {
+                try {
+                    $studentNumber = trim($entry['student_number']);
+                    $mark = trim($entry['mark']);
+                    
+                    Log::info("Processing student: {$studentNumber} with mark: {$mark}");
+                    
+                    // Update or create CA score record
+                    CourseAssessmentScores::updateOrCreate(
+                        [
+                            'course_assessment_id' => $courseAssessmentId,
+                            'student_id' => $studentNumber,
+                            'component_id' => $componentId,
+                            'course_code' => $courseCode,
+                            'delivery_mode' => $delivery,
+                            'study_id' => $studyId,
+                        ],
+                        [
+                            'cas_score' => $mark,
+                            'created_by' => Auth::check() ? Auth::id() : null,
+                            'updated_by' => Auth::check() ? Auth::id() : null,
+                        ]
+                    );
+                    
+                    // Calculate and submit CA scores
+                    $this->calculateAndSubmitCA(
+                        $courseId, 
+                        $academicYear, 
+                        $caType, 
+                        $studentNumber, 
+                        $courseAssessmentId, 
+                        $delivery, 
+                        $studyId,
+                        $componentId
+                    );
+                    
+                    // Update or create Final Exam record
+                    if ($finalExamId) {
+                        $this->calculateAndSubmitFinalExam(
+                            $courseId,
+                            $academicYear,
+                            $studentNumber,
+                            $finalExamId,
+                            $delivery,
+                            $studyId,
+                            $request->basicInformationId,
+                            $mark
+                        );
+                    }
+                    
                     $successCount++;
-                } else {
-                    $updateCount++;
+                } catch (\Exception $e) {
+                    $errorCount++;
+                    $errors[] = "Error processing student {$studentNumber}: " . $e->getMessage();
+                    Log::error("Error processing student {$studentNumber}: " . $e->getMessage());
                 }
             }
-    
+            
             DB::commit();
-            $message = "Data imported successfully. ";
-            $message .= $successCount > 0 ? "{$successCount} new records created. " : "";
-            $message .= $updateCount > 0 ? "{$updateCount} records updated." : "";
-    
-            return redirect()->back()->with('success', $message);
+            
+            $message = "Import completed: {$successCount} records processed successfully";
+            if ($errorCount > 0) {
+                $message .= ", {$errorCount} records failed";
+            }
+            
+            Log::info($message);
+            
+            if ($errorCount > 0) {
+                return back()->with('warning', $message . ". Check logs for details.");
+            } else {
+                return back()->with('success', $message);
+            }
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Database error: ' . $e->getMessage());
+            Log::error('Failed to import data: ' . $e->getMessage(), [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return back()->with('error', 'An error occurred while importing the data: ' . $e->getMessage());
         }
     }
     
@@ -1944,7 +1941,7 @@ class CoordinatorController extends Controller
                 $average = $total / $count;
                 
                 // Get the maximum possible score for this assessment type
-                $maxScore = $this->getMaxScore($courseId, $caType, $delivery, $studyId, $componentId);
+                $maxScore = $this->getMaxScore($courseId, $caType, $delivery, $studyId,$componentId);
                 
                 // Calculate the adjusted average (scaled to maxScore)
                 $adjustedAverage = ($average / 100) * $maxScore;
