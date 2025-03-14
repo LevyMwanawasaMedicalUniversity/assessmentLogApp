@@ -8,30 +8,30 @@
         </div>
     </div>
     <div class="card-body">
-        <div id="courses-from-lmmax-container">
-            <div class="content-container">
-                @if (auth()->user()->hasPermissionTo('Registrar'))
-                    <a href="{{ route('coordinator.viewOnlyProgrammesWithCa') }}">
-                @endif
-                    <div class="d-flex align-items-center">
-                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="bi bi-journal-text"></i>
-                        </div>
-                        <div class="ps-3">
-                            <h6 id="total-courses-with-ca">0</h6>
-                            <span class="text-success small pt-1 fw-bold">With Continuous</span> <span class="text-muted small pt-2 ps-1">Assessments</span>
-                        </div>
+    <div id="courses-from-lmmax-container">
+        <div class="content-container">
+            @if (auth()->user()->hasPermissionTo('Registrar'))
+                <a href="{{ route('coordinator.viewOnlyProgrammesWithCa') }}">
+            @endif
+                <div class="d-flex align-items-center">
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="background-color: #ff771d;">
+                        <i class="bi bi-journal-text text-white"></i>
                     </div>
-                @if (auth()->user()->hasPermissionTo('Registrar'))
-                    </a>
-                @endif
-            </div>
-            
-            <div class="error-container alert alert-danger d-none">
-                Failed to load data. Please refresh the page.
-            </div>
+                    <div class="ps-3">
+                        <h6 id="total-courses-with-ca">0</h6>
+                        <span class="small pt-1 fw-bold" style="color: #ff771d;">With Continuous</span> <span class="text-muted small pt-2 ps-1">Assessments</span>
+                    </div>
+                </div>
+            @if (auth()->user()->hasPermissionTo('Registrar'))
+                </a>
+            @endif
+        </div>
+        
+        <div class="error-container alert alert-danger d-none">
+            Failed to load data. Please refresh the page.
         </div>
     </div>
+</div>
 </div>
 
 <script>

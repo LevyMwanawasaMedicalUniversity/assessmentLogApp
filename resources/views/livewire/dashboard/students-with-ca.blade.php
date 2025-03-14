@@ -11,21 +11,21 @@
         <div id="students-with-ca-container">
             <div class="content-container">
                 <div class="d-flex align-items-center">
-                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                        <i class="bi bi-people"></i>
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-primary">
+                        <i class="bi bi-people text-white"></i>
                     </div>
-                    <div class="ps-3">
-                        <h6 id="total-students-with-ca">0</h6>
-                        <span class="text-success small pt-1 fw-bold">With Continuous</span> <span class="text-muted small pt-2 ps-1">Assessments</span>
-                    </div>
+                <div class="ps-3">
+                    <h6 id="total-students-with-ca">0</h6>
+                    <span class="text-primary small pt-1 fw-bold">With Continuous</span> <span class="text-muted small pt-2 ps-1">Assessments</span>
                 </div>
             </div>
-            
-            <div class="error-container alert alert-danger d-none">
-                Failed to load data. Please refresh the page.
-            </div>
+        </div>
+        
+        <div class="error-container alert alert-danger d-none">
+            Failed to load data. Please refresh the page.
         </div>
     </div>
+</div>
 </div>
 
 <script>

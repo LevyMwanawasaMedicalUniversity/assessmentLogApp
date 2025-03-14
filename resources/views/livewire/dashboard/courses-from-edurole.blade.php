@@ -11,8 +11,8 @@
         <div id="courses-from-edurole-container">
             <div class="content-container">
                 <div class="d-flex align-items-center">
-                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                        <i class="bi bi-journal-text"></i>
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-success">
+                        <i class="bi bi-calendar2-week text-white"></i>
                     </div>
                     <div class="ps-3">
                         <h6 id="total-courses-coordinated">0</h6>
