@@ -9,6 +9,7 @@ use App\Models\EduroleBasicInformation;
 use App\Models\EduroleCourseElective;
 use App\Models\EduroleSchool;
 use App\Models\EduroleStudy;
+use App\Models\Setting;
 use App\Models\SisReportsStudent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,13 @@ class DashboardController extends Controller
     /**
      * Get students with CA count
      */
+
+    public function __construct()
+    {
+        $this->academicYear = Setting::getCurrentAcademicYear();
+    }
+
+    
     public function getStudentsWithCa()
     {
         try {
@@ -92,18 +100,26 @@ class DashboardController extends Controller
     {
         try {
             // Use the exact same method from Controller class
-            $coursesFromLMMAX = CourseAssessment::select('course_assessment_scores.course_code','course_assessments.study_id','course_assessments.course_id','course_assessment_scores.study_id','course_assessments.delivery_mode','course_assessments.basic_information_id')
-                ->join('course_assessment_scores', 'course_assessment_scores.course_assessment_id', '=', 'course_assessments.course_assessments_id')
-                ->distinct()
-                ->get()
-                ->map(function ($item) {
-                    return [
-                        'course_code' => $item->course_code,
-                        'delivery_mode' => $item->delivery_mode,
-                        'basic_information_id' => $item->basic_information_id,
-                        'study_id' => $item->study_id
-                    ];
-                })->toArray();
+            $coursesFromLMMAX = CourseAssessment::select([
+                'course_assessment_scores.course_code',
+                'course_assessments.study_id',
+                'course_assessments.course_id',
+                'course_assessment_scores.study_id as score_study_id', // Alias to avoid conflict
+                'course_assessments.delivery_mode',
+                'course_assessments.basic_information_id'
+            ])
+            ->join('course_assessment_scores', 'course_assessment_scores.course_assessment_id', '=', 'course_assessments.course_assessments_id')
+            ->where('course_assessments.academic_year', $this->academicYear)
+            ->distinct()
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'course_code' => $item->course_code,
+                    'delivery_mode' => $item->delivery_mode,
+                    'basic_information_id' => $item->basic_information_id,
+                    'study_id' => $item->study_id
+                ];
+            })->toArray();
             
             return response()->json([
                 'status' => 'success',
@@ -222,6 +238,7 @@ class DashboardController extends Controller
                     
                     // Count courses with CA
                     $coursesWithCACount = CourseAssessment::whereIn('study_id', $schoolProgrammes)
+                        ->where('academic_year', $this->academicYear)
                         ->select('course_id', 'delivery_mode')
                         ->groupBy('course_id', 'delivery_mode')
                         ->get()
@@ -262,6 +279,7 @@ class DashboardController extends Controller
             // Get courses from LMMAX
             $coursesFromLMMAX = CourseAssessment::select('course_assessment_scores.course_code','course_assessments.study_id','course_assessments.course_id','course_assessment_scores.study_id','course_assessments.delivery_mode','course_assessments.basic_information_id')
                 ->join('course_assessment_scores', 'course_assessment_scores.course_assessment_id', '=', 'course_assessments.course_assessments_id')
+                ->where('course_assessments.academic_year', $this->academicYear)
                 ->distinct()
                 ->get()
                 ->map(function ($item) {
@@ -335,7 +353,7 @@ class DashboardController extends Controller
                         ->join('program-course-link', 'program-course-link.CourseID', '=', 'courses.ID')
                         ->join('student-study-link', 'student-study-link.StudentID', '=', 'course-electives.StudentID')
                         ->join('study', 'study.ID', '=', 'student-study-link.StudyID')
-                        ->where('course-electives.Year', 2024)
+                        ->where('course-electives.Year', $this->academicYear)
                         ->where('course-electives.Approved', 1)
                         ->where('study.ShortName', $code)
                         ->distinct()

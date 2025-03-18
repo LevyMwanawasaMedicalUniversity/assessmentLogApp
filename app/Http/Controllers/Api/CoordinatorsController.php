@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CourseAssessment;
 use App\Models\EduroleStudy;
 use App\Models\EduroleCourseElective;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,12 @@ class CoordinatorsController extends Controller
     /**
      * Get coordinators data
      */
+
+    public function __construct()
+    {
+        $this->academicYear = Setting::getCurrentAcademicYear();
+    }
+    
     public function getCoordinatorsData(Request $request)
     {
         try {
@@ -65,6 +72,7 @@ class CoordinatorsController extends Controller
                     ->toArray();
 
                 $coursesWithCa = CourseAssessment::whereIn('study_id', $getCourdinatoresCourses)
+                    ->where('academic_year', $this->academicYear)
                     ->select('course_id', 'delivery_mode')
                     ->groupBy('course_id', 'delivery_mode')
                     ->get()

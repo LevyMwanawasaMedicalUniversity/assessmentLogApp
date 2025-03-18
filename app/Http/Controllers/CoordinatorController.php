@@ -16,6 +16,7 @@ use App\Models\EduroleStudy;
 use App\Models\FinalExamination;
 use App\Models\FinalExaminationResults;
 use App\Models\StudentsContinousAssessment;
+use App\Models\Setting;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 use Exception;
@@ -30,6 +31,13 @@ use Illuminate\Support\Facades\Storage;
 
 class CoordinatorController extends Controller
 {
+    protected $academicYear;
+
+    public function __construct()
+    {
+        $this->academicYear = Setting::getCurrentAcademicYear();
+    }
+
     // use HasRoles; // Removed the incorrect trait
 
     public function uploadCa(Request $request,$caType, $courseIdValue,$basicInformationId){
@@ -182,7 +190,7 @@ class CoordinatorController extends Controller
 
         $studyId = $request->studyId;
         $isSettings = $request->isSettings;
-        $academicYear = 2024;
+        $academicYear = $this->academicYear;
         $courseDetails = EduroleCourses::where('ID', $courseId)->first();
         $user = Auth::check() ? Auth::user() : null;
     
@@ -407,7 +415,7 @@ class CoordinatorController extends Controller
                 ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
                 ->get();
 
-            $academicYear = 2024;
+            $academicYear = $this->academicYear;
             $getCoure = EduroleCourses::where('ID', $courseId)->first();
             $courseCode = $getCoure->Name;
 
@@ -660,7 +668,7 @@ class CoordinatorController extends Controller
         $courseId = Crypt::decrypt($courseIdValue);
         $basicInformationId = Crypt::decrypt($basicInformationId);
         $delivery = Crypt::decrypt($delivery);
-        $academicYear = 2024;
+        $academicYear = $this->academicYear;
         
         $studyId = $request->studyId;       
 
@@ -706,7 +714,7 @@ class CoordinatorController extends Controller
         $courseId = Crypt::decrypt($courseIdValue);
         $basicInformationId = Crypt::decrypt($basicInformationId);
         $delivery = Crypt::decrypt($delivery);
-        $academicYear = 2024;
+        $academicYear = $this->academicYear;
         
         $studyId = $request->studyId;       
 
@@ -1154,7 +1162,7 @@ class CoordinatorController extends Controller
             $delivery = $getCourseAssessmentsScores->first()->delivery_mode;
             $study_id = $getCourseAssessmentsScores->first()->study_id;
             $component_id = $getCourseAssessmentsScores->first()->component_id;
-            $academicYear = 2024;
+            $academicYear = $this->academicYear;
             $caType = $request->caType;
             $courseId = $request->courseId;
             // $ca_type = $getCourseAssessmentsScores->first()->ca_type;   
@@ -1765,7 +1773,7 @@ class CoordinatorController extends Controller
                 ->join('program-course-link', 'program-course-link.CourseID','=','courses.ID')
                 ->join('student-study-link','student-study-link.StudentID','=','course-electives.StudentID')
                 ->join('study','study.ID','=','student-study-link.StudyID')
-                ->where('course-electives.Year', 2024)  
+                ->where('course-electives.Year', $this->academicYear)  
                 ->where('course-electives.Approved', 1)
                 ->where('study.ProgrammesAvailable', $basicInformationId)
                 ->distinct()
@@ -1807,7 +1815,7 @@ class CoordinatorController extends Controller
                 ->join('program-course-link', 'program-course-link.CourseID','=','courses.ID')
                 ->join('student-study-link','student-study-link.StudentID','=','course-electives.StudentID')
                 ->join('study','study.ID','=','student-study-link.StudyID')
-                ->where('course-electives.Year', 2024)  
+                ->where('course-electives.Year', $this->academicYear)  
                 ->where('course-electives.Approved', 1)
                 ->where('study.ProgrammesAvailable', $basicInformationId)
                 ->distinct()

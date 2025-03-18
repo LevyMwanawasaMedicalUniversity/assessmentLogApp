@@ -10,6 +10,7 @@ use App\Models\EduroleBasicInformation;
 use App\Models\EduroleCourseElective;
 use App\Models\EduroleCourses;
 use App\Models\EduroleStudy;
+use App\Models\Setting;
 use App\Models\StudentsContinousAssessment;
 use App\Models\User;
 use Exception;
@@ -25,6 +26,11 @@ use OwenIt\Auditing\Models\Audit;
 
 class AdministratorController extends Controller
 {
+    public function __construct()
+    {
+        $this->academicYear = Setting::getCurrentAcademicYear();
+    }
+
     //
     public function index()
     {
@@ -491,47 +497,8 @@ class AdministratorController extends Controller
     }
 
     public function viewCoordinatorsCourses($basicInformationId){
-        $basicInformationId = Crypt::decrypt($basicInformationId);
-        
-        
-        $getStudyId = EduroleStudy::where('ProgrammesAvailable', '=', $basicInformationId)->first();
-        // return $getStudyId;
-        $studyId = $getStudyId->ID;
-        // return $coursesFromCourseElectives;
-
-        
-        // $naturalScienceCourses = $this->getNSAttachedCourses();
-        if($studyId == 163 || $studyId == 165 || $studyId == 166 || $studyId == 167 || $studyId == 168 || $studyId == 169 || $studyId == 170 || $studyId == 171 || $studyId == 172 || $studyId == 173 || $studyId == 174){
-            $results = $this->getCoursesFromEdurole()
-            ->where('basic-information.ID', $basicInformationId)            
-            ->orderBy('programmes.Year')
-            ->orderBy('courses.Name')
-            ->orderBy('study.Delivery')            
-            ->get();
-        }else{
-            $coursesFromCourseElectives = EduroleCourseElective::select('course-electives.CourseID')
-                ->join('courses', 'courses.ID','=','course-electives.CourseID')
-                ->join('program-course-link', 'program-course-link.CourseID','=','courses.ID')
-                ->join('student-study-link','student-study-link.StudentID','=','course-electives.StudentID')
-                ->join('study','study.ID','=','student-study-link.StudyID')
-                ->where('course-electives.Year', 2024)
-                ->where('course-electives.Approved', 1)
-                ->where('study.ProgrammesAvailable', $basicInformationId)
-                ->distinct()
-                ->pluck('course-electives.CourseID')
-                ->toArray();
-            $results = $this->getCoursesFromEdurole()
-                ->where('basic-information.ID', $basicInformationId)
-                ->whereIn('courses.ID', $coursesFromCourseElectives)
-                ->orderBy('programmes.Year')
-                ->orderBy('courses.Name')
-                ->orderBy('study.Delivery')            
-                ->get();
-        }
-        
-        
-        return view('coordinator.viewCoordinatorsCourses', compact('basicInformationId','results','studyId'));
-
+        // Return the Livewire component view with the encrypted basicInformationId
+        return view('coordinator.coordinator-courses', compact('basicInformationId'));
     }
 
     public function viewCoordinatorsCoursesWithComponents($courseIdEncrypt,$basicInformationIdEncrypt,$deliveryEncrypt,$studyIdEncrypt){

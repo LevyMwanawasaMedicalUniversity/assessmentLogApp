@@ -7,15 +7,23 @@ use App\Models\CourseComponentAllocation;
 use App\Models\EduroleBasicInformation;
 use App\Models\EduroleCourseElective;
 use App\Models\EduroleStudy;
+use App\Models\Setting;
 use App\Models\StudentsContinousAssessment;
 
 abstract class Controller
 {
+    protected $academicYear;
+
+    public function __construct()
+    {
+        $this->academicYear = Setting::getCurrentAcademicYear();
+    }
     //
     public function getCoursesFromLMMAX(){
         return CourseAssessment::select('course_assessment_scores.course_code','course_assessments.study_id','course_assessments.course_id','course_assessment_scores.study_id','course_assessments.delivery_mode','course_assessments.basic_information_id')
             // ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id') 
             ->join('course_assessment_scores', 'course_assessment_scores.course_assessment_id', '=', 'course_assessments.course_assessments_id')
+            ->where('course_assessments.academic_year', $this->academicYear)
             ->distinct()
             ->get()
             ->map(function ($item) {
@@ -164,7 +172,7 @@ abstract class Controller
             ->join('program-course-link', 'program-course-link.CourseID','=','courses.ID')
             ->join('student-study-link','student-study-link.StudentID','=','course-electives.StudentID')
             ->join('study','study.ID','=','student-study-link.StudyID')
-            ->where('course-electives.Year', 2024)
+            ->where('course-electives.Year', $this->academicYear)
             ->where('course-electives.Approved', 1)
             ->distinct()
             ->pluck('course-electives.CourseID')
