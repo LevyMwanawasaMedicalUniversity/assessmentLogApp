@@ -638,9 +638,19 @@ class CoordinatorController extends Controller
 
     public function viewAllCaInCourse(Request $request,$statusId, $courseIdValue, $basicInformationId, $delivery){
         $courseId = Crypt::decrypt($courseIdValue);
-        // $caType = Crypt::decrypt($statusId);
+        $statusId = Crypt::decrypt($statusId);
         $basicInformationId = Crypt::decrypt($basicInformationId);
         $delivery = Crypt::decrypt($delivery);
+        if($request->studyId ){
+            $studyId = $request->studyId;
+        }else{
+            $result = $this->getCoursesFromEdurole()            
+                ->where('courses.ID', $courseId)
+                ->where('study.Delivery', $delivery)
+                ->where('study.ProgrammesAvailable', $basicInformationId)
+                ->first();
+            $studyId = $result->StudyID;
+        }
         $componentId = $request->componentId;
         $hasComponents = $request->hasComponents;
 
@@ -650,14 +660,13 @@ class CoordinatorController extends Controller
         $results = CourseAssessment::where('course_id', $courseId)
             ->where('ca_type', $statusId)
             ->where('delivery_mode', $delivery)
-            ->where('study_id', $request->studyId)
+            ->where('study_id', $studyId)
             ->where('component_id', $componentId)
             // ->join('course_assessment_scores', 'course_assessments.id', '=', 'course_assessment_scores.course_assessment_id')
             ->orderBy('course_assessments.course_assessments_id', 'asc')
             ->get();
         // return $results;
-        
-            $assessmentType = $this->setAssesmentType($statusId);
+        $assessmentType = $this->setAssesmentType($statusId);
 
         return view('coordinator.viewAllCaInCourse', compact('studyId','componentId','hasComponents','delivery','results', 'statusId', 'courseId','courseDetails','assessmentType','basicInformationId'));
     }
