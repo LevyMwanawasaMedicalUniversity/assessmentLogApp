@@ -72,6 +72,7 @@
                                         @include('coordinator.components.viewAssessmentTypeModal')
                                         @php
                                         $course_components_id = null;
+                                        $academicYear = \App\Models\Setting::getCurrentAcademicYear();
                                         $assessmentDetails = \App\Models\CourseAssessment::select(
                                                 'course_assessments.basic_information_id',
                                                 'assessment_types.assesment_type_name',
@@ -82,6 +83,7 @@
                                             ->where('course_assessments.course_id', $result->ID)
                                             ->where('course_assessments.delivery_mode', $result->Delivery)
                                             ->where('course_assessments.study_id', $result->StudyID)
+                                            ->where('course_assessments.academic_year', $academicYear)
                                             //->where('course_assessments.component_id', $course_components_id)
                                             ->join('assessment_types', 'assessment_types.id', '=', 'course_assessments.ca_type')
                                             ->groupBy('assessment_types.id','course_assessments.basic_information_id', 'assessment_types.assesment_type_name','course_assessments.delivery_mode')
