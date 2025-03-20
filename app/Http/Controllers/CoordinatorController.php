@@ -147,6 +147,8 @@ class CoordinatorController extends Controller
         $studyId = $request->studyId;
         $delivery = $request->delivery;
 
+        //   return $this->academicYear;
+
         // return $delivery;
 
         if($request->componentId){
