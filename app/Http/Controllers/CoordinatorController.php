@@ -1296,6 +1296,7 @@ class CoordinatorController extends Controller
                         'course_code' => $request->course_code,
                         'delivery_mode' => $request->delivery,
                         'study_id' => $request->study_id,
+                        'component_id' => $request->component_id ?? null,
                     ],
                     [
                         'cas_score' => $entry['mark'],
@@ -1310,7 +1311,6 @@ class CoordinatorController extends Controller
                 } else {
                     $updatedCount++;
                 }
-                // return " course id: " . $request->course_id . "  ca type: " . $request->ca_type . " academic year: " . $request->academicYear . " student number: " . trim($entry['student_number']);
                 
                 $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $request->ca_type, trim($entry['student_number']), $newAssessment->course_assessments_id, $request->delivery, $request->study_id, $request->component_id ?? null);
             }
@@ -1958,27 +1958,20 @@ class CoordinatorController extends Controller
             Log::info("Calculating scores for student: {$studentNumber}, course: {$courseId}, CA type: {$caType}");
             Log::info("Total score: {$total}, Count: {$count}");
             
-            if ($count > 0) {
-                $average = $total / $count;
-                
-                // Get the maximum possible score for this assessment type
-                $maxScore = $this->getMaxScore($courseId, $caType, $delivery, $studyId,$componentId);
-                
-                // Calculate the adjusted average (scaled to maxScore)
-                $adjustedAverage = ($average / 100) * $maxScore;
-                
-                Log::info("Average: {$average}, Max Score: {$maxScore}, Adjusted Average: {$adjustedAverage}");
-                
-                // Save or update the student's CA record
-                $this->saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId, $componentId);
-                
-                DB::commit();
-                return true;
-            } else {
-                Log::warning("No assessments found for student: {$studentNumber}, course: {$courseId}, CA type: {$caType}");
-                DB::rollBack();
-                return false;
-            }
+            // Get the maximum possible score for this assessment type
+            $maxScore = $this->getMaxScore($courseId, $caType, $delivery, $studyId,$componentId);
+            
+            // Calculate the average and adjusted average
+            $average = $count > 0 ? $total / $count : 0;
+            $adjustedAverage = ($average / 100) * $maxScore;
+            
+            Log::info("Average: {$average}, Max Score: {$maxScore}, Adjusted Average: {$adjustedAverage}");
+            
+            // Save or update the student's CA record always, even if count is 0
+            $this->saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId, $componentId);
+            
+            DB::commit();
+            return true;
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Error calculating scores: " . $e->getMessage());
