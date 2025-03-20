@@ -164,6 +164,7 @@ class CoordinatorController extends Controller
         ->where('course_assessments.course_id', $courseId)
         ->where('course_assessments.study_id', $studyId)
         ->where('course_assessments.delivery_mode', $delivery)
+        ->where('course_assessments.academic_year', $this->academicYear)    
         ->where('course_assessments.component_id', $componentId)
         ->join('assessment_types', 'assessment_types.id', '=', 'course_assessments.ca_type')
         ->groupBy('assessment_types.id','course_assessments.basic_information_id', 'assessment_types.assesment_type_name','course_assessments.delivery_mode')
@@ -662,6 +663,7 @@ class CoordinatorController extends Controller
             ->where('delivery_mode', $delivery)
             ->where('study_id', $studyId)
             ->where('component_id', $componentId)
+            ->where('academic_year' ,$this->academicYear)
             // ->join('course_assessment_scores', 'course_assessments.id', '=', 'course_assessment_scores.course_assessment_id')
             ->orderBy('course_assessments.course_assessments_id', 'asc')
             ->get();
