@@ -875,6 +875,7 @@ class CoordinatorController extends Controller
             ->where('students_continous_assessments.delivery_mode', $delivery)
             ->where('students_continous_assessments.study_id', $coursesInEdurole->StudyID)
             ->where('students_continous_assessments.component_id', $componentId)
+            ->where('students_continous_assessments.academic_year', $this->academicYear)
             // ->whereIn('ca_type', [1,2,3]) 
             ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id')
             ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
@@ -931,6 +932,7 @@ class CoordinatorController extends Controller
             ->where('students_continous_assessments.delivery_mode', $delivery)
             ->where('students_continous_assessments.study_id', $coursesInEdurole->StudyID)
             ->where('students_continous_assessments.component_id', $componentId)
+            ->where('students_continous_assessments.academic_year', $this->academicYear)
             // ->whereIn('ca_type', [1,2,3]) 
             ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'students_continous_assessments.course_assessment_id')
             ->select('students_continous_assessments.student_id', DB::raw('SUM(students_continous_assessments.sca_score) as total_marks'))
@@ -988,7 +990,9 @@ class CoordinatorController extends Controller
         $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
             ->where('students_continous_assessments.delivery_mode', $delivery)
             ->where('students_continous_assessments.study_id', $coursesInEdurole->StudyID)
-            ->whereNotNull('students_continous_assessments.component_id');
+            ->whereNotNull('students_continous_assessments.component_id')
+            ->where('students_continous_assessments.academic_year', $this->academicYear);
+            
         
         // Count the number of unique instances based on component_id
         $numberOfUniqueInstances = $results->distinct('students_continous_assessments.component_id')->count('students_continous_assessments.component_id');
