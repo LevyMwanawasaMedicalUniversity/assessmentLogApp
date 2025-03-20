@@ -1299,8 +1299,8 @@ class CoordinatorController extends Controller
                     ],
                     [
                         'cas_score' => $entry['mark'],
-                        'created_by' => auth()->check() ? auth()->id() : null,
-                        'updated_by' => auth()->check() ? auth()->id() : null,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ]
                 );
                 
@@ -1310,6 +1310,7 @@ class CoordinatorController extends Controller
                 } else {
                     $updatedCount++;
                 }
+                // return " course id: " . $request->course_id . "  ca type: " . $request->ca_type . " academic year: " . $request->academicYear . " student number: " . trim($entry['student_number']);
                 
                 $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $request->ca_type, trim($entry['student_number']), $newAssessment->course_assessments_id, $request->delivery, $request->study_id, $request->component_id ?? null);
             }
