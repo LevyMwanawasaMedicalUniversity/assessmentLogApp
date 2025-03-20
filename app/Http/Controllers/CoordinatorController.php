@@ -2021,6 +2021,12 @@ class CoordinatorController extends Controller
 
     private function setAssesmentType($statusId){
         $getAssesmntType = AssessmentTypes::where('id', $statusId)->first();
+        
+        // Add null check to prevent "Trying to get property of non-object" error
+        if (!$getAssesmntType) {
+            return 'Unknown Assessment Type';
+        }
+        
         return $getAssesmntType->assesment_type_name;
     }
 
