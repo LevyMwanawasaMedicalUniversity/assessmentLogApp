@@ -22,6 +22,7 @@ class StudentsContinousAssessment extends Model implements AuditableContract
         'course_assessment_id',
         'delivery_mode',
         'study_id',
-        'component_id'
+        'component_id',
+        'sca_score'
     ];
 }
