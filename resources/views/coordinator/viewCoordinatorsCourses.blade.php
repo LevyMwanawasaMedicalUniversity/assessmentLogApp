@@ -113,11 +113,11 @@
                                             <td class="text-right">
                                                 @if(in_array($result->CourseName, ['CAG201', 'GRA201','BCH2015','BCH2060','CBP2020','HAN2040','HAN2050','PGY2040','PHR3030','PHR3060','PTH2020','PTH2040','PTH2070']) || strtoupper($result->Name) != 'BASIC SCIENCES')
                                                     <div class="btn-group float-end" role="group" aria-label="Button group">
-                                                        @if(auth()->user()->hasPermissionTo('Coordinator'))
+                                                        {{-- @if(auth()->user()->hasPermissionTo('Coordinator')) --}}
                                                             <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#uploadCourseModal{{ $result->ID }}{{ $result->Delivery }}{{$result->StudyID}}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
                                                                 Upload
                                                             </button>
-                                                        @endif
+                                                        {{-- @endif --}}
                                                             <button type="button" class="btn btn-success font-weight-bold py-2 px-4 rounded-0" data-bs-toggle="modal" data-bs-target="#viewCourseModal{{ $result->ID }}{{ $result->Delivery }}{{$result->StudyID}}" data-courseid="{{ $result->ID }}" data-delivery="{{ $result->Delivery }}">
                                                                 View
                                                             </button>                                                        
