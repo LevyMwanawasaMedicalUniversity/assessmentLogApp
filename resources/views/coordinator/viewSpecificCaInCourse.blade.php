@@ -130,7 +130,7 @@
                                                         {{-- @if (auth()->user()->hasPermissionTo('Dean')) --}}
                                                         {{-- <a href="{{ route('coordinator.editCaInCourse', ['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId), 'basicInformationId' => encrypt($basicInformationId)]) }}" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">
                                                             Edit
-                                                        </a>  --}}
+                                                        </a>   --}}
                                                         {{-- <form action="{{route('coordinator.editAStudentsCaInCourse',['courseAssessmenId' => encrypt($result->course_assessments_id), 'courseId' => encrypt($courseId), 'basicInformationId' => encrypt($result->basic_information_id)])}}" method="GET" class="d-inline">
                                                             <input type="hidden" name="hasComponents" value="{{($hasComponents) }}">
                                                             <input type="hidden" name="studentId" value="{{($result->student_id)}}">
@@ -140,7 +140,7 @@
                                                             </button>
                                                         </form> --}}
 
-                                                        {{-- <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" 
+                                                        <button type="button" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" 
                                                             data-bs-toggle="modal" data-bs-target="#editStudentResults{{$result->student_id}}{{$result->course_assessments_id }}{{ $courseId }}{{$result->basic_information_id}}"
                                                             data-studentId="{{ $result->student_id }}" 
                                                             data-courseAssessmentsId="{{ $result->course_assessments_id }}" 
@@ -150,8 +150,8 @@
                                                             data-courseId = "{{ $courseId }}"                                                            
                                                             >
                                                             Edit
-                                                        </button> --}}
-                                                        {{-- <form method="POST" action="{{ route('coordinator.deleteStudentCaInCourse') }}" onsubmit="return confirm('Are you sure you want to delete this?');">    
+                                                        </button>
+                                                        <form method="POST" action="{{ route('coordinator.deleteStudentCaInCourse') }}" onsubmit="return confirm('Are you sure you want to delete this?');">    
                                                             {{ method_field('DELETE') }}
                                                             {{ csrf_field() }}
                                                             <input type="hidden" name="courseAssessmentScoresId" value="{{ $result->course_assessment_scores_id }}">
@@ -160,7 +160,7 @@
                                                             <button type="submit" class="btn btn-danger font-weight-bold py-2 px-4 rounded-0">
                                                                 Delete
                                                             </button>
-                                                        </form> --}}
+                                                        </form>
                                                         {{-- @endif --}}
                                                     </div>                                            
                                                 </td>

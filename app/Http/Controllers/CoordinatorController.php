@@ -821,37 +821,38 @@ class CoordinatorController extends Controller
         return view('coordinator.viewSpecificCaInCourse', compact('caTypeFromAssessment','componentId','hasComponents','delivery','results', 'courseId','assessmentType','courseDetails','statusId'));
     }
 
-    public function cleanUpDuplicatesForCourse($courseId, $studyId, $deliveryMode, $componentId)
-    {
-        // Step 1: Find IDs to delete by keeping the one with the latest updated_at
-        $idsToDelete = DB::table('students_continous_assessments as sca1')
-            ->select('sca1.students_continous_assessment_id')
-            ->where('sca1.course_id', $courseId)
-            ->where('sca1.study_id', $studyId)
-            ->where('sca1.delivery_mode', $deliveryMode)
-            ->where('sca1.component_id', $componentId)
-            ->whereExists(function ($query) use ($courseId, $studyId, $deliveryMode, $componentId) {
-                $query->select(DB::raw(1))
-                    ->from('students_continous_assessments as sca2')
-                    ->whereRaw('sca1.student_id = sca2.student_id')
-                    ->whereRaw('sca1.course_id = sca2.course_id')
-                    ->whereRaw('sca1.academic_year = sca2.academic_year')
-                    ->whereRaw('sca1.ca_type = sca2.ca_type')
-                    ->whereRaw('sca1.delivery_mode = sca2.delivery_mode')
-                    ->whereRaw('sca1.study_id = sca2.study_id')
-                    ->whereRaw('sca1.component_id <=> sca2.component_id') // NULL-safe comparison
-                    ->whereRaw('sca1.updated_at < sca2.updated_at'); // Keep the one with the latest updated_at
-            })
-            ->pluck('sca1.students_continous_assessment_id') // Fetch duplicate IDs into an array
-            ->toArray();
+    // This method is no longer needed as we're using updateOrCreate to handle duplicates
+    // public function cleanUpDuplicatesForCourse($courseId, $studyId, $deliveryMode, $componentId)
+    // {
+    //     // Step 1: Find IDs to delete by keeping the one with the latest updated_at
+    //     $idsToDelete = DB::table('students_continous_assessments as sca1')
+    //         ->select('sca1.students_continous_assessment_id')
+    //         ->where('sca1.course_id', $courseId)
+    //         ->where('sca1.study_id', $studyId)
+    //         ->where('sca1.delivery_mode', $deliveryMode)
+    //         ->where('sca1.component_id', $componentId)
+    //         ->whereExists(function ($query) use ($courseId, $studyId, $deliveryMode, $componentId) {
+    //             $query->select(DB::raw(1))
+    //                 ->from('students_continous_assessments as sca2')
+    //                 ->whereRaw('sca1.student_id = sca2.student_id')
+    //                 ->whereRaw('sca1.course_id = sca2.course_id')
+    //                 ->whereRaw('sca1.academic_year = sca2.academic_year')
+    //                 ->whereRaw('sca1.ca_type = sca2.ca_type')
+    //                 ->whereRaw('sca1.delivery_mode = sca2.delivery_mode')
+    //                 ->whereRaw('sca1.study_id = sca2.study_id')
+    //                 ->whereRaw('sca1.component_id <=> sca2.component_id') // NULL-safe comparison
+    //                 ->whereRaw('sca1.updated_at < sca2.updated_at'); // Keep the one with the latest updated_at
+    //         })
+    //         ->pluck('sca1.students_continous_assessment_id') // Fetch duplicate IDs into an array
+    //         ->toArray();
 
-        // Step 2: Delete duplicates
-        if (!empty($idsToDelete)) {
-            DB::table('students_continous_assessments')
-                ->whereIn('students_continous_assessment_id', $idsToDelete)
-                ->delete();
-        }
-    }
+    //     // Step 2: Delete duplicates
+    //     if (!empty($idsToDelete)) {
+    //         DB::table('students_continous_assessments')
+    //             ->whereIn('students_continous_assessment_id', $idsToDelete)
+    //             ->delete();
+    //     }
+    // }
 
 
 
@@ -870,9 +871,7 @@ class CoordinatorController extends Controller
                 ->where('study.Delivery', $delivery)
                 ->first();
         // return $courseDetails;
-        // if($caType != 4){   
-        $this->cleanUpDuplicatesForCourse($courseId, $coursesInEdurole->StudyID, $delivery,$componentId);
-        
+        // if($caType != 4){            
         $results = StudentsContinousAssessment::where('students_continous_assessments.course_id', $courseId)
             ->where('students_continous_assessments.delivery_mode', $delivery)
             ->where('students_continous_assessments.study_id', $coursesInEdurole->StudyID)
@@ -1102,8 +1101,7 @@ class CoordinatorController extends Controller
         return view('coordinator.viewTotalCaAndExam', compact('delivery','results', 'statusId', 'courseId','courseDetails','hasComponents')); 
     }
 
-    public function deleteCaInCourse(Request $request, $courseAssessmentId, $courseId)
-    {
+    public function deleteCaInCourse(Request $request, $courseAssessmentId, $courseId){
         $courseAssessmentId = Crypt::decrypt($courseAssessmentId);
         $courseId = Crypt::decrypt($courseId);
 
@@ -1426,6 +1424,7 @@ class CoordinatorController extends Controller
         $validationRules = [
             'excelFile' => 'required|mimes:xls,xlsx,csv',
             'academicYear' => 'required',
+            // 'ca_type' => 'required',
             'course_id' => 'required',
             'course_code' => 'required',
             'basicInformationId' => 'required',
@@ -1621,7 +1620,7 @@ class CoordinatorController extends Controller
             'basicInformationId' => 'required',
             'delivery' => 'required',
             'study_id' => 'required',
-            // 'component_id' => 'required',
+            'ca_type' => 'required',
         ]);
 
         DB::beginTransaction();
@@ -1711,242 +1710,65 @@ class CoordinatorController extends Controller
             'delivery' => 'required',
             'study_id' => 'required',
             'course_assessment_scores_id' => 'required',
-            // 'component_id' => 'required',
+            'ca_type' => 'required',
         ]);
 
         DB::beginTransaction();
 
         try {
-            $newAssessment = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)
-                ->update([
-                    'academic_year' => $request->academicYear,
-                    'basic_information_id' => $request->basicInformationId,
-                ]);
-
-            $getCaType = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)->first();
-            $caType = $request->caType;
+            // Get the CA type from the request
+            $caType = $request->ca_type;
             $studyId = $request->study_id;
-            if($request->component_id){
-                $componentId = $request->component_id;
-            }else{
-                $componentId =  null;
+            $componentId = $request->component_id ?? null;
+            
+            // Log the update operation
+            Log::info("Updating CA for student: {$request->studentNumber}, course assessment ID: {$request->course_assessment_id}, CA type: {$caType}");
+            
+            // Update the student's score in CourseAssessmentScores
+            $result = CourseAssessmentScores::updateOrCreate(
+                [
+                    'course_assessment_id' => $request->course_assessment_id,
+                    'student_id' => trim($request->studentNumber),
+                    'component_id' => $componentId,
+                    'course_code' => $request->course_code,
+                    'delivery_mode' => $request->delivery,
+                    'study_id' => $studyId,
+                ],
+                [
+                    'cas_score' => trim($request->mark),
+                    'updated_at' => now(),
+                ]
+            );
+            
+            // Recalculate and update the sca_score in StudentsContinousAssessment
+            $this->calculateAndSubmitCA(
+                $request->course_id, 
+                $request->academicYear, 
+                $caType, 
+                trim($request->studentNumber), 
+                $request->course_assessment_id, 
+                $request->delivery, 
+                $studyId,
+                $componentId
+            );
+            
+            // Only handle student number change if needed (but don't delete anything)
+            if(trim($request->studentNumber) != trim($request->oldStudentNumber)) {
+                Log::info("Student number changed from {$request->oldStudentNumber} to {$request->studentNumber}");
+                // We don't need to delete anything, just ensure the old record is no longer used
             }
-            // $courseAssessmentScoresStudentNumber = CourseAssessmentScores::where('course_assessment_scores_id', $request->course_assessment_scores_id)->first()->student_id;
-            
-            CourseAssessmentScores::updateOrCreate([
-                'course_assessment_id' => $request->course_assessment_id,
-                'student_id' => trim($request->studentNumber),
-                'component_id' => $componentId,
-                'course_code' => $request->course_code,
-                'delivery_mode' => $request->delivery,
-                'study_id' => $studyId,
-            ],[
-                'cas_score' => trim($request->mark),
-            ]);
-            $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $caType, trim($request->studentNumber), $request->course_assessment_id, $request->delivery, $studyId,$componentId);
-            
-            if(trim($request->studentNumber) != trim($request->oldStudentNumber)){
-                $studentNumber = $request->studentNumber;
-                $deletionData = [
-                    'courseAssessmentScoresId' => $request->course_assessment_scores_id,
-                    'caType' => $caType,
-                    'courseId' => $request->course_id,
-                ];
-                // Create a new request instance with the custom data
-                $deletionRequest = Request::create('', 'POST', $deletionData);
-                
-                // Call the method with the new request object
-                $this->deleteStudentCaInCourse($deletionRequest);
-            }          
 
             DB::commit();
-
-            return redirect()->back()->with('success', 'Student Updated successfully');
+            
+            Log::info("Successfully updated CA for student: {$request->studentNumber}");
+            return redirect()->back()->with('success', 'Student score updated successfully');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Failed to import data: ' . $e->getMessage());
-            return back()->with('error', 'An error occurred while importing the data. Please try again.');
-        }
-    }
-
-    public function exportBoardOfExaminersReportFinalExam($basicInformationId){
-        $basicInformationId = Crypt::decrypt($basicInformationId);
-        // return $basicInformationId;
-        $getStudyId = EduroleStudy::where('ProgrammesAvailable', '=', $basicInformationId)->first();
-        // return $getStudyId;
-        $studyId = $getStudyId->ID;
-        // return $coursesFromCourseElectives;
-        
-        // $naturalScienceCourses = $this->getNSAttachedCourses();
-        if($studyId == 163 || $studyId == 165 || $studyId == 166 || $studyId == 167 || $studyId == 168 || $studyId == 169 || $studyId == 170 || $studyId == 171 || $studyId == 172 || $studyId == 173 || $studyId == 174){
-            $results = $this->getCoursesFromEdurole()
-            ->where('basic-information.ID', $basicInformationId)            
-            ->orderBy('programmes.Year')
-            ->orderBy('courses.Name')
-            ->orderBy('study.Delivery')            
-            ->get();
-        }else{
-            $coursesFromCourseElectives = EduroleCourseElective::select('course-electives.CourseID')
-                ->join('courses', 'courses.ID','=','course-electives.CourseID')
-                ->join('program-course-link', 'program-course-link.CourseID','=','courses.ID')
-                ->join('student-study-link','student-study-link.StudentID','=','course-electives.StudentID')
-                ->join('study','study.ID','=','student-study-link.StudyID')
-                ->where('course-electives.Year', $this->academicYear)  
-                ->where('course-electives.Approved', 1)
-                ->where('study.ProgrammesAvailable', $basicInformationId)
-                ->distinct()
-                ->pluck('course-electives.CourseID')
-                ->toArray();
-            $results = $this->getCoursesFromEdurole()
-                ->where('basic-information.ID', $basicInformationId)
-                ->whereIn('courses.ID', $coursesFromCourseElectives)
-                ->orderBy('programmes.Year')
-                ->orderBy('courses.Name')
-                ->orderBy('study.Delivery')            
-                ->get();
-        }        
-        
-        return view('coordinator.reports.viewCoordinatorsExamReport', compact('results','studyId'));
-    }
-
-    public function exportBoardOfExaminersReport($basicInformationId){
-
-        $basicInformationId = Crypt::decrypt($basicInformationId);
-        // return $basicInformationId;
-        $getStudyId = EduroleStudy::where('ProgrammesAvailable', '=', $basicInformationId)->first();
-        // return $getStudyId;
-        $studyId = $getStudyId->ID;
-        // return $coursesFromCourseElectives;
-
-        
-        // $naturalScienceCourses = $this->getNSAttachedCourses();
-        if($studyId == 163 || $studyId == 165 || $studyId == 166 || $studyId == 167 || $studyId == 168 || $studyId == 169 || $studyId == 170 || $studyId == 171 || $studyId == 172 || $studyId == 173 || $studyId == 174){
-            $results = $this->getCoursesFromEdurole()
-            ->where('basic-information.ID', $basicInformationId)            
-            ->orderBy('programmes.Year')
-            ->orderBy('courses.Name')
-            ->orderBy('study.Delivery')            
-            ->get();
-        }else{
-            $coursesFromCourseElectives = EduroleCourseElective::select('course-electives.CourseID')
-                ->join('courses', 'courses.ID','=','course-electives.CourseID')
-                ->join('program-course-link', 'program-course-link.CourseID','=','courses.ID')
-                ->join('student-study-link','student-study-link.StudentID','=','course-electives.StudentID')
-                ->join('study','study.ID','=','student-study-link.StudyID')
-                ->where('course-electives.Year', $this->academicYear)  
-                ->where('course-electives.Approved', 1)
-                ->where('study.ProgrammesAvailable', $basicInformationId)
-                ->distinct()
-                ->pluck('course-electives.CourseID')
-                ->toArray();
-            $results = $this->getCoursesFromEdurole()
-                ->where('basic-information.ID', $basicInformationId)
-                ->whereIn('courses.ID', $coursesFromCourseElectives)
-                ->orderBy('programmes.Year')
-                ->orderBy('courses.Name')
-                ->orderBy('study.Delivery')            
-                ->get();
-        }
-        
-        
-        return view('coordinator.reports.viewCoordinatorsCourses', compact('results','studyId'));
-    }
-
-    public function getCoursesWithResults(){
-        // $results = $this->queryCoursesWithResults();
-        $results = "here";
-        return $results;
-    }
-
-    public function exportData($headers, $rowData, $results, $filename)
-    {
-        $filePath = storage_path('app/' . $filename);
-
-        $writer = WriterEntityFactory::createXLSXWriter();
-        $writer->openToFile($filePath);
-
-        $headerRow = WriterEntityFactory::createRowFromArray($headers);
-        $writer->addRow($headerRow);
-
-        foreach ($results as $result) {
-            $data = [];
-            foreach ($rowData as $field) {
-                $data[] = $result->$field;
-            }
-
-            $dataRow = WriterEntityFactory::createRowFromArray($data);
-            $writer->addRow($dataRow);
-        }
-        $writer->close();
-        return response()->download($filePath, $filename . '.xlsx')->deleteFileAfterSend();
-    }
-
-    public function updateExamForSingleStudent(Request $request)
-    {
-        set_time_limit(1200000);
-
-        // Validate the form data
-        $request->validate([
-            'studentNumber' => 'required',
-            'oldStudentNumber' => 'required',
-            'mark' => 'required',
-            'academicYear' => 'required',
-            'course_id' => 'required',
-            'course_code' => 'required',
-            'basicInformationId' => 'required',
-            'delivery' => 'required',
-            'study_id' => 'required',
-            'final_examination_results_id' => 'required',
-            // 'component_id' => 'required',
-        ]);
-
-        DB::beginTransaction();
-
-        try {
-            
-            $getCaType = CourseAssessment::where('course_assessments_id', $request->course_assessment_id)->first();
-            $caType = $request->caType;
-            $studyId = $request->study_id;
-            if($request->component_id){
-                $componentId = $request->component_id;
-            }else{
-                $componentId =  null;
-            }
-            // $courseAssessmentScoresStudentNumber = CourseAssessmentScores::where('course_assessment_scores_id', $request->course_assessment_scores_id)->first()->student_id;
-            
-            CourseAssessmentScores::updateOrCreate([
-                'course_assessment_id' => $request->course_assessment_id,
-                'student_id' => trim($request->studentNumber),
-                'component_id' => $componentId,
-                'course_code' => $request->course_code,
-                'delivery_mode' => $request->delivery,
-                'study_id' => $studyId,
-            ],[
-                'cas_score' => trim($request->mark),
+            Log::error('Failed to update student score: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
             ]);
-            $this->calculateAndSubmitCA($request->course_id, $request->academicYear, $caType, trim($request->studentNumber), $request->course_assessment_id, $request->delivery, $studyId,$componentId);
-            
-            if(trim($request->studentNumber) != trim($request->oldStudentNumber)){
-                $studentNumber = $request->studentNumber;
-                $deletionData = [
-                    'courseAssessmentScoresId' => $request->course_assessment_scores_id,
-                    'caType' => $caType,
-                    'courseId' => $request->course_id,
-                ];
-                // Create a new request instance with the custom data
-                $deletionRequest = Request::create('', 'POST', $deletionData);
-                
-                // Call the method with the new request object
-                $this->deleteStudentCaInCourse($deletionRequest);
-            }          
-
-            DB::commit();
-
-            return redirect()->back()->with('success', 'Student Updated successfully');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Failed to import data: ' . $e->getMessage());
-            return back()->with('error', 'An error occurred while importing the data. Please try again.');
+            return back()->with('error', 'An error occurred while updating the score: ' . $e->getMessage());
         }
     }
     
@@ -1954,35 +1776,60 @@ class CoordinatorController extends Controller
         DB::beginTransaction();
 
         try {
-            Log::info("Starting score calculation for student: {$studentNumber}");
+            Log::info("Starting score calculation for student: {$studentNumber}", [
+                'course_id' => $courseId,
+                'academic_year' => $academicYear,
+                'ca_type' => $caType,
+                'course_assessment_id' => $courseAssessmentId,
+                'delivery' => $delivery,
+                'study_id' => $studyId,
+                'component_id' => $componentId
+            ]);
+
+            $thisAcademicYear = $this->academicYear;    
             
             // Get all CA scores for this student in this course
-            $caScores = $this->getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);
+            $caScores = $this->getCourseAssessmentScores($courseId, $thisAcademicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);
             $total = $caScores->sum('mark');            
             
             // Fetch the count of assessments
-            $count = $this->getNumberOfAssessmnets($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);
+            $count = $this->getNumberOfAssessmnets($courseId, $thisAcademicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);
             
-            Log::info("Calculating scores for student: {$studentNumber}, course: {$courseId}, CA type: {$caType}");
-            Log::info("Total score: {$total}, Count: {$count}");
+            Log::info("Calculating scores for student: {$studentNumber}", [
+                'ca_scores_count' => $caScores->count(),
+                'ca_scores' => $caScores->toArray(),
+                'total_score' => $total,
+                'assessment_count' => $count
+            ]);
             
             // Get the maximum possible score for this assessment type
-            $maxScore = $this->getMaxScore($courseId, $caType, $delivery, $studyId,$componentId);
+            $maxScore = $this->getMaxScore($courseId, $caType, $delivery, $studyId, $componentId);
             
             // Calculate the average and adjusted average
             $average = $count > 0 ? $total / $count : 0;
             $adjustedAverage = ($average / 100) * $maxScore;
             
-            Log::info("Average: {$average}, Max Score: {$maxScore}, Adjusted Average: {$adjustedAverage}");
+            Log::info("Score calculation results for student: {$studentNumber}", [
+                'average' => $average,
+                'max_score' => $maxScore,
+                'adjusted_average' => $adjustedAverage
+            ]);
             
             // Save or update the student's CA record always, even if count is 0
-            $this->saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId, $componentId);
+            $this->saveOrUpdateStudentCA($studentNumber, $courseId, $thisAcademicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId, $componentId);
             
             DB::commit();
+            Log::info("Successfully updated CA score for student: {$studentNumber}, new score: {$adjustedAverage}");
             return true;
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("Error calculating scores: " . $e->getMessage());
+            Log::error("Error calculating scores: " . $e->getMessage(), [
+                'student_number' => $studentNumber,
+                'course_id' => $courseId,
+                'ca_type' => $caType,
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
             throw $e;
         }
     }
@@ -1995,9 +1842,6 @@ class CoordinatorController extends Controller
             ->where('course_assessment_scores.delivery_mode', $delivery)
             ->where('course_assessment_scores.study_id', $studyId)
             ->where('course_assessment_scores.component_id', $componentId)    
-            ->when(false, function ($query) use ($courseAssessmentId) {
-                return $query->where('course_assessment_scores.course_assessment_id', '!=', $courseAssessmentId);
-            })
             ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'course_assessment_scores.course_assessment_id')
             ->distinct('course_assessment_scores.course_assessment_id')
             ->count('course_assessment_scores.course_assessment_id');
@@ -2011,15 +1855,12 @@ class CoordinatorController extends Controller
             ->where('course_assessment_scores.delivery_mode', $delivery)
             ->where('course_assessment_scores.study_id', $studyId)
             ->where('course_assessment_scores.component_id', $componentId)
-            ->when(false, function ($query) use ($courseAssessmentId) {
-                return $query->where('course_assessment_scores.course_assessment_id', '!=', $courseAssessmentId);
-            })
             ->select('course_assessment_scores.cas_score as mark')
             ->join('course_assessments', 'course_assessments.course_assessments_id', '=', 'course_assessment_scores.course_assessment_id')
             ->get();
     }
     
-    private function getMaxScore($courseId, $caType, $delivery, $studyId,$componentId){
+    private function getMaxScore($courseId, $caType, $delivery, $studyId, $componentId){
         $courseAssessmenetTypes = CATypeMarksAllocation::where('c_a_type_marks_allocations.course_id', $courseId)
             ->where('c_a_type_marks_allocations.assessment_type_id', $caType)
             ->where('c_a_type_marks_allocations.delivery_mode', $delivery)
@@ -2061,6 +1902,10 @@ class CoordinatorController extends Controller
     }
     
     private function saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId, $componentId){
+        Log::info("Data being sent todatabase: {$studentNumber}", [
+            'Updated CA' => $adjustedAverage,
+            'Academic Year' => $academicYear
+        ]);
         StudentsContinousAssessment::updateOrCreate(
             [
                 'student_id' => $studentNumber,
@@ -2069,10 +1914,10 @@ class CoordinatorController extends Controller
                 'ca_type' => $caType,
                 'delivery_mode' => $delivery,
                 'study_id' => $studyId,
-                'component_id' => $componentId,
+                'component_id' => $componentId
             ],
-            [
-                'course_assessment_id' => $courseAssessmentId,
+            [                
+                'course_assessment_id' => $courseAssessmentId,            
                 'sca_score' => $adjustedAverage,
             ]
         );
