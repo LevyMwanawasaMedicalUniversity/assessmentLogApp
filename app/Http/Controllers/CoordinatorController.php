@@ -1102,8 +1102,6 @@ class CoordinatorController extends Controller
     }
 
     public function deleteCaInCourse(Request $request, $courseAssessmentId, $courseId){
-        $courseAssessmentId = Crypt::decrypt($courseAssessmentId);
-        $courseId = Crypt::decrypt($courseId);
 
         DB::beginTransaction();
 
@@ -1161,59 +1159,77 @@ class CoordinatorController extends Controller
 
 
 
-    public function deleteStudentCaInCourse( Request $request)
+    public function deleteStudentCaInCourse(Request $request)
     {        
-        
         DB::beginTransaction();
         
         try {
+            // Log the deletion request
+            Log::info('Starting CA deletion process', [
+                'course_assessment_scores_id' => $request->courseAssessmentScoresId,
+                'ca_type' => $request->caType,
+                'course_id' => $request->courseId
+            ]);
+            
             // Fetch the course assessment record    
             $courseAssessmenScoresId = $request->courseAssessmentScoresId;        
             $getCourseAssessmentsScores = CourseAssessmentScores::where('course_assessment_scores_id', $courseAssessmenScoresId);
-            $courseAssessmentsScores = $getCourseAssessmentsScores->pluck('student_id')->toArray();
-            Log::info($courseAssessmentsScores);
-            $courseAssessmentId = $getCourseAssessmentsScores->first()->course_assessment_id;
-            // $courseId = $getCourseAssessmentsScores->first()->course_id;
-            $delivery = $getCourseAssessmentsScores->first()->delivery_mode;
-            $study_id = $getCourseAssessmentsScores->first()->study_id;
-            $component_id = $getCourseAssessmentsScores->first()->component_id;
-            $academicYear = $this->academicYear;
+            
+            // Verify the record exists
+            if (!$getCourseAssessmentsScores->exists()) {
+                throw new \Exception('Course assessment score record not found');
+            }
+            
+            // Get the first record to extract necessary data
+            $scoreRecord = $getCourseAssessmentsScores->first();
+            $studentId = $scoreRecord->student_id;
+            $courseAssessmentId = $scoreRecord->course_assessment_id;
+            $delivery = $scoreRecord->delivery_mode;
+            $study_id = $scoreRecord->study_id;
+            $component_id = $scoreRecord->component_id;
+            $academicYear = $request->academicYear; 
             $caType = $request->caType;
             $courseId = $request->courseId;
-            // $ca_type = $getCourseAssessmentsScores->first()->ca_type;   
-
-            // Update and renew the continuous assessments before deletion
-            foreach ($courseAssessmentsScores as $entry) {
-                $this->renewCABeforeDelete($courseId, $academicYear, $caType, trim($entry), $courseAssessmentId, $delivery, $study_id,$component_id);
-            }
+            
+            Log::info('Found assessment record to delete', [
+                'student_id' => $studentId,
+                'course_id' => $courseId,
+                'ca_type' => $caType
+            ]);
+            
+            // Delete the specific course assessment score
             CourseAssessmentScores::where('course_assessment_scores_id', $courseAssessmenScoresId)->delete();
             
-            // Find and delete orphaned continuous assessments
-            // $assessmentsToDelete = StudentsContinousAssessment::leftJoin('course_assessments', 'students_continous_assessments.course_assessment_id', '=', 'course_assessments.course_assessments_id')
-            //     ->whereNull('course_assessments.course_assessments_id')
-            //     ->select('students_continous_assessments.students_continous_assessment_id')
-            //     ->get();
+            Log::info('Successfully deleted CourseAssessmentScores record', [
+                'course_assessment_scores_id' => $courseAssessmenScoresId
+            ]);
             
-            // foreach ($assessmentsToDelete as $assessment) {
-            //     $assessmentInstance = StudentsContinousAssessment::find($assessment->students_continous_assessment_id);
-            //     if ($assessmentInstance) {
-            //         $assessmentInstance->delete();
-            //     }
-            // }
+            // Recalculate the student's CA score after deletion
+            $this->calculateScores($courseId, $academicYear, $caType, $studentId, $courseAssessmentId, $delivery, $study_id, $component_id);
+            
+            Log::info('Successfully recalculated CA scores after deletion', [
+                'student_id' => $studentId,
+                'course_id' => $courseId
+            ]);
             
             // Commit the transaction if everything is successful
             DB::commit();
 
-            return redirect()->back()->with('success', 'Data deleted successfully');
+            return redirect()->back()->with('success', 'Assessment score deleted and CA recalculated successfully');
         } catch (\Exception $e) {
             // Rollback the transaction if there is an error
             DB::rollBack();
+            
+            Log::error('Error in deleteStudentCaInCourse: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
 
             return redirect()->back()->with('error', 'Data deletion failed: ' . $e->getMessage());
         }
     }
 
-    public function deleteStudentExamInCourse( Request $request)
+    public function deleteStudentExamInCourse(Request $request)
     {        
         
         DB::beginTransaction();
@@ -1245,7 +1261,7 @@ class CoordinatorController extends Controller
         //     //     ->whereNull('course_assessments.course_assessments_id')
         //     //     ->select('students_continous_assessments.students_continous_assessment_id')
         //     //     ->get();
-            
+
         //     // foreach ($assessmentsToDelete as $assessment) {
         //     //     $assessmentInstance = StudentsContinousAssessment::find($assessment->students_continous_assessment_id);
         //     //     if ($assessmentInstance) {
@@ -1786,14 +1802,14 @@ class CoordinatorController extends Controller
                 'component_id' => $componentId
             ]);
 
-            $thisAcademicYear = $this->academicYear;    
+            // $thisAcademicYear = $this->academicYear;    
             
             // Get all CA scores for this student in this course
-            $caScores = $this->getCourseAssessmentScores($courseId, $thisAcademicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);
+            $caScores = $this->getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);
             $total = $caScores->sum('mark');            
             
             // Fetch the count of assessments
-            $count = $this->getNumberOfAssessmnets($courseId, $thisAcademicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);
+            $count = $this->getNumberOfAssessmnets($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);
             
             Log::info("Calculating scores for student: {$studentNumber}", [
                 'ca_scores_count' => $caScores->count(),
@@ -1816,7 +1832,7 @@ class CoordinatorController extends Controller
             ]);
             
             // Save or update the student's CA record always, even if count is 0
-            $this->saveOrUpdateStudentCA($studentNumber, $courseId, $thisAcademicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId, $componentId);
+            $this->saveOrUpdateStudentCA($studentNumber, $courseId, $academicYear, $caType, $courseAssessmentId, $adjustedAverage, $delivery, $studyId, $componentId);
             
             DB::commit();
             Log::info("Successfully updated CA score for student: {$studentNumber}, new score: {$adjustedAverage}");

@@ -27,7 +27,7 @@
                                                 <input type="hidden" name="course_assessment_id" value="{{($courseAssessmentId)}}">
                                                 <input type="hidden" name="course_id" value="{{($courseId)}}">
                                                 <input type="hidden" name="course_code" value="{{ $courseCode}}">
-                                                <input type="hidden" name="academicYear" value="2024">
+                                                <input type="hidden" name="academicYear" value="{{ ($academicYear) }}">
                                                 <input type="hidden" name="basicInformationId" value="{{($basicInformationId)}}">
                                                 <input type="hidden" name="study_id" value="{{($studyId)}}">
                                                 <input type="hidden" name="delivery" value="{{($delivery)}}">

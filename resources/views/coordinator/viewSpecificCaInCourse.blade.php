@@ -26,6 +26,7 @@
             $basicInformationId = $results->first()->basic_information_id;
             $studyId = $results->first()->study_id;
             $delivery = $results->first()->delivery_mode;
+            $academicYear = $results->first()->academic_year;
             $caType = $caTypeFromAssessment;
         @endphp   
 
@@ -154,6 +155,7 @@
                                                         <form method="POST" action="{{ route('coordinator.deleteStudentCaInCourse') }}" onsubmit="return confirm('Are you sure you want to delete this?');">    
                                                             {{ method_field('DELETE') }}
                                                             {{ csrf_field() }}
+                                                            <input type="hidden" name="academicYear" value="{{ $result->academic_year }}">  
                                                             <input type="hidden" name="courseAssessmentScoresId" value="{{ $result->course_assessment_scores_id }}">
                                                             <input type="hidden" name="caType" value="{{ $caType }}">
                                                             <input type="hidden" name="courseId" value="{{ $courseId }}">                                                           
