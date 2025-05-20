@@ -197,10 +197,10 @@ class CoordinatorController extends Controller
         $courseDetails = EduroleCourses::where('ID', $courseId)->first();
         $user = Auth::check() ? Auth::user() : null;
     
+        // Get components regardless of academic year to enable reuse across years
         $courseComponentAllocated = CourseComponentAllocation::where('course_id', $courseId)
             ->where('delivery_mode', $delivery)
             ->where('study_id', $studyId)
-            // ->where('academic_year', $academicYear)
             ->pluck('course_component_id')
             ->toArray();
 
@@ -498,20 +498,20 @@ class CoordinatorController extends Controller
             //     ->where('study_id', $studyId)
             //     ->pluck('assessment_type_id')
             //     ->toArray();
+            // Get all existing components regardless of academic year
             $existingCourseComponentAllocatedIds = CourseComponentAllocation::where('course_id', $courseId)
                 ->where('delivery_mode', $delivery)
                 ->where('study_id', $studyId)
-                ->where('academic_year', $academicYear)
                 ->pluck('course_component_id')
                 ->toArray();
 
             // Remove assessment types that are no longer checked
             foreach ($existingCourseComponentAllocatedIds as $existingCourseComponentAllocatedId) {
                 if (!array_key_exists($existingCourseComponentAllocatedId, $courseComponents ?? [])) {
+                    // Delete components regardless of academic year
                     CourseComponentAllocation::where('course_id', $courseId)
                         ->where('delivery_mode', $delivery)
                         ->where('study_id', $studyId)
-                        ->where('academic_year', $academicYear)
                         ->where('course_component_id', $existingCourseComponentAllocatedId)
                         ->delete();
                 }
@@ -521,17 +521,24 @@ class CoordinatorController extends Controller
             foreach ($courseComponents as $courseComponentId => $isChecked) {
                 if ($isChecked) {
                     // $marks = $marksAllocated[$courseComponentId];
-                        CourseComponentAllocation::updateOrCreate(
-                        [
-                            'course_id' => $courseId,
-                            'course_component_id' => $courseComponentId,
-                            'delivery_mode' => $delivery,
-                            'study_id' => $studyId,
-                            'academic_year' => $academicYear
-                        ],
-                        [
-                        ]
-                    );
+                        // Check if this component already exists (regardless of academic year)
+                        $existingComponent = CourseComponentAllocation::where('course_id', $courseId)
+                            ->where('course_component_id', $courseComponentId)
+                            ->where('delivery_mode', $delivery)
+                            ->where('study_id', $studyId)
+                            ->first();
+                            
+                        if (!$existingComponent) {
+                            // Only create if it doesn't exist yet
+                            CourseComponentAllocation::create([
+                                'course_id' => $courseId,
+                                'course_component_id' => $courseComponentId,
+                                'delivery_mode' => $delivery,
+                                'study_id' => $studyId,
+                                'academic_year' => $academicYear // Still record academic year for historical tracking
+                            ]);
+                        }
+                        // We don't update existing components to preserve their original academic year
                 }
             }
 

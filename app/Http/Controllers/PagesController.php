@@ -206,11 +206,15 @@ class PagesController extends Controller
      */
     public function getAllocatedCourses($courseId, $basicInformationId, $delivery, $studyId, $academicYear)
     {
-        return CourseComponentAllocation::where('course_id', $courseId)
-            // ->where('basic_information_id', $basicInformationId)
-            ->where('delivery_mode', $delivery)
-            ->where('study_id', $studyId)
-            // ->where('academic_year', $academicYear)
+        return CourseComponentAllocation::where('course_component_allocations.course_id', $courseId)
+            ->where('course_component_allocations.delivery_mode', $delivery)
+            ->where('course_component_allocations.study_id', $studyId)
+            ->join('course_components', 'course_components.course_components_id', '=', 'course_component_allocations.course_component_id')
+            ->select(
+                'course_component_allocations.*',
+                'course_components.component_name',
+                'course_components.course_components_id'
+            )
             ->get();
     }
 }

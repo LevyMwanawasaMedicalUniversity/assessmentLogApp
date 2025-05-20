@@ -55,6 +55,7 @@
                                         @include('coordinator.caComponents.components.uploadAssessmentTypeModal')
                                         @include('coordinator.caComponents.components.viewAssessmentTypeModal')
                                         @php
+                                        $academicYear = 2025;
                                         $assessmentDetails = \App\Models\CourseAssessment::select(
                                                 'course_assessments.basic_information_id',
                                                 'assessment_types.assesment_type_name',
@@ -65,6 +66,7 @@
                                             ->where('course_assessments.course_id', $result->course_id)
                                             ->where('course_assessments.delivery_mode', $result->delivery_mode)
                                             ->where('course_assessments.study_id', $result->study_id)
+                                            ->where('course_assessments.academic_year', $academicYear)
                                             ->where('course_assessments.component_id', $result->course_components_id)
                                             ->join('assessment_types', 'assessment_types.id', '=', 'course_assessments.ca_type')
                                             ->groupBy('assessment_types.id','course_assessments.basic_information_id', 'assessment_types.assesment_type_name','course_assessments.delivery_mode')
