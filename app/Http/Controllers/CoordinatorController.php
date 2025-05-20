@@ -200,7 +200,7 @@ class CoordinatorController extends Controller
         $courseComponentAllocated = CourseComponentAllocation::where('course_id', $courseId)
             ->where('delivery_mode', $delivery)
             ->where('study_id', $studyId)
-            ->where('academic_year', $academicYear)
+            // ->where('academic_year', $academicYear)
             ->pluck('course_component_id')
             ->toArray();
 
@@ -483,7 +483,7 @@ class CoordinatorController extends Controller
             $basicInformationId = $request->input('basicInformationId');
             $delivery = $request->input('delivery');
             $studyId = $request->input('studyId');
-            $academicYear = $request->input('academicYear');
+            $academicYear = 2024;
 
             // Get the array of assessment types and marks allocated from the request
             $courseComponents = $request->input('courseComponent');
