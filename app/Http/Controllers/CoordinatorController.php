@@ -464,7 +464,7 @@ class CoordinatorController extends Controller
             $studyIdEncrypt = encrypt($studyId);
 
             // Redirect based on user role
-            $isCoordinator = auth()->check() && auth()->user()->hasPermissionTo('Coordinator');
+            $isCoordinator = auth()->check() && auth()->user()->hasRole('Coordinator');
             if ($isCoordinator) {
                 if($componentId){
                     return redirect()->route('pages.uploadCourseWithComponents', ['courseId' => $courseIdEncrypt, 'basicInformationId' => $basicInformationEncrypt, 'delivery' => $deliveryEncrypt, 'studyId' => $studyIdEncrypt])
