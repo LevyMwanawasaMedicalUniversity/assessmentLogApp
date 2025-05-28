@@ -19,7 +19,7 @@
                         ->where('delivery_mode', $result->Delivery)
                         ->where('study_id', $result->StudyID)
                         ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
-                        ->select('assessment_types.id','assessment_types.assesment_type_name')
+                        ->select('assessment_types.id', 'assessment_types.assesment_type_name', 'c_a_type_marks_allocations.assessment_count')
                         ->get();
                     $componentId = null;
 
@@ -28,6 +28,21 @@
                         ->where('delivery_mode', $result->Delivery)
                         ->where('component_id', $componentId)
                         ->sum('total_marks');
+
+                    // Get current academic year from settings
+                    $academicYear = \App\Models\Setting::where('key', 'current_academic_year')->first()->value ?? 2024;
+                    
+                    // For each assessment type, get the count of existing uploads
+                    $existingUploads = [];
+                    foreach ($courseAssessmenetTypes as $type) {
+                        $existingUploads[$type->id] = \App\Models\CourseAssessment::where('course_id', $result->ID)
+                            ->where('delivery_mode', $result->Delivery)
+                            ->where('study_id', $result->StudyID)
+                            ->where('component_id', $componentId)
+                            ->where('ca_type', $type->id)
+                            ->where('academic_year', $academicYear)
+                            ->count();
+                    }
                 @endphp
                 <div class="modal-body">
                     <b>
@@ -43,17 +58,46 @@
                             <!-- First Block -->
                             @if($courseAssessmenetTypes->count() > 0)
                                 @if( $totalMarks == 40)
-                                    @foreach ($courseAssessmenetTypes as $courseAssessmenetType )
-                                        <form method="GET" action="{{ route('coordinator.uploadCa', ['statusId' => encrypt($courseAssessmenetType->id), 'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId)]) }}">
-                                            <input type="hidden" name="delivery" value="{{ $result->Delivery }}">
-                                            <input type="hidden" name="studyId" value="{{$result->StudyID}}">
-                                            <input type="hidden" name="componentId" value="{{$componentId}}">
-                                            <button type="submit" class="btn btn-light shadow-sm text-center mb-3" style="border: 2px solid green;">
+                                    @foreach ($courseAssessmenetTypes as $courseAssessmenetType)
+                                        @php
+                                            $currentCount = $existingUploads[$courseAssessmenetType->id] ?? 0;
+                                            $maxAllowed = $courseAssessmenetType->assessment_count ?? 1;
+                                            $canUploadMore = $currentCount < $maxAllowed;
+                                        @endphp
+                                        
+                                        @if($canUploadMore)
+                                            <form method="GET" action="{{ route('coordinator.uploadCa', ['statusId' => encrypt($courseAssessmenetType->id), 'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId)]) }}">
+                                                <input type="hidden" name="delivery" value="{{ $result->Delivery }}">
+                                                <input type="hidden" name="studyId" value="{{$result->StudyID}}">
+                                                <input type="hidden" name="componentId" value="{{$componentId}}">
+                                                <button type="submit" class="btn btn-light shadow-sm text-center mb-3" style="border: 2px solid green;">
+                                                    <div class="p-3 text-dark">
+                                                        {{ $courseAssessmenetType->assesment_type_name }}
+                                                        <span class="badge bg-info">{{ $currentCount }} of {{ $maxAllowed }}</span>
+                                                    </div>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <div class="alert alert-warning shadow-sm text-center mb-3">
                                                 <div class="p-3 text-dark">
-                                                    {{ $courseAssessmenetType->assesment_type_name }}
+                                                    <strong>{{ $courseAssessmenetType->assesment_type_name }}</strong>
+                                                    <br>
+                                                    <small>Maximum uploads reached ({{ $currentCount }} of {{ $maxAllowed }})</small>
+                                                    <div class="mt-2">
+                                                        <a href="{{ route('coordinator.courseCASettings', [
+                                                            'courseIdValue' => encrypt($result->ID),
+                                                            'basicInformationId' => encrypt($result->basicInformationId),
+                                                            'delivery' => encrypt($result->Delivery)
+                                                        ]) }}?studyId={{ $result->StudyID }}&componentId={{$componentId}}" class="btn btn-sm btn-outline-secondary">
+                                                            Change limit
+                                                        </a>
+                                                        <a href="{{ route('coordinator.showCaWithin', encrypt($result->ID)) }}?studyId={{ $result->StudyID }}&delivery={{ $result->Delivery }}" class="btn btn-sm btn-outline-primary">
+                                                            Update existing
+                                                        </a>
+                                                    </div>
                                                 </div>
-                                            </button>
-                                        </form>
+                                            </div>
+                                        @endif
                                     @endforeach
                                 @else
                                     <form action="{{ route('coordinator.courseCASettings', [

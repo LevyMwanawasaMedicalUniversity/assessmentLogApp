@@ -54,11 +54,30 @@ class CoordinatorController extends Controller
         $studyId = $request->studyId;
         $getAssessmentType = AssessmentTypes::where('id', $caType)->first();
         $assessmentType = $getAssessmentType->assesment_type_name;
-        // return $assessmentType;
-        // return $studyId;
-        // return $courseId . '  ' . $basicInformationId . '  ' . $delivery . '  ' . $caType;
-
-        // return $courseId;
+        
+        // Check if max uploads reached
+        $assessmentConfig = CATypeMarksAllocation::where('course_id', $courseId)
+            ->where('delivery_mode', $delivery)
+            ->where('study_id', $studyId)
+            ->where('component_id', $componentId)
+            ->where('assessment_type_id', $caType)
+            ->first();
+        
+        if ($assessmentConfig) {
+            $currentUploads = CourseAssessment::where('course_id', $courseId)
+                ->where('delivery_mode', $delivery)
+                ->where('study_id', $studyId)
+                ->where('component_id', $componentId)
+                ->where('ca_type', $caType)
+                ->where('academic_year', $this->academicYear)
+                ->count();
+                
+            if ($currentUploads >= ($assessmentConfig->assessment_count ?? 1)) {
+                // Redirect back with error
+                return redirect()->back()->with('error', 
+                    'Maximum number of uploads reached for this assessment type. Please update an existing upload or increase the limit in settings.');
+            }
+        }
 
         $results = $this->getCoursesFromEdurole()            
             ->where('courses.ID', $courseId)
@@ -1303,6 +1322,30 @@ class CoordinatorController extends Controller
 
     public function importCAFromExcelSheet(Request $request)
     {
+        // Check if max uploads reached
+        $assessmentConfig = CATypeMarksAllocation::where('course_id', $request->course_id)
+            ->where('delivery_mode', $request->delivery)
+            ->where('study_id', $request->study_id)
+            ->where('component_id', $request->component_id)
+            ->where('assessment_type_id', $request->ca_type)
+            ->first();
+        
+        if ($assessmentConfig) {
+            $currentUploads = CourseAssessment::where('course_id', $request->course_id)
+                ->where('delivery_mode', $request->delivery)
+                ->where('study_id', $request->study_id)
+                ->where('component_id', $request->component_id)
+                ->where('ca_type', $request->ca_type)
+                ->where('academic_year', $this->academicYear)
+                ->count();
+                
+            if ($currentUploads >= ($assessmentConfig->assessment_count ?? 1)) {
+                // Redirect back with error
+                return redirect()->back()->with('error', 
+                    'Maximum number of uploads reached for this assessment type. Please update an existing upload or increase the limit in settings.');
+            }
+        }
+        
         // Process the Excel file
         $data = $this->processExcelImport($request);
         
@@ -1379,6 +1422,30 @@ class CoordinatorController extends Controller
 
     public function importFinalExamFromExcelSheet(Request $request)
     {
+        // Check if max uploads reached for final exam (ca_type = 4)
+        $assessmentConfig = CATypeMarksAllocation::where('course_id', $request->course_id)
+            ->where('delivery_mode', $request->delivery)
+            ->where('study_id', $request->study_id)
+            ->where('component_id', $request->component_id)
+            ->where('assessment_type_id', 4) // Final Exam
+            ->first();
+        
+        if ($assessmentConfig) {
+            $currentUploads = CourseAssessment::where('course_id', $request->course_id)
+                ->where('delivery_mode', $request->delivery)
+                ->where('study_id', $request->study_id)
+                ->where('component_id', $request->component_id)
+                ->where('ca_type', 4) // Final Exam
+                ->where('academic_year', $this->academicYear)
+                ->count();
+                
+            if ($currentUploads >= ($assessmentConfig->assessment_count ?? 1)) {
+                // Redirect back with error
+                return redirect()->back()->with('error', 
+                    'Maximum number of uploads reached for final exam. Please update an existing upload or increase the limit in settings.');
+            }
+        }
+        
         // Process the Excel file with isFinalExam flag set to true
         $data = $this->processExcelImport($request, [], true);
         
@@ -1468,6 +1535,9 @@ class CoordinatorController extends Controller
             'study_id' => 'required',
             'typeOfExam' => 'required|in:1,2',
         ];
+
+        // Since this method updates existing records rather than creating new ones,
+        // we don't need to check the assessment count as we're not creating new assessments
         
         DB::beginTransaction();
         
