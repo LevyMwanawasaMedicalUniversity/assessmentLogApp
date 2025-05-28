@@ -36,6 +36,7 @@
                                         <th scope="col">Select</th>
                                         <th scope="col">Assessment Type</th>
                                         <th scope="col">Marks Allocated</th>
+                                        <th scope="col">Number of Assessments</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -73,6 +74,20 @@
                                                             ? ''
                                                             : 'disabled' }}>
                                                 </td>
+                                                <td>
+                                                    <select 
+                                                        name="assessment_counts[{{ $assesmentType->id }}]" 
+                                                        class="form-select" 
+                                                        {{ array_key_exists($assesmentType->id, $courseAssessmenetTypes) 
+                                                            ? ''
+                                                            : 'disabled' }}>
+                                                        @for($i = 1; $i <= 10; $i++)
+                                                            <option value="{{ $i }}" {{ isset($assessmentCounts[$assesmentType->id]) && $assessmentCounts[$assesmentType->id] == $i ? 'selected' : '' }}>
+                                                                {{ $i }} {{ $i > 1 ? Str::plural($assesmentType->assesment_type_name) : $assesmentType->assesment_type_name }}
+                                                            </option>
+                                                        @endfor
+                                                    </select>
+                                                </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -96,18 +111,23 @@
         var previousValues = {};
 
         function toggleInput(checkbox, initialValue) {
-            var input = checkbox.parentElement.nextElementSibling.nextElementSibling.firstElementChild;
+            var row = checkbox.closest('tr');
+            var marksInput = row.querySelector('input[name^="marks_allocated"]');
+            var countSelect = row.querySelector('select[name^="assessment_counts"]');
+            
             if (checkbox.checked) {
-                input.disabled = false;
-                input.value = 0;
-                previousValues[input.name] = 0;
-                updateTotalMarks(input, false);
+                marksInput.disabled = false;
+                countSelect.disabled = false;
+                marksInput.value = initialValue || 0;
+                previousValues[marksInput.name] = parseInt(initialValue) || 0;
+                updateTotalMarks(marksInput, false);
             } else {
-                var previousValue = previousValues[input.name] || 0;
+                var previousValue = previousValues[marksInput.name] || 0;
                 totalMarks += previousValue;
-                previousValues[input.name] = 0;
-                input.value = 0;
-                input.disabled = true;
+                previousValues[marksInput.name] = 0;
+                marksInput.value = 0;
+                marksInput.disabled = true;
+                countSelect.disabled = true;
                 document.getElementById('remainingMarks').textContent = totalMarks;
                 updateRemainingMarksColor();
                 updateMaxValues();

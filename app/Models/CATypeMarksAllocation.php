@@ -18,6 +18,7 @@ class CATypeMarksAllocation extends Model implements AuditableContract
         'total_marks',
         'delivery_mode',
         'study_id',
-        'component_id'
+        'component_id',
+        'assessment_count'
     ];
 }

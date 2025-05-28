@@ -275,19 +275,29 @@ class CoordinatorController extends Controller
         // return $componentId . ' ' . $hasComponents . ' ' . $courseId . ' ' . $delivery . ' ' . $studyId;
         // return $hasComponents;
         $allAssesmentTypes = AssessmentTypes::all();
-        $courseAssessmenetTypes = CATypeMarksAllocation::where('course_id', $courseId)
+        // Get all assessment type allocations for the course
+        $assessmentAllocations = CATypeMarksAllocation::where('course_id', $courseId)
             ->where('delivery_mode', $delivery)
             ->where('study_id', $studyId)
             ->where('component_id', $componentId)
             ->join('assessment_types', 'assessment_types.id', '=', 'c_a_type_marks_allocations.assessment_type_id')
-            ->pluck('total_marks', 'assessment_type_id')
-            ->toArray();
-        // return $courseAssessmenetTypes;
+            ->get(['c_a_type_marks_allocations.assessment_type_id', 'total_marks', 'assessment_count']);
+            
+        // Extract marks for display in the form
+        $courseAssessmenetTypes = $assessmentAllocations->pluck('total_marks', 'assessment_type_id')->toArray();
+        
+        // Extract assessment counts for display in the form
+        $assessmentCounts = $assessmentAllocations->pluck('assessment_count', 'assessment_type_id')->toArray();
+        
         $course = EduroleCourses::where('ID', $courseId)->first();
     
         $marksToDeduct = !empty($courseAssessmenetTypes) ? array_sum($courseAssessmenetTypes) : 0;
     
-        return view('coordinator.courseCASettings', compact('componentId','courseId','delivery','studyId','delivery','courseAssessmenetTypes', 'allAssesmentTypes', 'course', 'marksToDeduct','basicInformationId','hasComponents'));
+        return view('coordinator.courseCASettings', compact(
+            'componentId', 'courseId', 'delivery', 'studyId', 'delivery',
+            'courseAssessmenetTypes', 'allAssesmentTypes', 'course', 'marksToDeduct',
+            'basicInformationId', 'hasComponents', 'assessmentCounts'
+        ));
     }
     
     public function viewOnlyProgrammesWithCa(){
@@ -395,6 +405,7 @@ class CoordinatorController extends Controller
             foreach ($assessmentTypes as $assessmentTypeId => $isChecked) {
                 if ($isChecked) {
                     $marks = $marksAllocated[$assessmentTypeId];
+                    $assessmentCount = $request->assessment_counts[$assessmentTypeId] ?? 1;
                     CATypeMarksAllocation::updateOrCreate(
                         [
                             'course_id' => $courseId,
@@ -404,7 +415,9 @@ class CoordinatorController extends Controller
                             'component_id' => $componentId
                         ],
                         [
-                            'total_marks' => $marks
+                            'user_id' => auth()->check() ? auth()->user()->id : null,
+                            'total_marks' => $marks,
+                            'assessment_count' => $assessmentCount
                         ]
                     );
                 }
@@ -1889,9 +1902,17 @@ class CoordinatorController extends Controller
             ->where('c_a_type_marks_allocations.delivery_mode', $delivery)
             ->where('c_a_type_marks_allocations.study_id', $studyId)
             ->where('c_a_type_marks_allocations.component_id', $componentId)                    
-            ->select('c_a_type_marks_allocations.total_marks')
+            ->select('c_a_type_marks_allocations.total_marks', 'c_a_type_marks_allocations.assessment_count')
             ->first();
-        return $courseAssessmenetTypes->total_marks;
+            
+        // If there are multiple assessments of the same type, divide the total weight by the count
+        if ($courseAssessmenetTypes) {
+            $assessmentCount = $courseAssessmenetTypes->assessment_count ?? 1;
+            return $courseAssessmenetTypes->total_marks / $assessmentCount;
+        }
+        
+        // Default return if no course assessment type is found
+        return 0;
     }
 
     private function setAssesmentType($statusId){
