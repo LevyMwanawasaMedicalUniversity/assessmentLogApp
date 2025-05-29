@@ -52,7 +52,7 @@
                                     </div>
                                 </div>
                                 
-                                <table id="myTable" class="table table-hover">
+                                <table id="myTable" class="table table-hover" style="opacity: 0; transition: opacity 0.3s">
                                     <thead>
                                         <tr>
                                         <th scope="col">#</th>
@@ -160,18 +160,37 @@
     </main><!-- End #main -->
     
     <script>
-        // Existing code
+        // Declare variables and functions but don't run initialization yet
         var totalMarks = {{$total_marks - $marksToDeduct}};
         var initialTotalMarks = {{$total_marks}};
         var previousValues = {};
+        var tableInitialized = false;
 
-        document.addEventListener('DOMContentLoaded', function() {
+        // Add a function to initialize the table after all validation is ready
+        function initializeTable() {
+            if (tableInitialized) return; // Prevent multiple initializations
+            
             var inputs = document.querySelectorAll('input[name^="marks_allocated"]');
             for (var i = 0; i < inputs.length; i++) {
                 previousValues[inputs[i].name] = parseInt(inputs[i].value) || 0;
             }
+            
             // Check if all marks are allocated and update UI accordingly
             updateRemainingMarksColor();
+            
+            // Mark the table as initialized
+            tableInitialized = true;
+            
+            // Show the table when everything is ready
+            document.getElementById('myTable').style.opacity = '1';
+            
+            console.log('Course CA Settings table initialized successfully');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hide table until it's fully initialized
+            document.getElementById('myTable').style.opacity = '0';
+            document.getElementById('myTable').style.transition = 'opacity 0.3s';
             
             // Add form validation
             document.querySelector('form').addEventListener('submit', function(event) {
@@ -201,6 +220,9 @@
                     window.scrollTo(0, document.body.scrollHeight);
                 }
             });
+            
+            // Initialize the table after all validation is set up
+            initializeTable();
         });
 
         function toggleInput(checkbox, value) {
