@@ -454,11 +454,15 @@ class CoordinatorController extends Controller
                         ->count();
                     
                     if ($newAssessmentCount < $existingUploads) {
+                        // Get assessment type name
+                        $assessmentType = AssessmentTypes::find($assessmentTypeId);
+                        $typeName = $assessmentType ? $assessmentType->assesment_type_name : 'this assessment type';
+                        
                         // If trying to reduce below existing uploads, return with error
                         DB::rollBack();
                         return redirect()->back()->with('error', 
-                            "Cannot reduce assessment count for this assessment type. You currently have {$existingUploads} uploads. 
-                            Please delete some existing uploads first before reducing the limit.");
+                            "Cannot reduce assessment count for {$typeName}. You currently have {$existingUploads} upload(s) but 
+                            are trying to set a limit of {$newAssessmentCount}. Please delete some existing uploads first before reducing the limit.");
                     }
                     
                     CATypeMarksAllocation::updateOrCreate(
@@ -1069,9 +1073,22 @@ class CoordinatorController extends Controller
             ->whereNotNull('students_continous_assessments.component_id')
             ->where('students_continous_assessments.academic_year', $this->academicYear);
             
+        // Instead of counting student assessment component instances,
+        // get the actual total number of components allocated to this course
+        $courseComponentsCount = CourseComponentAllocation::where('course_id', $courseId)
+            ->where('delivery_mode', $delivery)
+            ->where('study_id', $coursesInEdurole->StudyID)
+            ->count();
         
-        // Count the number of unique instances based on component_id
-        $numberOfUniqueInstances = $results->distinct('students_continous_assessments.component_id')->count('students_continous_assessments.component_id');
+        // If no components are found, default to 1 to avoid division by zero
+        $totalComponentsInCourse = max(1, $courseComponentsCount);
+        
+        // Log the component counts for debugging
+        Log::info("Course components count for course ID {$courseId}", [
+            'course_components_count' => $courseComponentsCount,
+            'delivery_mode' => $delivery,
+            'study_id' => $coursesInEdurole->StudyID
+        ]);
         
         // Calculate the total marks for each student
         $results = $results
@@ -1080,9 +1097,9 @@ class CoordinatorController extends Controller
             ->groupBy('students_continous_assessments.student_id')
             ->get();
         
-        // Divide the total marks by the number of unique instances
-        $results->transform(function ($item) use ($numberOfUniqueInstances) {
-            $item->total_marks = round($item->total_marks / $numberOfUniqueInstances, 2);
+        // Divide the total marks by the total number of components in the course
+        $results->transform(function ($item) use ($totalComponentsInCourse) {
+            $item->total_marks = round($item->total_marks / $totalComponentsInCourse, 2);
             return $item;
         });
 
@@ -1134,8 +1151,22 @@ class CoordinatorController extends Controller
             ->where('students_continous_assessments.study_id', $coursesInEdurole->StudyID)
             ->whereNotNull('students_continous_assessments.component_id');
         
-        // Count the number of unique instances based on component_id
-        $numberOfUniqueInstances = $results->distinct('students_continous_assessments.component_id')->count('students_continous_assessments.component_id');
+        // Instead of counting student assessment component instances,
+        // get the actual total number of components allocated to this course
+        $courseComponentsCount = CourseComponentAllocation::where('course_id', $courseId)
+            ->where('delivery_mode', $delivery)
+            ->where('study_id', $coursesInEdurole->StudyID)
+            ->count();
+        
+        // If no components are found, default to 1 to avoid division by zero
+        $totalComponentsInCourse = max(1, $courseComponentsCount);
+        
+        // Log the component counts for debugging
+        Log::info("Course components count for course ID {$courseId} (final exam view)", [
+            'course_components_count' => $courseComponentsCount,
+            'delivery_mode' => $delivery,
+            'study_id' => $coursesInEdurole->StudyID
+        ]);
         
         // Calculate the total marks for each student
         $results = $results
@@ -1144,9 +1175,9 @@ class CoordinatorController extends Controller
             ->groupBy('students_continous_assessments.student_id')
             ->get();
         
-        // Divide the total marks by the number of unique instances
-        $results->transform(function ($item) use ($numberOfUniqueInstances) {
-            $item->total_marks = round($item->total_marks / $numberOfUniqueInstances, 2);
+        // Divide the total marks by the total number of components in the course
+        $results->transform(function ($item) use ($totalComponentsInCourse) {
+            $item->total_marks = round($item->total_marks / $totalComponentsInCourse, 2);
             return $item;
         });
 
@@ -1380,10 +1411,17 @@ class CoordinatorController extends Controller
                 ->where('academic_year', $this->academicYear)
                 ->count();
                 
-            if ($currentUploads >= ($assessmentConfig->assessment_count ?? 1)) {
-                // Redirect back with error
+            $maxAllowed = $assessmentConfig->assessment_count ?? 1;
+            if ($currentUploads >= $maxAllowed) {
+                // Get assessment type name
+                $assessmentType = AssessmentTypes::find($request->ca_type);
+                $typeName = $assessmentType ? $assessmentType->assesment_type_name : 'this assessment type';
+                
+                // Redirect back with more detailed error message
                 return redirect()->back()->with('error', 
-                    'Maximum number of uploads reached for this assessment type. Please update an existing upload or increase the limit in settings.');
+                    "Maximum number of uploads ({$maxAllowed}) reached for {$typeName}. 
+                    You have already uploaded {$currentUploads} assessment(s). 
+                    Please update an existing upload or increase the limit in course settings.");
             }
         }
         
@@ -1480,10 +1518,13 @@ class CoordinatorController extends Controller
                 ->where('academic_year', $this->academicYear)
                 ->count();
                 
-            if ($currentUploads >= ($assessmentConfig->assessment_count ?? 1)) {
-                // Redirect back with error
+            $maxAllowed = $assessmentConfig->assessment_count ?? 1;
+            if ($currentUploads >= $maxAllowed) {
+                // Redirect back with more detailed error message
                 return redirect()->back()->with('error', 
-                    'Maximum number of uploads reached for final exam. Please update an existing upload or increase the limit in settings.');
+                    "Maximum number of uploads ({$maxAllowed}) reached for final exam. 
+                    You have already uploaded {$currentUploads} exam(s). 
+                    Please update an existing upload or increase the limit in course settings.");
             }
         }
         

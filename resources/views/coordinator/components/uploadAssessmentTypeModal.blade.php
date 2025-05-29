@@ -45,14 +45,20 @@
                     }
                 @endphp
                 <div class="modal-body">
-                    <b>
-                        <span >{{$result->CourseDescription}} - {{$result->CourseName}} 
-                            <b style="color: {{ $result->Delivery == 'Fulltime' ? 'blue' : ($result->Delivery == 'Distance' ? 'green' : 'black') }}">
-                                {{$result->Delivery}}
-                            </b>
-                        </span>
-                    </b>
-                    {{-- {{$courseAssessmenetTypes}} --}}
+                    <div class="mb-3">
+                        <h5>
+                            <span>{{$result->CourseDescription}} - {{$result->CourseName}} 
+                                <b style="color: {{ $result->Delivery == 'Fulltime' ? 'blue' : ($result->Delivery == 'Distance' ? 'green' : 'black') }}">
+                                    {{$result->Delivery}}
+                                </b>
+                            </span>
+                        </h5>
+                        <div class="alert alert-info" role="alert">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Each assessment type has upload limits. The buttons below show current upload status.
+                            Disabled buttons indicate that you've reached the maximum uploads allowed.
+                        </div>
+                    </div>
                     <div class="container">
                         <div class="d-flex flex-column"> <!-- Flex container with vertical spacing -->
                             <!-- First Block -->
@@ -65,30 +71,29 @@
                                             $canUploadMore = $currentCount < $maxAllowed;
                                         @endphp
                                         
-                                        @if($canUploadMore)
-                                            <form method="GET" action="{{ route('coordinator.uploadCa', ['statusId' => encrypt($courseAssessmenetType->id), 'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId)]) }}">
-                                                <input type="hidden" name="delivery" value="{{ $result->Delivery }}">
-                                                <input type="hidden" name="studyId" value="{{$result->StudyID}}">
-                                                <input type="hidden" name="componentId" value="{{$componentId}}">
-                                                <button type="submit" class="btn btn-light shadow-sm text-center mb-3" style="border: 2px solid green;">
-                                                    <div class="p-3 text-dark">
-                                                        {{ $courseAssessmenetType->assesment_type_name }}
-                                                        <span class="badge bg-info">{{ $currentCount }} of {{ $maxAllowed }}</span>
-                                                    </div>
-                                                </button>
-                                            </form>
-                                        @else
-                                            <div class="alert alert-warning shadow-sm text-center mb-3">
+                                        <form method="GET" action="{{ route('coordinator.uploadCa', ['statusId' => encrypt($courseAssessmenetType->id), 'courseIdValue' => encrypt($result->ID),'basicInformationId' => encrypt($result->basicInformationId)]) }}">
+                                            <input type="hidden" name="delivery" value="{{ $result->Delivery }}">
+                                            <input type="hidden" name="studyId" value="{{$result->StudyID}}">
+                                            <input type="hidden" name="componentId" value="{{$componentId}}">
+                                            <button type="submit" class="btn btn-light shadow-sm text-center mb-3" style="border: 2px solid {{ $canUploadMore ? 'green' : 'red' }};" {{ !$canUploadMore ? 'disabled' : '' }}>
                                                 <div class="p-3 text-dark">
-                                                    <strong>{{ $courseAssessmenetType->assesment_type_name }}</strong>
-                                                    <br>
-                                                    <small>Maximum uploads reached ({{ $currentCount }} of {{ $maxAllowed }})</small>
-                                                    <div class="mt-2">
+                                                    {{ $courseAssessmenetType->assesment_type_name }}
+                                                    <div class="small {{ $canUploadMore ? 'text-success' : 'text-danger' }}">
+                                                        {{ $currentCount }} of {{ $maxAllowed }} uploads used
+                                                        @if(!$canUploadMore)
+                                                            <br><strong>Maximum uploads reached</strong>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </button>
+                                            @if(!$canUploadMore)
+                                                <div class="mb-3">
+                                                    <div class="d-flex justify-content-center">
                                                         <a href="{{ route('coordinator.courseCASettings', [
                                                             'courseIdValue' => encrypt($result->ID),
                                                             'basicInformationId' => encrypt($result->basicInformationId),
                                                             'delivery' => encrypt($result->Delivery)
-                                                        ]) }}?studyId={{ $result->StudyID }}&componentId={{$componentId}}" class="btn btn-sm btn-outline-secondary">
+                                                        ]) }}?studyId={{ $result->StudyID }}&componentId={{$componentId}}" class="btn btn-sm btn-outline-secondary me-2">
                                                             Change limit
                                                         </a>
                                                         <a href="{{ route('coordinator.showCaWithin', encrypt($result->ID)) }}?studyId={{ $result->StudyID }}&delivery={{ $result->Delivery }}" class="btn btn-sm btn-outline-primary">
@@ -96,8 +101,8 @@
                                                         </a>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        @endif
+                                            @endif
+                                        </form>
                                     @endforeach
                                 @else
                                     <form action="{{ route('coordinator.courseCASettings', [

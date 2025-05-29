@@ -102,8 +102,19 @@
                                                     </select>
                                                     
                                                     @if($currentUploads > 0)
-                                                        <div class="mt-1 small text-muted">
-                                                            Currently {{ $currentUploads }} upload(s). Cannot reduce below this limit.
+                                                        <div class="mt-2 fw-bold" style="font-size: 0.9rem; color: {{ $currentUploads == $minAllowed ? '#E67E22' : '#2980B9' }};">
+                                                            <i class="bi {{ $currentUploads == $minAllowed ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill' }} me-1"></i>
+                                                            Currently {{ $currentUploads }} upload(s). 
+                                                            @if($currentUploads == $minAllowed)
+                                                                <strong>Cannot reduce below this limit</strong> without first deleting existing uploads.
+                                                            @else
+                                                                Can upload {{ isset($assessmentCounts[$assesmentType->id]) ? $assessmentCounts[$assesmentType->id] - $currentUploads : $minAllowed - $currentUploads }} more.
+                                                            @endif
+                                                        </div>
+                                                    @else
+                                                        <div class="mt-2 fw-bold" style="font-size: 0.9rem; color: #2980B9;">
+                                                            <i class="bi bi-info-circle-fill me-1"></i>
+                                                            No uploads yet. You can upload up to {{ isset($assessmentCounts[$assesmentType->id]) ? $assessmentCounts[$assesmentType->id] : 1 }} assessment(s).
                                                         </div>
                                                     @endif
                                                 </td>
