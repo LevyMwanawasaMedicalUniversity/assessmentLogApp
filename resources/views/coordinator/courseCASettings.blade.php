@@ -31,7 +31,14 @@
                                 
                                 <div class="d-flex justify-content-between align-items-center mb-4">
                                     <h5 class="card-title">{{$course->CourseDescription}} @if($hasComponents){{$hasComponents}}@endif</h5>
-                                    <h5 class="card-title">Marks Available : <span id="remainingMarks" style="font-weight: bold;">{{$total_marks - $marksToDeduct}}</span></h5>
+                                    <div>
+                                        <h5 class="card-title">
+                                            Marks Available: <span id="remainingMarks" style="font-weight: bold;">{{$total_marks - $marksToDeduct}}</span>
+                                            <span id="marksStatus" class="badge bg-danger ms-2" style="display: {{ $total_marks - $marksToDeduct == 0 ? 'inline' : 'none' }}">
+                                                All marks allocated
+                                            </span>
+                                        </h5>
+                                    </div>
                                 </div>
                                 
                                 <table id="myTable" class="table table-hover">
@@ -66,18 +73,22 @@
                                                 </td>
                                                 <td>{{ $assesmentType->assesment_type_name}}</td>
                                                 <td>
-                                                    <input 
-                                                        value="{{ array_key_exists($assesmentType->id, $courseAssessmenetTypes) 
-                                                            ? $courseAssessmenetTypes[$assesmentType->id]
-                                                            : 0 }}" 
-                                                        type="number" 
-                                                        name="marks_allocated[{{ $assesmentType->id }}]" 
-                                                        oninput="updateTotalMarks(this)" 
-                                                        max="{{$total_marks}}" 
-                                                        min="0" 
-                                                        {{ array_key_exists($assesmentType->id, $courseAssessmenetTypes) 
-                                                            ? ''
-                                                            : 'disabled' }}>
+                                                    <div class="input-group">
+                                                        <input 
+                                                            value="{{ array_key_exists($assesmentType->id, $courseAssessmenetTypes) 
+                                                                ? max(1, $courseAssessmenetTypes[$assesmentType->id])
+                                                                : 0 }}" 
+                                                            type="number" 
+                                                            class="form-control {{ array_key_exists($assesmentType->id, $courseAssessmenetTypes) && $courseAssessmenetTypes[$assesmentType->id] == 0 ? 'border-warning' : '' }}"
+                                                            name="marks_allocated[{{ $assesmentType->id }}]" 
+                                                            oninput="updateTotalMarks(this)" 
+                                                            max="{{$total_marks}}" 
+                                                            min="{{ array_key_exists($assesmentType->id, $courseAssessmenetTypes) ? '1' : '0' }}" 
+                                                            {{ array_key_exists($assesmentType->id, $courseAssessmenetTypes) 
+                                                                ? 'placeholder="Enter marks"'
+                                                                : 'disabled' }}>
+                                                        <span class="input-group-text">/{{$total_marks}}</span>
+                                                    </div>
                                                 </td>
                                                 <td>
                                                     @php
@@ -123,7 +134,10 @@
                                     </tbody>
                                 </table>
                                 <div class="text-center">                                    
-                                    <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0">Save Changes</button>
+                                    <button type="submit" class="btn btn-primary font-weight-bold py-2 px-4 rounded-0" id="saveChangesBtn">Save Changes</button>
+                                    <div class="mt-2 text-danger" id="validationMessage" style="display: none;">
+                                        Please enter marks greater than 0 for all selected assessment types.
+                                    </div>
                                 </div>
                             </div>
                         </form>
@@ -145,7 +159,37 @@
             for (var i = 0; i < inputs.length; i++) {
                 previousValues[inputs[i].name] = parseInt(inputs[i].value) || 0;
             }
+            // Check if all marks are allocated and update UI accordingly
             updateRemainingMarksColor();
+            
+            // Add form validation
+            document.querySelector('form').addEventListener('submit', function(event) {
+                let isValid = true;
+                const checkboxes = document.querySelectorAll('input.assessmentType:checked');
+                
+                checkboxes.forEach(function(checkbox) {
+                    const tr = checkbox.closest('tr');
+                    const inputMarks = tr.querySelector('input[name^="marks_allocated"]');
+                    const marksValue = parseInt(inputMarks.value);
+                    
+                    if (isNaN(marksValue) || marksValue <= 0) {
+                        isValid = false;
+                        inputMarks.classList.add('is-invalid');
+                        // Set minimum value to 1 to prevent 0 values
+                        if (marksValue <= 0) {
+                            inputMarks.value = '';
+                        }
+                    } else {
+                        inputMarks.classList.remove('is-invalid');
+                    }
+                });
+                
+                if (!isValid) {
+                    event.preventDefault();
+                    document.getElementById('validationMessage').style.display = 'block';
+                    window.scrollTo(0, document.body.scrollHeight);
+                }
+            });
         });
 
         function toggleInput(checkbox, value) {
@@ -162,10 +206,15 @@
                 inputMarks.disabled = false;
                 selectCount.disabled = false;
                 
-                // Only update marks if they are 0 (newly checked)
-                if (parseInt(inputMarks.value) === 0) {
-                    inputMarks.value = 5; // Default value
-                    updateTotalMarks(inputMarks);
+                // Enable inputs but don't automatically assign a value
+                // Let the user enter their desired value
+                if (parseInt(inputMarks.value) <= 0) {
+                    // Add visual indicator that this field needs a value
+                    inputMarks.classList.add('border-warning');
+                    // Focus on this input to prompt the user to enter a value
+                    inputMarks.focus();
+                    // Show a tooltip or hint
+                    inputMarks.setAttribute('placeholder', 'Enter marks (min: 1)');
                 }
             } else {
                 // Update total marks before disabling
@@ -178,6 +227,11 @@
                     updateRemainingMarksColor();
                     updateMaxValues();
                 }
+                
+                // Clear any validation styling
+                inputMarks.classList.remove('border-warning');
+                inputMarks.classList.remove('is-invalid');
+                inputMarks.removeAttribute('placeholder');
                 
                 inputMarks.disabled = true;
                 selectCount.disabled = true;
@@ -208,11 +262,41 @@
 
         function updateRemainingMarksColor() {
             var remainingMarksElement = document.getElementById('remainingMarks');
+            var marksStatusElement = document.getElementById('marksStatus');
+            
             if (totalMarks === 0) {
                 remainingMarksElement.style.color = 'red';
+                marksStatusElement.style.display = 'inline'; // Show the "All marks allocated" badge
+                // Disable all unchecked checkboxes when no marks are remaining
+                disableUncheckedCheckboxes();
             } else {
                 remainingMarksElement.style.color = 'green';
+                marksStatusElement.style.display = 'none'; // Hide the badge
+                // Enable all checkboxes when marks are available
+                enableUncheckedCheckboxes();
             }
+        }
+        
+        function disableUncheckedCheckboxes() {
+            var checkboxes = document.querySelectorAll('input.assessmentType:not(:checked)');
+            checkboxes.forEach(function(checkbox) {
+                checkbox.disabled = true;
+                // Add visual indicator that selection is disabled
+                var tr = checkbox.closest('tr');
+                tr.classList.add('text-muted');
+                tr.title = 'No marks remaining. Reduce other allocations to select this.';
+            });
+        }
+        
+        function enableUncheckedCheckboxes() {
+            var checkboxes = document.querySelectorAll('input.assessmentType:not(:checked)');
+            checkboxes.forEach(function(checkbox) {
+                checkbox.disabled = false;
+                // Remove visual indicator
+                var tr = checkbox.closest('tr');
+                tr.classList.remove('text-muted');
+                tr.removeAttribute('title');
+            });
         }
     </script>
 </x-app-layout>
