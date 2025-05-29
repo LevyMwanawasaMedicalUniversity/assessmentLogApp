@@ -1180,16 +1180,21 @@ class CoordinatorController extends Controller
 
         DB::beginTransaction();
 
+        $courseId = Crypt::decrypt($courseId);
+
         $courseCode = EduroleCourses::where('ID', $courseId)->first()->Name;
+        $courseAssessmentId = Crypt::decrypt($courseAssessmentId);
 
         try {
             // Fetch the course assessment record
+            
             $courseAssessment = CourseAssessment::where('course_assessments_id', $courseAssessmentId)
                 ->where('ca_type', $request->ca_type)
                 ->where('course_id', $courseId)
                 ->where('delivery_mode', $request->delivery)
                 ->where('study_id', $request->study_id)
                 ->firstOrFail(); // Fail if not found
+                
 
             // Fetch course assessment scores
             $getCourseAssessmentsScores = CourseAssessmentScores::where('course_assessment_id', $courseAssessmentId)
@@ -1932,7 +1937,17 @@ class CoordinatorController extends Controller
             
             // Get all CA scores for this student in this course
             $caScores = $this->getCourseAssessmentScores($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);
-            $total = $caScores->sum('mark');            
+            
+            // Get all assessment information
+            $assessmentConfig = CATypeMarksAllocation::where('course_id', $courseId)
+                ->where('assessment_type_id', $caType)
+                ->where('delivery_mode', $delivery)
+                ->where('study_id', $studyId)
+                ->where('component_id', $componentId)
+                ->first();
+            
+            // Get the total marks allocated to this assessment type
+            $totalAllocatedMarks = $assessmentConfig ? $assessmentConfig->total_marks : 0;
             
             // Fetch the count of assessments
             $count = $this->getNumberOfAssessmnets($courseId, $academicYear, $caType, $studentNumber, $courseAssessmentId, $delivery, $studyId, $componentId);
@@ -1940,20 +1955,40 @@ class CoordinatorController extends Controller
             Log::info("Calculating scores for student: {$studentNumber}", [
                 'ca_scores_count' => $caScores->count(),
                 'ca_scores' => $caScores->toArray(),
-                'total_score' => $total,
-                'assessment_count' => $count
+                'assessment_count' => $count,
+                'total_allocated_marks' => $totalAllocatedMarks
             ]);
             
-            // Get the maximum possible score for this assessment type
-            $maxScore = $this->getMaxScore($courseId, $caType, $delivery, $studyId, $componentId);
+            // Calculate each assessment's contribution based on its percentage
+            $totalAdjacentScore = 0;
             
-            // Calculate the average and adjusted average
-            $average = $count > 0 ? $total / $count : 0;
-            $adjustedAverage = ($average / 100) * $maxScore;
+            // If we have assessments configured
+            if ($count > 0 && $caScores->count() > 0) {
+                // Calculate the marks per assessment
+                $marksPerAssessment = $totalAllocatedMarks / $assessmentConfig->assessment_count;
+                
+                // For each score, calculate its contribution to the total
+                foreach ($caScores as $score) {
+                    // Convert the raw score to a percentage of the total possible for this assessment
+                    $percentage = $score->mark / 100;
+                    
+                    // Calculate this assessment's contribution to the total marks
+                    $contribution = $percentage * $marksPerAssessment;
+                    
+                    // Add to the running total
+                    $totalAdjacentScore += $contribution;
+                }
+                
+                // Adjusted average is the sum of all contributions
+                $adjustedAverage = $totalAdjacentScore;
+            } else {
+                $adjustedAverage = 0;
+            }
             
             Log::info("Score calculation results for student: {$studentNumber}", [
-                'average' => $average,
-                'max_score' => $maxScore,
+                'total_allocated_marks' => $totalAllocatedMarks,
+                'assessment_count' => $assessmentConfig ? $assessmentConfig->assessment_count : 0,
+                'ca_scores_count' => $caScores->count(),
                 'adjusted_average' => $adjustedAverage
             ]);
             
