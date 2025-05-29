@@ -404,8 +404,30 @@ class CoordinatorController extends Controller
             // Get the array of assessment types and marks allocated from the request
             $assessmentTypes = $request->input('assessmentType');
             $marksAllocated = $request->input('marks_allocated');
-            // return $assessmentTypes;
-            // return $marksAllocated;
+            
+            // Validate that all marks are greater than 0
+            if ($assessmentTypes && is_array($assessmentTypes)) {
+                foreach ($assessmentTypes as $assessmentTypeId => $isChecked) {
+                    if ($isChecked && (!isset($marksAllocated[$assessmentTypeId]) || $marksAllocated[$assessmentTypeId] <= 0)) {
+                        return redirect()->back()->with('error', 'Marks must be greater than 0 for all selected assessment types.');
+                    }
+                }
+            }
+            
+            // Validate that the total allocated marks don't exceed 40
+            $totalMarksAllocated = 0;
+            if ($marksAllocated && is_array($marksAllocated)) {
+                foreach ($marksAllocated as $assessmentTypeId => $marks) {
+                    if (isset($assessmentTypes[$assessmentTypeId])) {
+                        $totalMarksAllocated += (float) $marks;
+                    }
+                }
+                
+                if ($totalMarksAllocated > 40) {
+                    return redirect()->back()->with('error', 'Total marks allocated exceed the maximum of 40. Please adjust your allocations.');
+                }
+            }
+            
             $user = Auth::check() ? Auth::user() : null;
             $userBasicInformationId = $user ? $user->basic_information_id : null;
 
@@ -438,7 +460,15 @@ class CoordinatorController extends Controller
             // Update or create the assessment type allocations
             foreach ($assessmentTypes as $assessmentTypeId => $isChecked) {
                 if ($isChecked) {
-                    $marks = $marksAllocated[$assessmentTypeId];
+                    // Ensure marks are valid numbers greater than 0 and properly rounded
+                    $marks = (float) $marksAllocated[$assessmentTypeId];
+                    $marks = round($marks, 2);  // Round to 2 decimal places for consistency
+                    
+                    // Enforce minimum value of 1
+                    if ($marks < 1) {
+                        $marks = 1;
+                    }
+                    
                     $newAssessmentCount = $request->assessment_counts[$assessmentTypeId] ?? 1;
                     
                     // Get current academic year from settings
@@ -463,6 +493,18 @@ class CoordinatorController extends Controller
                         return redirect()->back()->with('error', 
                             "Cannot reduce assessment count for {$typeName}. You currently have {$existingUploads} upload(s) but 
                             are trying to set a limit of {$newAssessmentCount}. Please delete some existing uploads first before reducing the limit.");
+                    }
+                    
+                    // Log if the original input was adjusted (useful for monitoring potential frontend validation issues)
+                    $originalInput = (float) $marksAllocated[$assessmentTypeId];
+                    if ($originalInput != $marks) {
+                        \Log::info("Assessment mark allocation adjusted", [
+                            'course_id' => $courseId,
+                            'assessment_type_id' => $assessmentTypeId,
+                            'original_value' => $originalInput,
+                            'adjusted_value' => $marks,
+                            'user_id' => auth()->check() ? auth()->user()->id : null
+                        ]);
                     }
                     
                     CATypeMarksAllocation::updateOrCreate(
@@ -515,6 +557,18 @@ class CoordinatorController extends Controller
                 }
             }
 
+            // Log the final allocation details for audit trail
+            \Log::info("Course CA settings updated successfully", [
+                'course_id' => $courseId,
+                'course_code' => $courseCode,
+                'delivery_mode' => $delivery,
+                'study_id' => $studyId,
+                'component_id' => $componentId,
+                'user_id' => auth()->check() ? auth()->user()->id : null,
+                'total_allocations' => count($assessmentTypes ?? []),
+                'total_marks_allocated' => $totalMarksAllocated ?? 0
+            ]);
+            
             DB::commit();
 
             $courseIdEncrypt = encrypt($courseId);
