@@ -8,6 +8,11 @@
                 </span>
             </h1>
             @include('layouts.alerts')
+            
+            <div class="alert alert-info" role="alert">
+                <strong>Note:</strong> You cannot reduce the number of assessments below the count of existing uploads. You must delete existing uploads first.
+            </div>
+            
             <nav>
                 {{ Breadcrumbs::render() }}
             </nav>
@@ -75,18 +80,32 @@
                                                             : 'disabled' }}>
                                                 </td>
                                                 <td>
+                                                    @php
+                                                        $currentUploads = $existingUploads[$assesmentType->id] ?? 0;
+                                                        $minAllowed = max(1, $currentUploads);
+                                                    @endphp
+                                                    
                                                     <select 
                                                         name="assessment_counts[{{ $assesmentType->id }}]" 
                                                         class="form-select" 
                                                         {{ array_key_exists($assesmentType->id, $courseAssessmenetTypes) 
                                                             ? ''
                                                             : 'disabled' }}>
-                                                        @for($i = 1; $i <= 10; $i++)
+                                                        @for($i = $minAllowed; $i <= 10; $i++)
                                                             <option value="{{ $i }}" {{ isset($assessmentCounts[$assesmentType->id]) && $assessmentCounts[$assesmentType->id] == $i ? 'selected' : '' }}>
                                                                 {{ $i }} {{ $i > 1 ? Str::plural($assesmentType->assesment_type_name) : $assesmentType->assesment_type_name }}
+                                                                @if($i == $minAllowed && $currentUploads > 0)
+                                                                    ({{ $currentUploads }} uploads exist)
+                                                                @endif
                                                             </option>
                                                         @endfor
                                                     </select>
+                                                    
+                                                    @if($currentUploads > 0)
+                                                        <div class="mt-1 small text-muted">
+                                                            Currently {{ $currentUploads }} upload(s). Cannot reduce below this limit.
+                                                        </div>
+                                                    @endif
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -101,39 +120,59 @@
                     </div>
                 </div>
             </div>
-        </section>
-
+        </section><!-- End Section -->
     </main><!-- End #main -->
-
+    
     <script>
+        // Existing code
+        var totalMarks = {{$total_marks - $marksToDeduct}};
         var initialTotalMarks = {{$total_marks}};
-        var totalMarks = initialTotalMarks - {{$marksToDeduct}};
         var previousValues = {};
 
-        function toggleInput(checkbox, initialValue) {
-            var row = checkbox.closest('tr');
-            var marksInput = row.querySelector('input[name^="marks_allocated"]');
-            var countSelect = row.querySelector('select[name^="assessment_counts"]');
+        document.addEventListener('DOMContentLoaded', function() {
+            var inputs = document.querySelectorAll('input[name^="marks_allocated"]');
+            for (var i = 0; i < inputs.length; i++) {
+                previousValues[inputs[i].name] = parseInt(inputs[i].value) || 0;
+            }
+            updateRemainingMarksColor();
+        });
+
+        function toggleInput(checkbox, value) {
+            // Find the closest tr (table row)
+            var tr = checkbox.closest('tr');
+            
+            // Find the input element for marks allocation
+            var inputMarks = tr.querySelector('input[name^="marks_allocated"]');
+            
+            // Find the select element for assessment count
+            var selectCount = tr.querySelector('select[name^="assessment_counts"]');
             
             if (checkbox.checked) {
-                marksInput.disabled = false;
-                countSelect.disabled = false;
-                marksInput.value = initialValue || 0;
-                previousValues[marksInput.name] = parseInt(initialValue) || 0;
-                updateTotalMarks(marksInput, false);
+                inputMarks.disabled = false;
+                selectCount.disabled = false;
+                
+                // Only update marks if they are 0 (newly checked)
+                if (parseInt(inputMarks.value) === 0) {
+                    inputMarks.value = 5; // Default value
+                    updateTotalMarks(inputMarks);
+                }
             } else {
-                var previousValue = previousValues[marksInput.name] || 0;
-                totalMarks += previousValue;
-                previousValues[marksInput.name] = 0;
-                marksInput.value = 0;
-                marksInput.disabled = true;
-                countSelect.disabled = true;
-                document.getElementById('remainingMarks').textContent = totalMarks;
-                updateRemainingMarksColor();
-                updateMaxValues();
+                // Update total marks before disabling
+                if (parseInt(inputMarks.value) > 0) {
+                    var oldValue = parseInt(inputMarks.value);
+                    inputMarks.value = 0;
+                    previousValues[inputMarks.name] = 0;
+                    totalMarks += oldValue;
+                    document.getElementById('remainingMarks').textContent = totalMarks;
+                    updateRemainingMarksColor();
+                    updateMaxValues();
+                }
+                
+                inputMarks.disabled = true;
+                selectCount.disabled = true;
             }
         }
-
+        
         function updateTotalMarks(input) {
             var allocatedMarks = parseInt(input.value);
             var previousValue = previousValues[input.name] || 0;
@@ -164,16 +203,5 @@
                 remainingMarksElement.style.color = 'green';
             }
         }
-
-        window.onload = function() {
-            var inputs = document.querySelectorAll('input[name^="marks_allocated"]');
-            for (var i = 0; i < inputs.length; i++) {
-                if (!inputs[i].disabled) {
-                    previousValues[inputs[i].name] = parseInt(inputs[i].value);
-                }
-            }
-            updateMaxValues();
-            updateRemainingMarksColor();
-        };
     </script>
 </x-app-layout>

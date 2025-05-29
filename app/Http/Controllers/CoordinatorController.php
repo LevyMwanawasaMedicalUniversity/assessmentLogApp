@@ -308,12 +308,27 @@ class CoordinatorController extends Controller
         // Extract assessment counts for display in the form
         $assessmentCounts = $assessmentAllocations->pluck('assessment_count', 'assessment_type_id')->toArray();
         
+        // Get current academic year from settings
+        $academicYear = Setting::where('key', 'current_academic_year')->first()->value ?? date('Y');
+        
+        // For each assessment type, get the count of existing uploads
+        $existingUploads = [];
+        foreach ($courseAssessmenetTypes as $assessmentTypeId => $marks) {
+            $existingUploads[$assessmentTypeId] = CourseAssessment::where('course_id', $courseId)
+                ->where('delivery_mode', $delivery)
+                ->where('study_id', $studyId)
+                ->where('component_id', $componentId)
+                ->where('ca_type', $assessmentTypeId)
+                ->where('academic_year', $academicYear)
+                ->count();
+        }
+        
         $course = EduroleCourses::where('ID', $courseId)->first();
     
         $marksToDeduct = !empty($courseAssessmenetTypes) ? array_sum($courseAssessmenetTypes) : 0;
     
         return view('coordinator.courseCASettings', compact(
-            'componentId', 'courseId', 'delivery', 'studyId', 'delivery',
+            'componentId', 'courseId', 'delivery', 'studyId', 'delivery', 'existingUploads',
             'courseAssessmenetTypes', 'allAssesmentTypes', 'course', 'marksToDeduct',
             'basicInformationId', 'hasComponents', 'assessmentCounts'
         ));
@@ -424,7 +439,28 @@ class CoordinatorController extends Controller
             foreach ($assessmentTypes as $assessmentTypeId => $isChecked) {
                 if ($isChecked) {
                     $marks = $marksAllocated[$assessmentTypeId];
-                    $assessmentCount = $request->assessment_counts[$assessmentTypeId] ?? 1;
+                    $newAssessmentCount = $request->assessment_counts[$assessmentTypeId] ?? 1;
+                    
+                    // Get current academic year from settings
+                    $academicYear = Setting::where('key', 'current_academic_year')->first()->value ?? date('Y');
+                    
+                    // Check if the new assessment count is less than the number of existing uploads
+                    $existingUploads = CourseAssessment::where('course_id', $courseId)
+                        ->where('delivery_mode', $delivery)
+                        ->where('study_id', $studyId)
+                        ->where('component_id', $componentId)
+                        ->where('ca_type', $assessmentTypeId)
+                        ->where('academic_year', $academicYear)
+                        ->count();
+                    
+                    if ($newAssessmentCount < $existingUploads) {
+                        // If trying to reduce below existing uploads, return with error
+                        DB::rollBack();
+                        return redirect()->back()->with('error', 
+                            "Cannot reduce assessment count for this assessment type. You currently have {$existingUploads} uploads. 
+                            Please delete some existing uploads first before reducing the limit.");
+                    }
+                    
                     CATypeMarksAllocation::updateOrCreate(
                         [
                             'course_id' => $courseId,
@@ -436,7 +472,7 @@ class CoordinatorController extends Controller
                         [
                             'user_id' => auth()->check() ? auth()->user()->id : null,
                             'total_marks' => $marks,
-                            'assessment_count' => $assessmentCount
+                            'assessment_count' => $newAssessmentCount
                         ]
                     );
                 }
