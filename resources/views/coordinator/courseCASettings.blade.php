@@ -38,6 +38,17 @@
                                                 All marks allocated
                                             </span>
                                         </h5>
+                                        <div id="marksGuidance" class="text-muted small mt-1" style="display: {{ $total_marks - $marksToDeduct == 0 ? 'block' : 'none' }}">
+                                            {{-- <i class="bi bi-info-circle"></i> To add more assessment types, reduce marks from existing ones. --}}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div id="allMarksGuidanceAlert" class="alert alert-warning d-flex align-items-center mb-3" style="display: {{ $total_marks - $marksToDeduct == 0 ? 'flex' : 'none' }}">
+                                    <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                                    <div>
+                                        <strong>All marks allocated:</strong> To add more assessment types, first reduce marks from existing ones.
+                                        <div class="small mt-1">Click on any marks input field with a <span class="text-info">highlighted border</span> to adjust.</div>
                                     </div>
                                 </div>
                                 
@@ -263,15 +274,21 @@
         function updateRemainingMarksColor() {
             var remainingMarksElement = document.getElementById('remainingMarks');
             var marksStatusElement = document.getElementById('marksStatus');
+            var marksGuidanceElement = document.getElementById('marksGuidance');
+            var allMarksGuidanceAlertElement = document.getElementById('allMarksGuidanceAlert');
             
             if (totalMarks === 0) {
                 remainingMarksElement.style.color = 'red';
                 marksStatusElement.style.display = 'inline'; // Show the "All marks allocated" badge
+                marksGuidanceElement.style.display = 'block'; // Show guidance message
+                allMarksGuidanceAlertElement.style.display = 'flex'; // Show alert guidance
                 // Disable all unchecked checkboxes when no marks are remaining
                 disableUncheckedCheckboxes();
             } else {
                 remainingMarksElement.style.color = 'green';
                 marksStatusElement.style.display = 'none'; // Hide the badge
+                marksGuidanceElement.style.display = 'none'; // Hide guidance message
+                allMarksGuidanceAlertElement.style.display = 'none'; // Hide alert guidance
                 // Enable all checkboxes when marks are available
                 enableUncheckedCheckboxes();
             }
@@ -284,7 +301,36 @@
                 // Add visual indicator that selection is disabled
                 var tr = checkbox.closest('tr');
                 tr.classList.add('text-muted');
-                tr.title = 'No marks remaining. Reduce other allocations to select this.';
+                
+                // Add a tooltip with guidance on how to free up marks
+                tr.title = 'No marks remaining. Reduce marks from existing assessment types to enable this option.';
+                
+                // Add a visual indicator to the checkbox
+                var tdElement = checkbox.closest('td');
+                if (!tdElement.querySelector('.no-marks-indicator')) {
+                    var indicator = document.createElement('span');
+                    indicator.className = 'no-marks-indicator text-danger ms-2';
+                    indicator.innerHTML = '<i class="bi bi-lock-fill" title="Reduce marks from other assessments to enable"></i>';
+                    tdElement.appendChild(indicator);
+                }
+            });
+            
+            // Highlight rows with allocated marks to indicate they can be reduced
+            highlightAllocatedRows();
+        }
+        
+        function highlightAllocatedRows() {
+            // Add highlight to rows that have marks allocated (to show they can be reduced)
+            var checkedCheckboxes = document.querySelectorAll('input.assessmentType:checked');
+            checkedCheckboxes.forEach(function(checkbox) {
+                var tr = checkbox.closest('tr');
+                var inputMarks = tr.querySelector('input[name^="marks_allocated"]');
+                
+                // Add a subtle highlight and tooltip to show these can be reduced
+                if (parseInt(inputMarks.value) > 1) {
+                    inputMarks.classList.add('border-info');
+                    inputMarks.title = 'You can reduce this value to free up marks for other assessment types';
+                }
             });
         }
         
@@ -296,6 +342,19 @@
                 var tr = checkbox.closest('tr');
                 tr.classList.remove('text-muted');
                 tr.removeAttribute('title');
+                
+                // Remove lock icon if it exists
+                var lockIcon = checkbox.closest('td').querySelector('.no-marks-indicator');
+                if (lockIcon) {
+                    lockIcon.remove();
+                }
+            });
+            
+            // Remove highlights from allocated rows
+            var allocatedInputs = document.querySelectorAll('input[name^="marks_allocated"]');
+            allocatedInputs.forEach(function(input) {
+                input.classList.remove('border-info');
+                input.title = '';
             });
         }
     </script>
