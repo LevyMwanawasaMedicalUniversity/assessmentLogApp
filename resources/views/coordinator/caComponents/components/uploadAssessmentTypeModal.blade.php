@@ -97,7 +97,12 @@
                                                         ]) }}?studyId={{ $result->study_id }}&componentId={{ $result->course_components_id }}&hasComponents={{ $result->component_name }}" class="btn btn-sm btn-outline-secondary me-2">
                                                             Change limit
                                                         </a>
-                                                        <a href="{{ route('coordinator.showCaWithin', encrypt($result->course_id)) }}?studyId={{ $result->study_id }}&componentId={{ $result->course_components_id }}&hasComponents={{ $result->component_name }}" class="btn btn-sm btn-outline-primary">
+                                                        <a href="{{ route('coordinator.viewAllCaInCourse', [
+                                                            'statusId' => encrypt($courseAssessmenetType->id),
+                                                            'courseIdValue' => encrypt($result->course_id),
+                                                            'basicInformationId' => encrypt($basicInformationId),
+                                                            'delivery' => encrypt($result->delivery_mode)
+                                                        ]) }}?studyId={{ $result->study_id }}&componentId={{ $result->course_components_id }}" class="btn btn-sm btn-outline-primary">
                                                             Update existing
                                                         </a>
                                                     </div>
